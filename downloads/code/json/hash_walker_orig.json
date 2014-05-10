@@ -1,0 +1,33 @@
+{
+    "title": "Hilarious article",
+    "subtitle": "Something people might find funny",
+    "description": "super funny stuff",
+    "system": {
+        "categories": [
+            "high ratings",
+            "link bait"
+        ],
+        "description": "really not that funny"
+    },
+    "author": {
+        "name": "Some Body",
+        "body": "Not too bad"
+    },
+    "categories": [
+        "Life",
+        "Happiness",
+        "Jokes"
+    ],
+    "content": {
+        "categories": [
+            "Life",
+            "Happiness",
+            "Jokes"
+        ],
+        "body": [
+        "lots of jokes here",
+        "lots of jokes here again !",
+        "last of the jokes !",
+        ]
+    }
+}

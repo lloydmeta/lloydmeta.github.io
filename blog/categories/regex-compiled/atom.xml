@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: regex compiled | BeachApe.]]></title>
+  <link href="http://lloydmeta.github.io/lloydmeta/blog/categories/regex-compiled/atom.xml" rel="self"/>
+  <link href="http://lloydmeta.github.io/lloydmeta/"/>
+  <updated>2014-05-10T13:05:57+09:00</updated>
+  <id>http://lloydmeta.github.io/lloydmeta/</id>
+  <author>
+    <name><![CDATA[Lloyd]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Simple String pattern checking in Ruby: Benchmark]]></title>
+    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/04/06/simple-string-pattern-checking-in-ruby-benchmark/"/>
+    <updated>2013-04-06T16:25:00+09:00</updated>
+    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/04/06/simple-string-pattern-checking-in-ruby-benchmark</id>
+    <content type="html"><![CDATA[<p>Often times, as programmers, we need to check to see if a substring exists in a bigger string. Many programmers will instinctively reach out for Regex matching, but I often wondered if this was really the best way to do things, particularly in Ruby.</p>
+
+<p>One day, in a Ruby-focused Skype group chat, a friend of mine asked the other members to give him a snippet of code that would allow him to take a hostname, check if the substring 'qa' was in it and if it did, return 'qa', else 'prod' (for production). My knee-jerk reaction was the same as the other members: use Regex. But I wondered if it would be better to use compiled Regex, or interpreted Regex, or perhaps maybe even the built in String method <a href="http://www.ruby-doc.org/core-1.9.3/String.html#method-i-include-3F">include?</a>. So I decided to do some benchmarking.</p>
+
+<!-- more -->
+
+
+<p>Ruby has a great module built in that makes benchmarking very simple: <a href="http://www.ruby-doc.org/stdlib-1.9.3/libdoc/benchmark/rdoc/Benchmark.html">Benchmark</a>. A lot of the time I use it to check if something is performant or not, even on the Rails level! In this session, I make use of a very small subset of this module's functionality, but if you're interested, please be sure to check out the above link to see other options.</p>
+
+<p>Anyways, my goal was to benchmark a simple string pattern check using compiled Regex, interpreted Regex, and the String #include? method. As a result, I wrote the following ruby script:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Code for benchmarking (simple_string_matching_benchmark.rb)</span> <a href='/downloads/code/ruby/simple_string_matching_benchmark.rb'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">require</span> <span class="s2">&quot;benchmark&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">regex_compiled</span> <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;qa&quot;</span><span class="p">)</span>
+</span><span class='line'><span class="n">regex_compiled</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;qa&quot;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">Benchmark</span><span class="o">.</span><span class="n">bmbm</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s2">&quot;1000000 times positive regex&quot;</span><span class="p">){</span><span class="mi">1000000</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span>
+</span><span class='line'>    <span class="s2">&quot;someserverqa&quot;</span> <span class="o">=~</span> <span class="sr">/qa/</span> <span class="p">?</span> <span class="s2">&quot;qa&quot;</span> <span class="p">:</span> <span class="s2">&quot;prod&quot;</span>
+</span><span class='line'>  <span class="k">end</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s2">&quot;1000000 times negative regex&quot;</span><span class="p">){</span><span class="mi">1000000</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span>
+</span><span class='line'>    <span class="s2">&quot;someserverprod&quot;</span> <span class="o">=~</span> <span class="sr">/qa/</span> <span class="p">?</span> <span class="s2">&quot;qa&quot;</span> <span class="p">:</span> <span class="s2">&quot;prod&quot;</span>
+</span><span class='line'>  <span class="k">end</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s2">&quot;1000000 times positive regex compiled&quot;</span><span class="p">){</span><span class="mi">1000000</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">regex_compiled</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;someserverqa&quot;</span><span class="p">)</span> <span class="p">?</span> <span class="s2">&quot;qa&quot;</span> <span class="p">:</span> <span class="s2">&quot;prod&quot;</span>
+</span><span class='line'>  <span class="k">end</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s2">&quot;1000000 times negative regex compiled&quot;</span><span class="p">){</span><span class="mi">1000000</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">regex_compiled</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;someserverprod&quot;</span><span class="p">)</span> <span class="p">?</span> <span class="s2">&quot;qa&quot;</span> <span class="p">:</span> <span class="s2">&quot;prod&quot;</span>
+</span><span class='line'>  <span class="k">end</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s2">&quot;1000000 times positive #include?&quot;</span><span class="p">){</span><span class="mi">1000000</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span>
+</span><span class='line'>    <span class="s2">&quot;someserverqa&quot;</span><span class="o">.</span><span class="n">include?</span><span class="p">(</span><span class="s2">&quot;qa&quot;</span><span class="p">)</span> <span class="p">?</span> <span class="s2">&quot;qa&quot;</span> <span class="p">:</span> <span class="s2">&quot;prod&quot;</span>
+</span><span class='line'>  <span class="k">end</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">x</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s2">&quot;1000000 times negative #include?&quot;</span><span class="p">){</span><span class="mi">1000000</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span>
+</span><span class='line'>    <span class="s2">&quot;someserverqa&quot;</span><span class="o">.</span><span class="n">include?</span><span class="p">(</span><span class="s2">&quot;someserverprod&quot;</span><span class="p">)</span> <span class="p">?</span> <span class="s2">&quot;qa&quot;</span> <span class="p">:</span> <span class="s2">&quot;prod&quot;</span>
+</span><span class='line'>  <span class="k">end</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Note the use of .bmbm, which tells the module that we want to perform a rehearsal run.</p>
+
+<p>The results were as follows:</p>
+
+<p>```
+Rehearsal -------------------------------------------------------------------------
+1000000 times positive regex            0.400000   0.000000   0.400000 (  0.398280)
+1000000 times negative regex            0.420000   0.000000   0.420000 (  0.424669)
+1000000 times positive regex compiled   0.990000   0.020000   1.010000 (  1.005177)
+1000000 times negative regex compiled   0.500000   0.000000   0.500000 (  0.496037)
+1000000 times positive #include?        0.280000   0.000000   0.280000 (  0.277431)
+1000000 times negative #include?        0.240000   0.000000   0.240000 (  0.248257)
+---------------------------------------------------------------- total: 2.850000sec</p>
+
+<pre><code>                                        user     system      total        real
+</code></pre>
+
+<p>1000000 times positive regex            0.400000   0.000000   0.400000 (  0.408893)
+1000000 times negative regex            0.450000   0.000000   0.450000 (  0.447820)
+1000000 times positive regex compiled   1.010000   0.000000   1.010000 (  1.009081)
+1000000 times negative regex compiled   0.500000   0.000000   0.500000 (  0.502232)
+1000000 times positive #include?        0.280000   0.000000   0.280000 (  0.275711)
+1000000 times negative #include?        0.250000   0.000000   0.250000 (  0.247974)
+```</p>
+
+<h2>Conclusion</h2>
+
+<p>Turned out in the case of simple string presence checking, #include? was faster than everything else by almost half. More surprising was the fact that Regex compiled was even slower than Regex interpreted.</p>
+]]></content>
+  </entry>
+  
+</feed>

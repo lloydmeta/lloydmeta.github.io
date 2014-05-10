@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: hashes | BeachApe.]]></title>
+  <link href="http://lloydmeta.github.io/lloydmeta/blog/categories/hashes/atom.xml" rel="self"/>
+  <link href="http://lloydmeta.github.io/lloydmeta/"/>
+  <updated>2014-05-10T13:05:57+09:00</updated>
+  <id>http://lloydmeta.github.io/lloydmeta/</id>
+  <author>
+    <name><![CDATA[Lloyd]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Ruby Hash traversal]]></title>
+    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/01/18/walking-a-ruby-hash/"/>
+    <updated>2013-01-18T23:52:00+09:00</updated>
+    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/01/18/walking-a-ruby-hash</id>
+    <content type="html"><![CDATA[<p><em>TL;DR</em> If you're using Ruby, want to perform operations on the values of a hash only at specific locations in the hash, check out <a href="https://rubygems.org/gems/hash_walker">hash_walker</a></p>
+
+<p>A while back I worked at a Tokyo-based startup focused on building a crowd-sourced translation platform. The great thing about <a href="http://gengo.com/">Gengo</a> was that we (and they still do) offered a translation API that allowed clients to integrate and thus order huge amounts of translations, receive translated content back via callbacks and do whatever it is that clients do with translated materials.</p>
+
+<p>On one of the projects I worked on for a potential client, as part of a trial project, I needed to process a huge amounts (ok, not huge, maybe around 2000 or so) JSON responses and grab the data, throw it over the Gengo API and once it was translated, re-insert the translated content into the JSON responses and send all the JSON responses in text files to the client.</p>
+
+<!-- more -->
+
+
+<p>Not too hard, but at the same time not entirely trivial because the client wanted to make sure that only specific pieces in the original JSON were translated. For example given the following JSON response:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Contrived JSON example (hash_walker_orig.json)</span> <a href='/downloads/code/json/hash_walker_orig.json'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Hilarious article&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;subtitle&quot;</span><span class="p">:</span> <span class="s2">&quot;Something people might find funny&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;super funny stuff&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;system&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nt">&quot;categories&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>            <span class="s2">&quot;high ratings&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="s2">&quot;link bait&quot;</span>
+</span><span class='line'>        <span class="p">],</span>
+</span><span class='line'>        <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;really not that funny&quot;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="nt">&quot;author&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Some Body&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="nt">&quot;body&quot;</span><span class="p">:</span> <span class="s2">&quot;Not too bad&quot;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="nt">&quot;categories&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>        <span class="s2">&quot;Life&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;Happiness&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;Jokes&quot;</span>
+</span><span class='line'>    <span class="p">],</span>
+</span><span class='line'>    <span class="nt">&quot;content&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nt">&quot;categories&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>            <span class="s2">&quot;Life&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="s2">&quot;Happiness&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="s2">&quot;Jokes&quot;</span>
+</span><span class='line'>        <span class="p">],</span>
+</span><span class='line'>        <span class="nt">&quot;body&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>        <span class="s2">&quot;lots of jokes here&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;lots of jokes here again !&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;last of the jokes !&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="p">]</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>The client wanted title, subtitle, description, content.categories, content.body translated, but <strong>NOT</strong>  system.categories, system.descriptions etc. So in other words, it wouldn't be good enough to just traverse the JSON and look for specific keys, it had to be dependent on where the key was. To make things even more interesting, there would be cases where keys were inside objects that were inside arrays inside objects, inside arrays, etc.</p>
+
+<p>Since I like using Ruby and in Ruby, the natural data structure that JSON maps to is the Hash, I decided to build an app that would allow me to define some sort of "template" if you will, for the purpose of traversing the JSON responses involved in this project.</p>
+
+<p>I came up with the <a href="https://rubygems.org/gems/hash_walker">hash_walker gem</a>. Use it like you would any gem, require it, and you get a each_primitive_value_at method on all hash objects. For full details on how to use it, check out <a href="https://github.com/lloydmeta/hash_walker">the project's Github page</a>; I'll just be explaining the basics here.</p>
+
+<p>Since a code example says a thousand words:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Code example for hash_walker (hash_walker_hash.rb)</span> <a href='/downloads/code/ruby/hash_walker_hash.rb'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">require</span> <span class="s1">&#39;hash_walker&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">json_response</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="s2">&quot;title&quot;</span><span class="o">=&gt;</span> <span class="s2">&quot;Hilarious article&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;subtitle&quot;</span><span class="o">=&gt;</span> <span class="s2">&quot;Something people might find funny&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;description&quot;</span><span class="o">=&gt;</span> <span class="s2">&quot;super funny stuff&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;system&quot;</span><span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="s2">&quot;categories&quot;</span><span class="o">=&gt;</span> <span class="o">[</span>
+</span><span class='line'>            <span class="s2">&quot;high ratings&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="s2">&quot;link bait&quot;</span>
+</span><span class='line'>        <span class="o">]</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;description&quot;</span><span class="o">=&gt;</span> <span class="s2">&quot;really not that funny&quot;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="s2">&quot;author&quot;</span><span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="s2">&quot;name&quot;</span><span class="o">=&gt;</span> <span class="s2">&quot;Some Body&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;body&quot;</span><span class="o">=&gt;</span> <span class="s2">&quot;Not too bad&quot;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="s2">&quot;categories&quot;</span><span class="o">=&gt;</span> <span class="o">[</span>
+</span><span class='line'>        <span class="s2">&quot;Life&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;Happiness&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;Jokes&quot;</span>
+</span><span class='line'>    <span class="o">]</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;content&quot;</span><span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="s2">&quot;categories&quot;</span><span class="o">=&gt;</span> <span class="o">[</span>
+</span><span class='line'>            <span class="s2">&quot;Life&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="s2">&quot;Happiness&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="s2">&quot;Jokes&quot;</span>
+</span><span class='line'>        <span class="o">]</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;body&quot;</span><span class="o">=&gt;</span> <span class="o">[</span>
+</span><span class='line'>            <span class="s2">&quot;lots of jokes here&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="s2">&quot;lots of jokes here again !&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="s2">&quot;last of the jokes !&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">]</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">keys_to_read</span> <span class="o">=</span> <span class="o">[</span>
+</span><span class='line'>        <span class="s2">&quot;title&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;author&quot;</span> <span class="o">=&gt;</span> <span class="o">[</span><span class="s2">&quot;name&quot;</span><span class="o">]</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;categories&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;content&quot;</span> <span class="o">=&gt;</span> <span class="o">[</span>
+</span><span class='line'>            <span class="s2">&quot;body&quot;</span>
+</span><span class='line'>        <span class="o">]</span>
+</span><span class='line'>    <span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">json_response</span><span class="o">.</span><span class="n">each_primitive_value_at</span><span class="p">(</span><span class="n">keys_to_read</span><span class="p">){</span><span class="o">|</span><span class="n">value</span><span class="p">,</span><span class="n">path</span><span class="o">|</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="n">value</span><span class="si">}</span><span class="s2">, </span><span class="si">#{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Output</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Hilarious article, [&quot;title&quot;]</span>
+</span><span class='line'><span class="c1"># Some Body, [&quot;author&quot;, &quot;body&quot;]</span>
+</span><span class='line'><span class="c1"># Life, [&quot;a_array&quot;, 0]</span>
+</span><span class='line'><span class="c1"># Happiness, [&quot;a_array&quot;, 1]</span>
+</span><span class='line'><span class="c1"># Jokes, [&quot;a_array&quot;, 2]</span>
+</span><span class='line'><span class="c1"># lots of jokes here, [&quot;content&quot;, body&quot;, 0]</span>
+</span><span class='line'><span class="c1"># lots of jokes here again !, [&quot;content&quot;, body&quot;, 1]</span>
+</span><span class='line'><span class="c1"># last of the jokes !, [&quot;content&quot;, body&quot;, 2]</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>If you have any suggestions, contributions or issues, please feel free to leave a comment here or on the repo itself !</p>
+]]></content>
+  </entry>
+  
+</feed>

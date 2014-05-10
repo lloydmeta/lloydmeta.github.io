@@ -1,0 +1,28 @@
+: ${DIST:=$(lsb_release --short --codename)}
+: ${ARCH:=$(dpkg --print-architecture)}
+NAME="$DIST-$ARCH"
+DISTRIBUTION="$DIST"
+DEBOOTSTRAPOPTS=("--arch" "$ARCH" "${DEBOOTSTRAPOPTS[@]}")
+BASETGZ="`dirname $BASETGZ`/$NAME-base.tgz"
+BUILDRESULT="/var/cache/pbuilder/$NAME/result/"
+APTCACHE="/var/cache/pbuilder/$NAME/aptcache/"
+# Don't rebuild source files (.diff.gz, .dsc), or list them in .changes
+# See Ubuntu bug 118181
+DEBBUILDOPTS="-b -d"
+
+case "$DIST" in
+    oneiric|trusty|lucid|karmic|jaunty|intrepid|hardy|dapper) # ubuntu specific
+        MIRRORSITE="http://archive.ubuntu.com/ubuntu/"
+        COMPONENTS="main restricted universe multiverse"
+        ;;
+    sid|squeeze|lenny|etch) # debian specific
+        MIRRORSITE="http://mirrors.kernel.org/debian/"
+        COMPONENTS="main contrib non-free"
+        ;;
+    *)
+        echo "Unknown distribution: $DIST"
+        exit 1
+        ;;
+esac
+
+HOOKDIR=$HOME/.pbuilder-hooks

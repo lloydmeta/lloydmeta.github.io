@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: page meta | BeachApe.]]></title>
+  <link href="http://lloydmeta.github.io/lloydmeta/blog/categories/page-meta/atom.xml" rel="self"/>
+  <link href="http://lloydmeta.github.io/lloydmeta/"/>
+  <updated>2014-05-10T13:05:57+09:00</updated>
+  <id>http://lloydmeta.github.io/lloydmeta/</id>
+  <author>
+    <name><![CDATA[Lloyd]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Metascraper v0.2.1 Released]]></title>
+    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/09/12/metascraper-v0-dot-2-1-released/"/>
+    <updated>2013-09-12T10:04:00+09:00</updated>
+    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/09/12/metascraper-v0-dot-2-1-released</id>
+    <content type="html"><![CDATA[<p>Sorry for the quick version-up. Version 0.1.1 added non-blocking I/O, but was using Dispatch without configuring the threadpool used for HTTP connections. This caused issues on Heroku where there is a 256 combined thread + process limit for 1x dynos (512 for 2x dynos), whereby Java OOM "unable to create new native thread" errors would be thrown.</p>
+
+<p>0.2.1 adds:</p>
+
+<ul>
+<li>Configuration of Actor HTTP client on ScraperActor instantiation
+
+<ul>
+<li>Notably: HTTP client ExecutorService thread pool</li>
+</ul>
+</li>
+</ul>
+
+
+<p>Relevent info:</p>
+
+<ul>
+<li><a href="https://github.com/lloydmeta/metascraper">Metascraper Github repo</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Metascraper v0.1.1 released]]></title>
+    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/09/11/metascraper-v0-dot-1-1-released/"/>
+    <updated>2013-09-11T16:13:00+09:00</updated>
+    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/09/11/metascraper-v0-dot-1-1-released</id>
+    <content type="html"><![CDATA[<p>Metascraper v0.1.1 has been released. Major changes include:</p>
+
+<ul>
+<li>Async / non-blocking I/O for page requests: <a href="https://github.com/lloydmeta/metascraper/issues/2">Originally suggested by analytically</a>, I've added asynchronous requesting of webpages via <a href="http://dispatch.databinder.net/Dispatch.html">Dispatch</a></li>
+<li>ScraperActor now replies with <code>Either[Throwable, ScrapedData]</code> whereas before it replied with <code>Either[Throwable, ScrapedData]</code>. This allows library users to access the full capabilities of thrown objects. <em>This might break your app</em></li>
+<li>Added URL validations</li>
+<li>Better guessing of metadata</li>
+<li>More relevant <code>User-Agent</code> out of the box</li>
+<li>Better test coverage</li>
+</ul>
+
+
+<p>Relevent info:</p>
+
+<ul>
+<li><a href="https://github.com/lloydmeta/metascraper">Metascraper Github repo</a></li>
+<li>Add<code>libraryDependencies += "com.beachape.metascraper" %% "metascraper" % "0.1.1"</code> into <code>build.sbt</code> to install</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Introducing Metascraper - a Scala library for scraping page metadata]]></title>
+    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata/"/>
+    <updated>2013-09-05T10:26:00+09:00</updated>
+    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata</id>
+    <content type="html"><![CDATA[<p>Scraping metadata (e.g. <code>title</code>, <code>description</code>, <code>url</code>, etc.) from a URL is something that <a href="https://www.facebook.com/">Facebook</a> currently does for you when you paste a URL into the "Update Status" box. For a service that I'm currently building out, we wanted to do this as well for our users. Thus <a href="https://github.com/lloydmeta/metascraper">Metascraper</a> was born.</p>
+
+<p>There was already a Ruby solution called <a href="https://github.com/gottfrois/link_thumbnailer">link_thumbnailer</a>, but since this is a I/O heavy operation, I knew I wanted to build a solution using tools that supported non-blocking I/O and could be used without getting caught in callback spaghetti. Scala, Akka, and the Play framework immediately came to mind.</p>
+
+<!-- more -->
+
+
+<h2>Existing solutions</h2>
+
+<p>Before I started building my own solution, I did some research and found that there were already some web-scraping solutions written in Scala or Java, such as <a href="https://github.com/ofrasergreen/chafed">chafed</a>, and some more listed in <a href="http://stackoverflow.com/questions/14745634/web-scraping-with-scala">this StackOverflow question</a>.</p>
+
+<p>I wanted something more focused, something that would "intelligently" return a page's title, description, urls, and images back. I also wanted to make sure that if the page implemented the <a href="http://ogp.me/">Open Graph Protocol</a>, the information from those tags got prioritised. Since these requirements were not being fulfilled by existing Scala libraries, I set about creating my own Scala library.</p>
+
+<h2>Metascraper Components</h2>
+
+<p>The main components of the Metascraper library include:</p>
+
+<ol>
+<li><a href="http://akka.io/">Akka actors</a></li>
+<li><a href="http://jsoup.org/">jsoup</a>: While there were Scala web scrapers, the Java solution, jsoup, was very mature and easy to use.</li>
+</ol>
+
+
+<h2>Basic workflow (a.k.a. how to use)</h2>
+
+<p>This post won't go over in too much detail how to use the library because that stuff is available from the <a href="https://github.com/lloydmeta/metascraper">Metascraper Github page</a> and will probably change over time, but this is the basic workflow:</p>
+
+<ol>
+<li>Instantiate a <code>ScraperActor</code></li>
+<li>Send a message to the scraper with <code>ScrapeUrl(url: String)</code></li>
+<li>When scraping is done, the actor will reply with a <code>Either[FailedToScrapeUrl,ScrapedData]</code></li>
+</ol>
+
+
+<p>The project is Mavenised and is availale from the Central Repository, so simply add the <code>libraryDependency</code> in your <code>build.sbt</code> (when you read this the versioning might be different so refer to the project's Github page):</p>
+
+<p><code>scala
+libraryDependencies += "com.beachape.metascraper" %% "metascraper" % "0.0.2"
+</code></p>
+
+<p>And to use it,</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Metascraper example code (metascraper_example.scala)</span> <a href='/downloads/code/scala/metascraper_example.scala'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">com.beachape.metascraper.Messages._</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">com.beachape.metascraper.ScraperActor</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">scala.concurrent.Await</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">akka.pattern.ask</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">akka.util.Timeout</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">implicit</span> <span class="k">val</span> <span class="n">timeout</span> <span class="k">=</span> <span class="nc">Timeout</span><span class="o">(</span><span class="mi">30</span> <span class="n">seconds</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">implicit</span> <span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">&quot;actorSystem&quot;</span><span class="o">)</span>
+</span><span class='line'><span class="k">implicit</span> <span class="k">val</span> <span class="n">dispatcher</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">dispatcher</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">val</span> <span class="n">scraperActor</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">ScraperActor</span><span class="o">())</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">for</span> <span class="o">{</span>
+</span><span class='line'>  <span class="n">future</span> <span class="k">&lt;-</span> <span class="n">ask</span><span class="o">(</span><span class="n">scraperActor</span><span class="o">,</span> <span class="nc">ScrapeUrl</span><span class="o">(</span><span class="s">&quot;https://bbc.co.uk&quot;</span><span class="o">)).</span><span class="n">mapTo</span><span class="o">[</span><span class="kt">Either</span><span class="o">[</span><span class="kt">FailedToScrapeUrl</span>,<span class="kt">ScrapedData</span><span class="o">]]</span>
+</span><span class='line'><span class="o">}</span> <span class="o">{</span>
+</span><span class='line'>  <span class="n">future</span> <span class="k">match</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">case</span> <span class="nc">Left</span><span class="o">(</span><span class="n">failed</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">println</span><span class="o">(</span><span class="s">&quot;Failed: &quot;</span><span class="o">)</span>
+</span><span class='line'>      <span class="n">println</span><span class="o">(</span><span class="n">failed</span><span class="o">.</span><span class="n">message</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="k">case</span> <span class="nc">Right</span><span class="o">(</span><span class="n">data</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">println</span><span class="o">(</span><span class="s">&quot;Image urls&quot;</span><span class="o">)</span>
+</span><span class='line'>      <span class="n">data</span><span class="o">.</span><span class="n">imageUrls</span><span class="o">.</span><span class="n">foreach</span><span class="o">(</span><span class="n">println</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/*</span>
+</span><span class='line'><span class="cm"> #=&gt;</span>
+</span><span class='line'><span class="cm">  Image URLs:</span>
+</span><span class='line'><span class="cm">  http://www.bbc.co.uk/img/iphone.png</span>
+</span><span class='line'><span class="cm">  http://sa.bbc.co.uk/bbc/bbc/s?name=SET-COUNTER&amp;pal_route=index&amp;ml_name=barlesque&amp;app_type=web&amp;language=en-GB&amp;ml_version=0.16.1&amp;pal_webapp=wwhp&amp;blq_s=3.5&amp;blq_r=3.5&amp;blq_v=default-worldwide</span>
+</span><span class='line'><span class="cm">  http://static.bbci.co.uk/frameworks/barlesque/2.51.2/desktop/3.5/img/blq-blocks_grey_alpha.png</span>
+</span><span class='line'><span class="cm">  http://static.bbci.co.uk/frameworks/barlesque/2.51.2/desktop/3.5/img/blq-search_grey_alpha.png</span>
+</span><span class='line'><span class="cm">  http://news.bbcimg.co.uk/media/images/69612000/jpg/_69612953_69612952.jpg</span>
+</span><span class='line'><span class="cm">*/</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<h2>Example application</h2>
+
+<p>I've created an example Play2 application that integrates this library, called <a href="https://github.com/lloydmeta/metascraper-service">metascraper-service</a>. Feel free to take a look !</p>
+
+<h2>Conclusion</h2>
+
+<p>Please give <a href="https://github.com/lloydmeta/metascraper">Metascraper</a> a test drive and submit issues and pull requests !</p>
+]]></content>
+  </entry>
+  
+</feed>
