@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: testing | BeachApe.]]></title>
+  <link href="http://lloydmeta.github.io/lloydmeta/blog/categories/testing/atom.xml" rel="self"/>
+  <link href="http://lloydmeta.github.io/lloydmeta/"/>
+  <updated>2014-05-10T13:05:57+09:00</updated>
+  <id>http://lloydmeta.github.io/lloydmeta/</id>
+  <author>
+    <name><![CDATA[Lloyd]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Metascraper v0.2.1 Released]]></title>
+    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/09/12/metascraper-v0-dot-2-1-released/"/>
+    <updated>2013-09-12T10:04:00+09:00</updated>
+    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/09/12/metascraper-v0-dot-2-1-released</id>
+    <content type="html"><![CDATA[<p>Sorry for the quick version-up. Version 0.1.1 added non-blocking I/O, but was using Dispatch without configuring the threadpool used for HTTP connections. This caused issues on Heroku where there is a 256 combined thread + process limit for 1x dynos (512 for 2x dynos), whereby Java OOM "unable to create new native thread" errors would be thrown.</p>
+
+<p>0.2.1 adds:</p>
+
+<ul>
+<li>Configuration of Actor HTTP client on ScraperActor instantiation
+
+<ul>
+<li>Notably: HTTP client ExecutorService thread pool</li>
+</ul>
+</li>
+</ul>
+
+
+<p>Relevent info:</p>
+
+<ul>
+<li><a href="https://github.com/lloydmeta/metascraper">Metascraper Github repo</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Metascraper v0.1.1 released]]></title>
+    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/09/11/metascraper-v0-dot-1-1-released/"/>
+    <updated>2013-09-11T16:13:00+09:00</updated>
+    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/09/11/metascraper-v0-dot-1-1-released</id>
+    <content type="html"><![CDATA[<p>Metascraper v0.1.1 has been released. Major changes include:</p>
+
+<ul>
+<li>Async / non-blocking I/O for page requests: <a href="https://github.com/lloydmeta/metascraper/issues/2">Originally suggested by analytically</a>, I've added asynchronous requesting of webpages via <a href="http://dispatch.databinder.net/Dispatch.html">Dispatch</a></li>
+<li>ScraperActor now replies with <code>Either[Throwable, ScrapedData]</code> whereas before it replied with <code>Either[Throwable, ScrapedData]</code>. This allows library users to access the full capabilities of thrown objects. <em>This might break your app</em></li>
+<li>Added URL validations</li>
+<li>Better guessing of metadata</li>
+<li>More relevant <code>User-Agent</code> out of the box</li>
+<li>Better test coverage</li>
+</ul>
+
+
+<p>Relevent info:</p>
+
+<ul>
+<li><a href="https://github.com/lloydmeta/metascraper">Metascraper Github repo</a></li>
+<li>Add<code>libraryDependencies += "com.beachape.metascraper" %% "metascraper" % "0.1.1"</code> into <code>build.sbt</code> to install</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

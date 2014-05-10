@@ -1,0 +1,17 @@
+{
+    "name": "app",
+    "description": "",
+    "version": "0.0.1",
+    "private": true,
+    "author": "Lloyd Meta github.com/lloydmeta",
+    "dependencies": {
+        "express": ">=3.0",
+        "socket.io": ">=0.9",
+        "async": ">=0.1.22",
+        "newrelic": ">=0.9"
+    },
+    "engines": {
+        "node": ">=0.8",
+        "npm": ">= 1.1"
+    }
+}

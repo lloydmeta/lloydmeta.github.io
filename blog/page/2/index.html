@@ -1,0 +1,637 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>BeachApe.</title>
+  <meta name="author" content="Lloyd">
+
+  
+  <meta name="description" content="Scraping metadata (e.g. title, description, url, etc.) from a URL is something that Facebook currently does for you when you paste a URL into the &# &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://lloydmeta.github.io/lloydmeta/blog/page/2/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="BeachApe." type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-24087840-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">BeachApe.</a></h1>
+  
+    <h2>Things thought of, seen by, built by, or played with by someone just like you.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:lloydmeta.github.io/lloydmeta" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata/">Introducing Metascraper - a Scala Library for Scraping Page Metadata</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-05T10:26:00+09:00" pubdate data-updated="true">Sep 5<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Scraping metadata (e.g. <code>title</code>, <code>description</code>, <code>url</code>, etc.) from a URL is something that <a href="https://www.facebook.com/">Facebook</a> currently does for you when you paste a URL into the &#8220;Update Status&#8221; box. For a service that I&#8217;m currently building out, we wanted to do this as well for our users. Thus <a href="https://github.com/lloydmeta/metascraper">Metascraper</a> was born.</p>
+
+<p>There was already a Ruby solution called <a href="https://github.com/gottfrois/link_thumbnailer">link_thumbnailer</a>, but since this is a I/O heavy operation, I knew I wanted to build a solution using tools that supported non-blocking I/O and could be used without getting caught in callback spaghetti. Scala, Akka, and the Play framework immediately came to mind.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/07/23/introducing-schwatcher/">Introducing Schwatcher</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-23T07:55:00+09:00" pubdate data-updated="true">Jul 23<span>rd</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>The <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/file/WatchService.html">WatchService</a> was added as part of Java 7 and introduced the ability to monitor files through the JVM without the use of external libraries like <a href="http://jnotify.sourceforge.net/">JNotify</a> that require installing native libraries. Using this API for a project that requires monitoring files makes handling dependencies for both deployment and development much simpler.</p>
+
+<p>Since Scala is able to directly invoke Java, I wanted to use this API when I was building <a href="https://github.com/lloydmeta/akanori-thrift">Akanori-thrift</a>, a trending-words detection service that is focused on the Japanese language. This post will not go over that service in detail (that will take up an entire post of its own if not more) but my use-case there was monitor a custom dictionary file for updates and then spawn a new instance of the <code>Tokenizer</code> that uses the updated state of the file.</p>
+
+<p>I quickly realised a few pain-points:</p>
+
+<ol>
+<li>There existed no file monitoring Scala library (at the time),</li>
+<li>Using the WatchService API requires the use of a blocking thread to get events,</li>
+<li>The WatchService API does not have recursive monitoring support built in</li>
+</ol>
+
+
+<p>To address these, I set out to create <a href="https://github.com/lloydmeta/schwatcher">Schwatcher</a>, a Scala library that wraps the WatchService API of Java7 and allows callbacks to be registered and unregistered on both directories and files both as individual paths and recursively. Furthermore, I wanted to facilitate the use of the Java7 API in Scala in a simple way that is in line with the functional programming paradigm.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/07/23/introducing-schwatcher/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/06/20/scala-processing-option-wrapped-collections/">Scala: Processing Option-wrapped Collections</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-20T11:14:00+09:00" pubdate data-updated="true">Jun 20<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>In Scala, there are a lot of cool things - too many to list. Among them is something borrowed from Haskell; the <strong>Maybe</strong>, spelt <a href="http://www.scala-lang.org/api/current/index.html#scala.Option"><em>Option</em> in Scala</a>, which itself is based on the concept of computing via <a href="http://en.wikibooks.org/wiki/Haskell/Understanding_monads">monads</a>.</p>
+
+<p>The reason why <code>Option</code> is awesome is that, if used properly, it largely frees the programmer from having to worry about various variables being in states of nothingness (Nil, null, etc). Without fail, every programmer has at one point or another written things like <code>thing.nil? ? do_nothing : do_something</code> &#8230;. all over the place. The point (in my mind, at least) of <code>Option</code> is to free us from having to do this in as many places as possible.</p>
+
+<p>Many libraries in Scala, such as <a href="https://github.com/debasishg/scala-redis">Scala-Redis</a> are made with the assumption that the programmer knows how to deal with <code>Option</code> and return results wrapped in either <code>Some[List[T]]</code> or <code>None</code>.  That said, how to work with these types of results is not exactly straight forward for someone coming from other languages that don&#8217;t have such constructs, so I&#8217;ve written down some of my thoughts.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/06/20/scala-processing-option-wrapped-collections/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/06/12/ruby-2-dot-0-0-enumerable-lazy-benchmark/">Ruby 2.0.0 Enumerable Lazy Benchmark</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-12T10:30:00+09:00" pubdate data-updated="true">Jun 12<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Ruby 2.0.0 was released a few months back and I finally had some time to look into some of the features and changes that came with it. Lazy collections has always been a cool concept for me and so I decided to do a few benchmarks.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/06/12/ruby-2-dot-0-0-enumerable-lazy-benchmark/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/04/06/simple-string-pattern-checking-in-ruby-benchmark/">Simple String Pattern Checking in Ruby: Benchmark</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-06T16:25:00+09:00" pubdate data-updated="true">Apr 6<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Often times, as programmers, we need to check to see if a substring exists in a bigger string. Many programmers will instinctively reach out for Regex matching, but I often wondered if this was really the best way to do things, particularly in Ruby.</p>
+
+<p>One day, in a Ruby-focused Skype group chat, a friend of mine asked the other members to give him a snippet of code that would allow him to take a hostname, check if the substring &#8216;qa&#8217; was in it and if it did, return &#8216;qa&#8217;, else &#8216;prod&#8217; (for production). My knee-jerk reaction was the same as the other members: use Regex. But I wondered if it would be better to use compiled Regex, or interpreted Regex, or perhaps maybe even the built in String method <a href="http://www.ruby-doc.org/core-1.9.3/String.html#method-i-include-3F">include?</a>. So I decided to do some benchmarking.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/04/06/simple-string-pattern-checking-in-ruby-benchmark/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/04/06/lossy-optimisation-for-png-files/">Lossy Optimisation for PNG Files</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-06T16:04:00+09:00" pubdate data-updated="true">Apr 6<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>These days, theres a lot of focus on reducing the load times on your website to make the experience smoother for your users. One way is to make creative use of CSS to style your websites instead of using images. That said, there are times when you have to use images and even the best front-end guys need to reach for images depending on what kind of design they were tasked with implementing.</p>
+
+<p>If you&#8217;re using PNGs, likely you&#8217;re already choosing to save them in a way that optimises them for the internets, but even then there are savings to be had by employing the use of <em>lossy</em> PNG optimisation.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/04/06/lossy-optimisation-for-png-files/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/02/19/padrino-with-resque-web-ui/">Padrino With Resque-web UI</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-02-19T17:44:00+09:00" pubdate data-updated="true">Feb 19<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Finally got a chance to play around with Padrino last week to build a <a href="https://github.com/lloydmeta/push_to_devices">Push to Devices notification server</a>, but ran into a bit of an issue trying to get Resque-web / Resque server UI to show up.</p>
+
+<p>Finally ran into <a href="http://d.hatena.ne.jp/hiro_nemu/20120809/1344476207">this great blog entry</a>. It&#8217;s written in Japanese so I decided to create a short version in English here in case anyone else runs into the same issue</p>
+
+<p>If you already have the following:</p>
+
+<figure class='code'><figcaption><span>config.ru</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># snip</span>
+</span><span class='line'><span class="n">run</span> <span class="ss">Rack</span><span class="p">:</span><span class="ss">:URLMap</span><span class="o">.</span><span class="n">new</span> <span class="p">\</span>
+</span><span class='line'>  <span class="s2">&quot;/&quot;</span>       <span class="o">=&gt;</span> <span class="no">Padrino</span><span class="o">.</span><span class="n">application</span><span class="p">,</span>
+</span><span class='line'>  <span class="s2">&quot;/resque&quot;</span> <span class="o">=&gt;</span> <span class="ss">Resque</span><span class="p">:</span><span class="ss">:Server</span><span class="o">.</span><span class="n">new</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>in your <code>config.ru</code> and yet don&#8217;t see anything when you hit /resque on your local environment, run your server with</p>
+
+<p><code>$rackup -p 3000</code></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/02/04/nodejs-on-heroku-with-newrelic/">NodeJS on Heroku With NewRelic</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-02-04T12:31:00+09:00" pubdate data-updated="true">Feb 4<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><em>TL;DR</em> If you&#8217;re using NodeJS and want to monitor using NewRelic, follow <a href="https://npmjs.org/package/newrelic">these steps</a>. Additionally if you want to do this on Heroku using the NewRelic account you added through the Heroku API, make sure your <a href="https://github.com/lloydmeta/Node_notifications/blob/master/package.json">package.json has &#8220;newrelic&#8221;</a> and <a href="https://github.com/lloydmeta/Node_notifications/blob/master/newrelic.js">your newrelic.js points to the NEW_RELIC_LICENSE_KEY environment variable</a>.</p>
+
+<p>Last Friday, I set up a NodeJS push notification server for my current project. Essentially it was mostly inspired by this <a href="http://blog.joshsoftware.com/2012/01/30/push-notifications-using-express-js-and-socket-io/">excellent blog post</a>, but I updated it to use the latest NPM packages and to support sending notifications to all of a user&#8217;s open sockets as well as cleaning up on disconnect. That&#8217;s another story for another time.</p>
+
+<p>This blog post will cover how to get NodeJS monitoring with NewRelic <strong>on</strong> Heroku.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/02/04/nodejs-on-heroku-with-newrelic/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/01/18/walking-a-ruby-hash/">Ruby Hash Traversal</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-18T23:52:00+09:00" pubdate data-updated="true">Jan 18<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><em>TL;DR</em> If you&#8217;re using Ruby, want to perform operations on the values of a hash only at specific locations in the hash, check out <a href="https://rubygems.org/gems/hash_walker">hash_walker</a></p>
+
+<p>A while back I worked at a Tokyo-based startup focused on building a crowd-sourced translation platform. The great thing about <a href="http://gengo.com/">Gengo</a> was that we (and they still do) offered a translation API that allowed clients to integrate and thus order huge amounts of translations, receive translated content back via callbacks and do whatever it is that clients do with translated materials.</p>
+
+<p>On one of the projects I worked on for a potential client, as part of a trial project, I needed to process a huge amounts (ok, not huge, maybe around 2000 or so) JSON responses and grab the data, throw it over the Gengo API and once it was translated, re-insert the translated content into the JSON responses and send all the JSON responses in text files to the client.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/01/18/walking-a-ruby-hash/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/05/03/rxscala-and-schwatcher/">RxScala and Schwatcher</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/05/02/schwatcher-v0-dot-1-3-released/">Schwatcher v0.1.3 Released</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/03/06/schwatcher-v0-dot-1-0-released/">Schwatcher v0.1.0 Released</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric/">Backporting Ruby from Trusty to Oneiric</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/04/schwatcher-v0-dot-0-7-released/">Schwatcher v0.0.7 Released</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/lloydmeta">@lloydmeta</a> on GitHub
+  
+  <script type="text/javascript">
+    $.domReady(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'lloydmeta',
+            count: 5,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+<section>
+    <h1>Twitter</h1>
+    <a class="twitter-timeline" href="https://twitter.com/meta_Lloyd" data-widget-id="423278387365302272">Tweets by @meta_Lloyd</a>
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
+    </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Lloyd -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'beachape';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

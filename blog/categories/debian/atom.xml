@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Debian | BeachApe.]]></title>
+  <link href="http://lloydmeta.github.io/lloydmeta/blog/categories/debian/atom.xml" rel="self"/>
+  <link href="http://lloydmeta.github.io/lloydmeta/"/>
+  <updated>2014-05-10T13:05:57+09:00</updated>
+  <id>http://lloydmeta.github.io/lloydmeta/</id>
+  <author>
+    <name><![CDATA[Lloyd]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Backporting Ruby from Trusty to Oneiric]]></title>
+    <link href="http://lloydmeta.github.io/lloydmeta/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric/"/>
+    <updated>2014-01-14T22:35:00+09:00</updated>
+    <id>http://lloydmeta.github.io/lloydmeta/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric</id>
+    <content type="html"><![CDATA[<h2>Goal</h2>
+
+<p>Create a backported Ruby 1.9.3p484 Ubuntu package. For the purposes of this post, we will assume that you are OK with not creating a signed package (required if uploading to launchpad). If you wish to upload to launchpad (for example to share your backport with the world), it may be useful for you to <a href="http://opensourcehacker.com/2013/03/20/how-to-backport-packages-on-ubuntu-linux/">check out this site</a> after reading through this guide.</p>
+
+<h2>Motivation</h2>
+
+<p>At my day job, I had to upgrade Ruby on very old production boxes that were running Oneiric AMD64. Upgrading the OS was a chore that would be happening later but we needed to start using the latest Ruby as soon as possible.</p>
+
+<p>Unfortunately, there is no Ruby 1.9.3p484 Debian package readily available for Oneiric, not even as a backport.</p>
+
+<!-- more -->
+
+
+<h2>Basic requirements</h2>
+
+<ul>
+<li>A reasonable Ubuntu environment. Use Vagrant (and its dependencies, such as Virtualbox) if you are on OSX</li>
+<li>Basic *Nix knowledge (command line editors and various tools)</li>
+</ul>
+
+
+<h2>Overview</h2>
+
+<p>The idea is to use tools readily available on Ubuntu and Debian to create a backported package. These include <code>backportpackage</code> and <code>pbuilder</code> among others.</p>
+
+<p>Without going into too much detail, <code>backportpackage</code> helps us “prep” (e.g. generating .dsc files with conventional names for backported packages) our existing target package on to be backported. <code>pbuilder</code> is a tool that sets up a clean chroot environment (via <a href="https://wiki.debian.org/Debootstrap">debootstrap</a>) to build Debian packages. See the <a href="http://manpages.ubuntu.com/manpages/oneiric/man1/backportpackage.1.html">man page for backportpackage</a> and the <a href="https://wiki.ubuntu.com/PbuilderHowto">pbuilder howto page</a> for more information.</p>
+
+<p>Normally, <code>backportpackage</code> and <code>pbuilder</code> are very straightforward to use when backporting packages that do not have many dependencies. However, when porting the Ruby 1.9.3p484 package from Trusty to Oneiric, quite a bit of “massaging” needed to be done, mostly because of the significant time difference between the two Ubuntu releases.</p>
+
+<h2>Procedure</h2>
+
+<ol>
+<li>Have a reasonable Ubuntu environment ready. It doesn’t matter which version you are currently on because we will be using the aforementioned tools to download, prep and build packages. It may be a good idea to run <code>$ sudo apt-get update</code></li>
+<li><code>$ sudo apt-get install ubuntu-dev-tools</code> to install Ubuntu dev tools on your host machine. This will install</li>
+<li>If you are using a version of Ubuntu newer than Precise, you may be able to skip this step. <code>$ wget http://ubuntu.wikimedia.org/ubuntu//pool/universe/u/ubuntu-dev-tools/ubuntu-dev-tools_0.143_all.deb &amp;&amp; sudo dpkg -i ubuntu-dev-tools_0.143_all.deb</code> This installs a newer version of <code>backportpackages</code> that allows us to not sign our packages</li>
+<li><code>$ mkdir -p ~/backport_workdir/ruby191 &amp;&amp; cd ~/backport_workdir/ruby191</code> to create and go to our working directory</li>
+<li><code>$ backportpackage --dont-sign -s trusty -d oneiric -w . ruby1.9.1</code> to download the newest (at time or writing) <a href="http://packages.ubuntu.com/source/trusty/ruby1.9.1">Ruby 1.9.3p484 package</a> and create the prepped .dsc files for backporting.</li>
+<li><strong>Important</strong> Open up <code>ruby1.9.1_1.9.3.484-1ubuntu2~ubuntu11.10.1.dsc</code> with your preferred editor and remove the versioning constraints on <code>debhelper</code> and <code>cdbs</code> in the <code>Build-Depends</code> line. Theoretically you could backport dependencies as well and put them in a local apt-get repo, but these particular packages are nasty in that they have many further dependencies and since in this case, the default versions that come with Oneiric are fine, we can safely remove these constraints.</li>
+<li><code>$ sudo apt-get install pbuilder</code> to install <code>pbuilder</code></li>
+<li><p>Create a <code>~/.pbuilderrc</code> file with the following contents. This is a preference file for <code>pbuilder</code> and the following configuration will allow us to easily toggle between different distributions of Ubuntu and architectures when using it to build packages. Credit to <a href="http://www.tolaris.com/2009/03/31/backporting-debian-packages-with-pbuilder/">tolaris.com</a></p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>pbuilderrc  (pbuilderrc)</span> <a href='/downloads/code/pbuilder/pbuilderrc'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>: <span class="k">${</span><span class="nv">DIST</span><span class="p">:=</span><span class="k">$(</span>lsb_release --short --codename<span class="k">)}</span>
+</span><span class='line'>: <span class="k">${</span><span class="nv">ARCH</span><span class="p">:=</span><span class="k">$(</span>dpkg --print-architecture<span class="k">)}</span>
+</span><span class='line'><span class="nv">NAME</span><span class="o">=</span><span class="s2">&quot;$DIST-$ARCH&quot;</span>
+</span><span class='line'><span class="nv">DISTRIBUTION</span><span class="o">=</span><span class="s2">&quot;$DIST&quot;</span>
+</span><span class='line'><span class="nv">DEBOOTSTRAPOPTS</span><span class="o">=(</span><span class="s2">&quot;--arch&quot;</span> <span class="s2">&quot;$ARCH&quot;</span> <span class="s2">&quot;${DEBOOTSTRAPOPTS[@]}&quot;</span><span class="o">)</span>
+</span><span class='line'><span class="nv">BASETGZ</span><span class="o">=</span><span class="s2">&quot;`dirname $BASETGZ`/$NAME-base.tgz&quot;</span>
+</span><span class='line'><span class="nv">BUILDRESULT</span><span class="o">=</span><span class="s2">&quot;/var/cache/pbuilder/$NAME/result/&quot;</span>
+</span><span class='line'><span class="nv">APTCACHE</span><span class="o">=</span><span class="s2">&quot;/var/cache/pbuilder/$NAME/aptcache/&quot;</span>
+</span><span class='line'><span class="c"># Don&#39;t rebuild source files (.diff.gz, .dsc), or list them in .changes</span>
+</span><span class='line'><span class="c"># See Ubuntu bug 118181</span>
+</span><span class='line'><span class="nv">DEBBUILDOPTS</span><span class="o">=</span><span class="s2">&quot;-b -d&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">case</span> <span class="s2">&quot;$DIST&quot;</span> in
+</span><span class='line'>    oneiric|trusty|lucid|karmic|jaunty|intrepid|hardy|dapper<span class="o">)</span> <span class="c"># ubuntu specific</span>
+</span><span class='line'>        <span class="nv">MIRRORSITE</span><span class="o">=</span><span class="s2">&quot;http://archive.ubuntu.com/ubuntu/&quot;</span>
+</span><span class='line'>        <span class="nv">COMPONENTS</span><span class="o">=</span><span class="s2">&quot;main restricted universe multiverse&quot;</span>
+</span><span class='line'>        ;;
+</span><span class='line'>    sid|squeeze|lenny|etch<span class="o">)</span> <span class="c"># debian specific</span>
+</span><span class='line'>        <span class="nv">MIRRORSITE</span><span class="o">=</span><span class="s2">&quot;http://mirrors.kernel.org/debian/&quot;</span>
+</span><span class='line'>        <span class="nv">COMPONENTS</span><span class="o">=</span><span class="s2">&quot;main contrib non-free&quot;</span>
+</span><span class='line'>        ;;
+</span><span class='line'>    *<span class="o">)</span>
+</span><span class='line'>        <span class="nb">echo</span> <span class="s2">&quot;Unknown distribution: $DIST&quot;</span>
+</span><span class='line'>        <span class="nb">exit </span>1
+</span><span class='line'>        ;;
+</span><span class='line'><span class="k">esac</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">HOOKDIR</span><span class="o">=</span><span class="nv">$HOME</span>/.pbuilder-hooks
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>The only additions I've made are to add the <code>-d</code> flag, which is required for us to ignore dependency discrepancies (in this case, our <code>debhelper</code> and <code>cdbs</code> dependencies are not at the version specified by the official package) and to update the list of Ubuntu distro names.</p></li>
+<li><code>$ sudo DIST=oneiric ARCH=amd64 pbuilder create</code> to create an Oneiric AMD64 chroot environment to build our backport on.</li>
+<li><code>$ sudo DIST=oneiric ARCH=amd64 pbuilder login --save-after-login</code> to login to our chroot environment. The <code>--save-after-login</code> flag tells pbuilder to save the environment after we exit.</li>
+<li><strong>In chroot environment</strong> <code>$ apt-get update &amp;&amp; apt-get install tcl8.5-dev tk8.5-dev</code> to install tcl/tk dev packages. Next, symlink the .so files to where the Ruby 1.9.3p484 package for Trusty expects them to be by doing: <code>$ ln -s /usr/lib/libtk8.5.so /usr/lib/x86_64-linux-gnu/libtk8.5.so &amp;&amp; ln -s /usr/lib/libtcl8.5.so /usr/lib/x86_64-linux-gnu/libtcl8.5.so</code>. Next, exit the chroot environment by hitting Control-D or <code>$ exit</code>. Normally, <code>pbuilder</code> will take care of downloading build-dependencies for you, but in this case, the problem is that the Ruby 1.9.3p484 package for Trusty assumes taht <code>libtcl</code> and <code>libtk</code> <code>.so</code> files are located in places where they are not installed by default on our target distro.</li>
+<li><code>$ sudo DIST=oneiric ARCH=amd64 pbuilder build ruby1.9.1_1.9.3.484-1ubuntu2~ubuntu11.10.1.dsc</code> to instruct <code>pbuilder</code> to build your package. Go grab a coffee, walk your dog, etc. because this may take a while. If you are running in a VM (e.g. in Vagrant), be sure you’ve allocated enough memory (I recommend at least 2GB) so that the build tests for Ruby will pass.</li>
+<li>When <code>pbuilder</code> is done, look in <code>/var/cache/pbuilder/oneiric-amd64/result/</code> for your packages</li>
+</ol>
+
+
+<h2>Conclusion</h2>
+
+<p>There are a few places where I needed to get my hands dirty and look at package source code to understand where and why things were failing. Hopefully this guide helps you to backport not only Ruby, but any Ubuntu/Debian package between different releases !</p>
+
+<p>If you have problems and questions, please leave a comment :)</p>
+]]></content>
+  </entry>
+  
+</feed>

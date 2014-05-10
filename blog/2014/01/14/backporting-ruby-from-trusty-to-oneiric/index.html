@@ -1,0 +1,424 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Backporting Ruby from Trusty to Oneiric - BeachApe.</title>
+  <meta name="author" content="Lloyd">
+
+  
+  <meta name="description" content="Goal Create a backported Ruby 1.9.3p484 Ubuntu package. For the purposes of this post, we will assume that you are OK with not creating a signed &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://lloydmeta.github.io/lloydmeta/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="BeachApe." type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-24087840-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">BeachApe.</a></h1>
+  
+    <h2>Things thought of, seen by, built by, or played with by someone just like you.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:lloydmeta.github.io/lloydmeta" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Backporting Ruby From Trusty to Oneiric</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-14T22:35:00+09:00" pubdate data-updated="true">Jan 14<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>Goal</h2>
+
+<p>Create a backported Ruby 1.9.3p484 Ubuntu package. For the purposes of this post, we will assume that you are OK with not creating a signed package (required if uploading to launchpad). If you wish to upload to launchpad (for example to share your backport with the world), it may be useful for you to <a href="http://opensourcehacker.com/2013/03/20/how-to-backport-packages-on-ubuntu-linux/">check out this site</a> after reading through this guide.</p>
+
+<h2>Motivation</h2>
+
+<p>At my day job, I had to upgrade Ruby on very old production boxes that were running Oneiric AMD64. Upgrading the OS was a chore that would be happening later but we needed to start using the latest Ruby as soon as possible.</p>
+
+<p>Unfortunately, there is no Ruby 1.9.3p484 Debian package readily available for Oneiric, not even as a backport.</p>
+
+<!-- more -->
+
+
+<h2>Basic requirements</h2>
+
+<ul>
+<li>A reasonable Ubuntu environment. Use Vagrant (and its dependencies, such as Virtualbox) if you are on OSX</li>
+<li>Basic *Nix knowledge (command line editors and various tools)</li>
+</ul>
+
+
+<h2>Overview</h2>
+
+<p>The idea is to use tools readily available on Ubuntu and Debian to create a backported package. These include <code>backportpackage</code> and <code>pbuilder</code> among others.</p>
+
+<p>Without going into too much detail, <code>backportpackage</code> helps us “prep” (e.g. generating .dsc files with conventional names for backported packages) our existing target package on to be backported. <code>pbuilder</code> is a tool that sets up a clean chroot environment (via <a href="https://wiki.debian.org/Debootstrap">debootstrap</a>) to build Debian packages. See the <a href="http://manpages.ubuntu.com/manpages/oneiric/man1/backportpackage.1.html">man page for backportpackage</a> and the <a href="https://wiki.ubuntu.com/PbuilderHowto">pbuilder howto page</a> for more information.</p>
+
+<p>Normally, <code>backportpackage</code> and <code>pbuilder</code> are very straightforward to use when backporting packages that do not have many dependencies. However, when porting the Ruby 1.9.3p484 package from Trusty to Oneiric, quite a bit of “massaging” needed to be done, mostly because of the significant time difference between the two Ubuntu releases.</p>
+
+<h2>Procedure</h2>
+
+<ol>
+<li>Have a reasonable Ubuntu environment ready. It doesn’t matter which version you are currently on because we will be using the aforementioned tools to download, prep and build packages. It may be a good idea to run <code>$ sudo apt-get update</code></li>
+<li><code>$ sudo apt-get install ubuntu-dev-tools</code> to install Ubuntu dev tools on your host machine. This will install</li>
+<li>If you are using a version of Ubuntu newer than Precise, you may be able to skip this step. <code>$ wget http://ubuntu.wikimedia.org/ubuntu//pool/universe/u/ubuntu-dev-tools/ubuntu-dev-tools_0.143_all.deb &amp;&amp; sudo dpkg -i ubuntu-dev-tools_0.143_all.deb</code> This installs a newer version of <code>backportpackages</code> that allows us to not sign our packages</li>
+<li><code>$ mkdir -p ~/backport_workdir/ruby191 &amp;&amp; cd ~/backport_workdir/ruby191</code> to create and go to our working directory</li>
+<li><code>$ backportpackage --dont-sign -s trusty -d oneiric -w . ruby1.9.1</code> to download the newest (at time or writing) <a href="http://packages.ubuntu.com/source/trusty/ruby1.9.1">Ruby 1.9.3p484 package</a> and create the prepped .dsc files for backporting.</li>
+<li><strong>Important</strong> Open up <code>ruby1.9.1_1.9.3.484-1ubuntu2~ubuntu11.10.1.dsc</code> with your preferred editor and remove the versioning constraints on <code>debhelper</code> and <code>cdbs</code> in the <code>Build-Depends</code> line. Theoretically you could backport dependencies as well and put them in a local apt-get repo, but these particular packages are nasty in that they have many further dependencies and since in this case, the default versions that come with Oneiric are fine, we can safely remove these constraints.</li>
+<li><code>$ sudo apt-get install pbuilder</code> to install <code>pbuilder</code></li>
+<li><p>Create a <code>~/.pbuilderrc</code> file with the following contents. This is a preference file for <code>pbuilder</code> and the following configuration will allow us to easily toggle between different distributions of Ubuntu and architectures when using it to build packages. Credit to <a href="http://www.tolaris.com/2009/03/31/backporting-debian-packages-with-pbuilder/">tolaris.com</a></p>
+
+<p><figure class='code'><figcaption><span>pbuilderrc  (pbuilderrc)</span> <a href='/downloads/code/pbuilder/pbuilderrc'>download</a></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>: <span class="k">${</span><span class="nv">DIST</span><span class="p">:=</span><span class="k">$(</span>lsb_release --short --codename<span class="k">)}</span>
+</span><span class='line'>: <span class="k">${</span><span class="nv">ARCH</span><span class="p">:=</span><span class="k">$(</span>dpkg --print-architecture<span class="k">)}</span>
+</span><span class='line'><span class="nv">NAME</span><span class="o">=</span><span class="s2">&quot;$DIST-$ARCH&quot;</span>
+</span><span class='line'><span class="nv">DISTRIBUTION</span><span class="o">=</span><span class="s2">&quot;$DIST&quot;</span>
+</span><span class='line'><span class="nv">DEBOOTSTRAPOPTS</span><span class="o">=(</span><span class="s2">&quot;--arch&quot;</span> <span class="s2">&quot;$ARCH&quot;</span> <span class="s2">&quot;${DEBOOTSTRAPOPTS[@]}&quot;</span><span class="o">)</span>
+</span><span class='line'><span class="nv">BASETGZ</span><span class="o">=</span><span class="s2">&quot;<code>dirname $BASETGZ</code>/$NAME-base.tgz&quot;</span>
+</span><span class='line'><span class="nv">BUILDRESULT</span><span class="o">=</span><span class="s2">&quot;/var/cache/pbuilder/$NAME/result/&quot;</span>
+</span><span class='line'><span class="nv">APTCACHE</span><span class="o">=</span><span class="s2">&quot;/var/cache/pbuilder/$NAME/aptcache/&quot;</span>
+</span><span class='line'><span class="c"># Don&#39;t rebuild source files (.diff.gz, .dsc), or list them in .changes</span>
+</span><span class='line'><span class="c"># See Ubuntu bug 118181</span>
+</span><span class='line'><span class="nv">DEBBUILDOPTS</span><span class="o">=</span><span class="s2">&quot;-b -d&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">case</span> <span class="s2">&quot;$DIST&quot;</span> in
+</span><span class='line'>    oneiric|trusty|lucid|karmic|jaunty|intrepid|hardy|dapper<span class="o">)</span> <span class="c"># ubuntu specific</span>
+</span><span class='line'>        <span class="nv">MIRRORSITE</span><span class="o">=</span><span class="s2">&quot;http://archive.ubuntu.com/ubuntu/&quot;</span>
+</span><span class='line'>        <span class="nv">COMPONENTS</span><span class="o">=</span><span class="s2">&quot;main restricted universe multiverse&quot;</span>
+</span><span class='line'>        ;;
+</span><span class='line'>    sid|squeeze|lenny|etch<span class="o">)</span> <span class="c"># debian specific</span>
+</span><span class='line'>        <span class="nv">MIRRORSITE</span><span class="o">=</span><span class="s2">&quot;http://mirrors.kernel.org/debian/&quot;</span>
+</span><span class='line'>        <span class="nv">COMPONENTS</span><span class="o">=</span><span class="s2">&quot;main contrib non-free&quot;</span>
+</span><span class='line'>        ;;
+</span><span class='line'>    *<span class="o">)</span>
+</span><span class='line'>        <span class="nb">echo</span> <span class="s2">&quot;Unknown distribution: $DIST&quot;</span>
+</span><span class='line'>        <span class="nb">exit </span>1
+</span><span class='line'>        ;;
+</span><span class='line'><span class="k">esac</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">HOOKDIR</span><span class="o">=</span><span class="nv">$HOME</span>/.pbuilder-hooks
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The only additions I&#8217;ve made are to add the <code>-d</code> flag, which is required for us to ignore dependency discrepancies (in this case, our <code>debhelper</code> and <code>cdbs</code> dependencies are not at the version specified by the official package) and to update the list of Ubuntu distro names.</p></li>
+<li><code>$ sudo DIST=oneiric ARCH=amd64 pbuilder create</code> to create an Oneiric AMD64 chroot environment to build our backport on.</li>
+<li><code>$ sudo DIST=oneiric ARCH=amd64 pbuilder login --save-after-login</code> to login to our chroot environment. The <code>--save-after-login</code> flag tells pbuilder to save the environment after we exit.</li>
+<li><strong>In chroot environment</strong> <code>$ apt-get update &amp;&amp; apt-get install tcl8.5-dev tk8.5-dev</code> to install tcl/tk dev packages. Next, symlink the .so files to where the Ruby 1.9.3p484 package for Trusty expects them to be by doing: <code>$ ln -s /usr/lib/libtk8.5.so /usr/lib/x86_64-linux-gnu/libtk8.5.so &amp;&amp; ln -s /usr/lib/libtcl8.5.so /usr/lib/x86_64-linux-gnu/libtcl8.5.so</code>. Next, exit the chroot environment by hitting Control-D or <code>$ exit</code>. Normally, <code>pbuilder</code> will take care of downloading build-dependencies for you, but in this case, the problem is that the Ruby 1.9.3p484 package for Trusty assumes taht <code>libtcl</code> and <code>libtk</code> <code>.so</code> files are located in places where they are not installed by default on our target distro.</li>
+<li><code>$ sudo DIST=oneiric ARCH=amd64 pbuilder build ruby1.9.1_1.9.3.484-1ubuntu2~ubuntu11.10.1.dsc</code> to instruct <code>pbuilder</code> to build your package. Go grab a coffee, walk your dog, etc. because this may take a while. If you are running in a VM (e.g. in Vagrant), be sure you’ve allocated enough memory (I recommend at least 2GB) so that the build tests for Ruby will pass.</li>
+<li>When <code>pbuilder</code> is done, look in <code>/var/cache/pbuilder/oneiric-amd64/result/</code> for your packages</li>
+</ol>
+
+
+<h2>Conclusion</h2>
+
+<p>There are a few places where I needed to get my hands dirty and look at package source code to understand where and why things were failing. Hopefully this guide helps you to backport not only Ruby, but any Ubuntu/Debian package between different releases !</p>
+
+<p>If you have problems and questions, please leave a comment :)</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Lloyd</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-14T22:35:00+09:00" pubdate data-updated="true">Jan 14<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/debian/'>Debian</a>, <a class='category' href='/blog/categories/linux/'>Linux</a>, <a class='category' href='/blog/categories/ubuntu/'>Ubuntu</a>, <a class='category' href='/blog/categories/apt-get/'>apt-get</a>, <a class='category' href='/blog/categories/back-porting/'>back porting</a>, <a class='category' href='/blog/categories/backporting/'>backporting</a>, <a class='category' href='/blog/categories/backportpackages/'>backportpackages</a>, <a class='category' href='/blog/categories/dependencies/'>dependencies</a>, <a class='category' href='/blog/categories/packages/'>packages</a>, <a class='category' href='/blog/categories/pbuilder/'>pbuilder</a>, <a class='category' href='/blog/categories/versions/'>versions</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://lloydmeta.github.io/lloydmeta/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric/" data-via="meta_lloyd" data-counturl="http://lloydmeta.github.io/lloydmeta/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/12/04/schwatcher-v0-dot-0-7-released/" title="Previous Post: Schwatcher v0.0.7 Released">&laquo; Schwatcher v0.0.7 Released</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/03/06/schwatcher-v0-dot-1-0-released/" title="Next Post: Schwatcher v0.1.0 Released">Schwatcher v0.1.0 Released &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/05/03/rxscala-and-schwatcher/">RxScala and Schwatcher</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/05/02/schwatcher-v0-dot-1-3-released/">Schwatcher v0.1.3 Released</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/03/06/schwatcher-v0-dot-1-0-released/">Schwatcher v0.1.0 Released</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric/">Backporting Ruby from Trusty to Oneiric</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/04/schwatcher-v0-dot-0-7-released/">Schwatcher v0.0.7 Released</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/lloydmeta">@lloydmeta</a> on GitHub
+  
+  <script type="text/javascript">
+    $.domReady(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'lloydmeta',
+            count: 5,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+<section>
+    <h1>Twitter</h1>
+    <a class="twitter-timeline" href="https://twitter.com/meta_Lloyd" data-widget-id="423278387365302272">Tweets by @meta_Lloyd</a>
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
+    </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Lloyd -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'beachape';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://lloydmeta.github.io/lloydmeta/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric/';
+        var disqus_url = 'http://lloydmeta.github.io/lloydmeta/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
