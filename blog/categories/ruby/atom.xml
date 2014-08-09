@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Ruby | BeachApe.]]></title>
-  <link href="http://lloydmeta.github.io/lloydmeta/blog/categories/ruby/atom.xml" rel="self"/>
-  <link href="http://lloydmeta.github.io/lloydmeta/"/>
-  <updated>2014-05-10T13:05:57+09:00</updated>
-  <id>http://lloydmeta.github.io/lloydmeta/</id>
+  <link href="http://beachape.com/blog/categories/ruby/atom.xml" rel="self"/>
+  <link href="http://beachape.com/"/>
+  <updated>2014-08-09T16:09:02+09:00</updated>
+  <id>http://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
     
@@ -14,10 +14,10 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Ruby 2.0.0 Enumerable Lazy benchmark]]></title>
-    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/06/12/ruby-2-dot-0-0-enumerable-lazy-benchmark/"/>
+    <title type="html"><![CDATA[Ruby 2.0.0 Enumerable Lazy Benchmark]]></title>
+    <link href="http://beachape.com/blog/2013/06/12/ruby-2-dot-0-0-enumerable-lazy-benchmark/"/>
     <updated>2013-06-12T10:30:00+09:00</updated>
-    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/06/12/ruby-2-dot-0-0-enumerable-lazy-benchmark</id>
+    <id>http://beachape.com/blog/2013/06/12/ruby-2-dot-0-0-enumerable-lazy-benchmark</id>
     <content type="html"><![CDATA[<p>Ruby 2.0.0 was released a few months back and I finally had some time to look into some of the features and changes that came with it. Lazy collections has always been a cool concept for me and so I decided to do a few benchmarks.</p>
 
 <!-- more -->
@@ -154,10 +154,10 @@
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Simple String pattern checking in Ruby: Benchmark]]></title>
-    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/04/06/simple-string-pattern-checking-in-ruby-benchmark/"/>
+    <title type="html"><![CDATA[Simple String Pattern Checking in Ruby: Benchmark]]></title>
+    <link href="http://beachape.com/blog/2013/04/06/simple-string-pattern-checking-in-ruby-benchmark/"/>
     <updated>2013-04-06T16:25:00+09:00</updated>
-    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/04/06/simple-string-pattern-checking-in-ruby-benchmark</id>
+    <id>http://beachape.com/blog/2013/04/06/simple-string-pattern-checking-in-ruby-benchmark</id>
     <content type="html"><![CDATA[<p>Often times, as programmers, we need to check to see if a substring exists in a bigger string. Many programmers will instinctively reach out for Regex matching, but I often wondered if this was really the best way to do things, particularly in Ruby.</p>
 
 <p>One day, in a Ruby-focused Skype group chat, a friend of mine asked the other members to give him a snippet of code that would allow him to take a hostname, check if the substring 'qa' was in it and if it did, return 'qa', else 'prod' (for production). My knee-jerk reaction was the same as the other members: use Regex. But I wondered if it would be better to use compiled Regex, or interpreted Regex, or perhaps maybe even the built in String method <a href="http://www.ruby-doc.org/core-1.9.3/String.html#method-i-include-3F">include?</a>. So I decided to do some benchmarking.</p>
@@ -266,10 +266,10 @@ Rehearsal ----------------------------------------------------------------------
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Padrino with Resque-web UI]]></title>
-    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/02/19/padrino-with-resque-web-ui/"/>
+    <title type="html"><![CDATA[Padrino With Resque-web UI]]></title>
+    <link href="http://beachape.com/blog/2013/02/19/padrino-with-resque-web-ui/"/>
     <updated>2013-02-19T17:44:00+09:00</updated>
-    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/02/19/padrino-with-resque-web-ui</id>
+    <id>http://beachape.com/blog/2013/02/19/padrino-with-resque-web-ui</id>
     <content type="html"><![CDATA[<p>Finally got a chance to play around with Padrino last week to build a <a href="https://github.com/lloydmeta/push_to_devices">Push to Devices notification server</a>, but ran into a bit of an issue trying to get Resque-web / Resque server UI to show up.</p>
 
 <p>Finally ran into <a href="http://d.hatena.ne.jp/hiro_nemu/20120809/1344476207">this great blog entry</a>. It's written in Japanese so I decided to create a short version in English here in case anyone else runs into the same issue</p>
@@ -291,10 +291,10 @@ in your</code>config.ru` and yet don't see anything when you hit /resque on your
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Ruby Hash traversal]]></title>
-    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/01/18/walking-a-ruby-hash/"/>
+    <title type="html"><![CDATA[Ruby Hash Traversal]]></title>
+    <link href="http://beachape.com/blog/2013/01/18/walking-a-ruby-hash/"/>
     <updated>2013-01-18T23:52:00+09:00</updated>
-    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/01/18/walking-a-ruby-hash</id>
+    <id>http://beachape.com/blog/2013/01/18/walking-a-ruby-hash</id>
     <content type="html"><![CDATA[<p><em>TL;DR</em> If you're using Ruby, want to perform operations on the values of a hash only at specific locations in the hash, check out <a href="https://rubygems.org/gems/hash_walker">hash_walker</a></p>
 
 <p>A while back I worked at a Tokyo-based startup focused on building a crowd-sourced translation platform. The great thing about <a href="http://gengo.com/">Gengo</a> was that we (and they still do) offered a translation API that allowed clients to integrate and thus order huge amounts of translations, receive translated content back via callbacks and do whatever it is that clients do with translated materials.</p>

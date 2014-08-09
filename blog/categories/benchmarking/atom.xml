@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: benchmarking | BeachApe.]]></title>
-  <link href="http://lloydmeta.github.io/lloydmeta/blog/categories/benchmarking/atom.xml" rel="self"/>
-  <link href="http://lloydmeta.github.io/lloydmeta/"/>
-  <updated>2014-05-10T13:05:57+09:00</updated>
-  <id>http://lloydmeta.github.io/lloydmeta/</id>
+  <title><![CDATA[Category: Benchmarking | BeachApe.]]></title>
+  <link href="http://beachape.com/blog/categories/benchmarking/atom.xml" rel="self"/>
+  <link href="http://beachape.com/"/>
+  <updated>2014-08-09T16:09:02+09:00</updated>
+  <id>http://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
     
@@ -14,10 +14,10 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Ruby 2.0.0 Enumerable Lazy benchmark]]></title>
-    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/06/12/ruby-2-dot-0-0-enumerable-lazy-benchmark/"/>
+    <title type="html"><![CDATA[Ruby 2.0.0 Enumerable Lazy Benchmark]]></title>
+    <link href="http://beachape.com/blog/2013/06/12/ruby-2-dot-0-0-enumerable-lazy-benchmark/"/>
     <updated>2013-06-12T10:30:00+09:00</updated>
-    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/06/12/ruby-2-dot-0-0-enumerable-lazy-benchmark</id>
+    <id>http://beachape.com/blog/2013/06/12/ruby-2-dot-0-0-enumerable-lazy-benchmark</id>
     <content type="html"><![CDATA[<p>Ruby 2.0.0 was released a few months back and I finally had some time to look into some of the features and changes that came with it. Lazy collections has always been a cool concept for me and so I decided to do a few benchmarks.</p>
 
 <!-- more -->
@@ -154,10 +154,10 @@
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Simple String pattern checking in Ruby: Benchmark]]></title>
-    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/04/06/simple-string-pattern-checking-in-ruby-benchmark/"/>
+    <title type="html"><![CDATA[Simple String Pattern Checking in Ruby: Benchmark]]></title>
+    <link href="http://beachape.com/blog/2013/04/06/simple-string-pattern-checking-in-ruby-benchmark/"/>
     <updated>2013-04-06T16:25:00+09:00</updated>
-    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/04/06/simple-string-pattern-checking-in-ruby-benchmark</id>
+    <id>http://beachape.com/blog/2013/04/06/simple-string-pattern-checking-in-ruby-benchmark</id>
     <content type="html"><![CDATA[<p>Often times, as programmers, we need to check to see if a substring exists in a bigger string. Many programmers will instinctively reach out for Regex matching, but I often wondered if this was really the best way to do things, particularly in Ruby.</p>
 
 <p>One day, in a Ruby-focused Skype group chat, a friend of mine asked the other members to give him a snippet of code that would allow him to take a hostname, check if the substring 'qa' was in it and if it did, return 'qa', else 'prod' (for production). My knee-jerk reaction was the same as the other members: use Regex. But I wondered if it would be better to use compiled Regex, or interpreted Regex, or perhaps maybe even the built in String method <a href="http://www.ruby-doc.org/core-1.9.3/String.html#method-i-include-3F">include?</a>. So I decided to do some benchmarking.</p>

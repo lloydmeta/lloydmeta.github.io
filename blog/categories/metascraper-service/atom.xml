@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Metascraper-service | BeachApe.]]></title>
-  <link href="http://lloydmeta.github.io/lloydmeta/blog/categories/metascraper-service/atom.xml" rel="self"/>
-  <link href="http://lloydmeta.github.io/lloydmeta/"/>
-  <updated>2014-05-10T13:05:57+09:00</updated>
-  <id>http://lloydmeta.github.io/lloydmeta/</id>
+  <link href="http://beachape.com/blog/categories/metascraper-service/atom.xml" rel="self"/>
+  <link href="http://beachape.com/"/>
+  <updated>2014-08-09T16:09:02+09:00</updated>
+  <id>http://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
     
@@ -14,10 +14,10 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Introducing Metascraper - a Scala library for scraping page metadata]]></title>
-    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata/"/>
+    <title type="html"><![CDATA[Introducing Metascraper - a Scala Library for Scraping Page Metadata]]></title>
+    <link href="http://beachape.com/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata/"/>
     <updated>2013-09-05T10:26:00+09:00</updated>
-    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata</id>
+    <id>http://beachape.com/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata</id>
     <content type="html"><![CDATA[<p>Scraping metadata (e.g. <code>title</code>, <code>description</code>, <code>url</code>, etc.) from a URL is something that <a href="https://www.facebook.com/">Facebook</a> currently does for you when you paste a URL into the "Update Status" box. For a service that I'm currently building out, we wanted to do this as well for our users. Thus <a href="https://github.com/lloydmeta/metascraper">Metascraper</a> was born.</p>
 
 <p>There was already a Ruby solution called <a href="https://github.com/gottfrois/link_thumbnailer">link_thumbnailer</a>, but since this is a I/O heavy operation, I knew I wanted to build a solution using tools that supported non-blocking I/O and could be used without getting caught in callback spaghetti. Scala, Akka, and the Play framework immediately came to mind.</p>

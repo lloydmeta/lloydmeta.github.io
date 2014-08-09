@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: back porting | BeachApe.]]></title>
-  <link href="http://lloydmeta.github.io/lloydmeta/blog/categories/back-porting/atom.xml" rel="self"/>
-  <link href="http://lloydmeta.github.io/lloydmeta/"/>
-  <updated>2014-05-10T13:05:57+09:00</updated>
-  <id>http://lloydmeta.github.io/lloydmeta/</id>
+  <title><![CDATA[Category: Back Porting | BeachApe.]]></title>
+  <link href="http://beachape.com/blog/categories/back-porting/atom.xml" rel="self"/>
+  <link href="http://beachape.com/"/>
+  <updated>2014-08-09T16:09:02+09:00</updated>
+  <id>http://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
     
@@ -14,10 +14,10 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Backporting Ruby from Trusty to Oneiric]]></title>
-    <link href="http://lloydmeta.github.io/lloydmeta/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric/"/>
+    <title type="html"><![CDATA[Backporting Ruby From Trusty to Oneiric]]></title>
+    <link href="http://beachape.com/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric/"/>
     <updated>2014-01-14T22:35:00+09:00</updated>
-    <id>http://lloydmeta.github.io/lloydmeta/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric</id>
+    <id>http://beachape.com/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric</id>
     <content type="html"><![CDATA[<h2>Goal</h2>
 
 <p>Create a backported Ruby 1.9.3p484 Ubuntu package. For the purposes of this post, we will assume that you are OK with not creating a signed package (required if uploading to launchpad). If you wish to upload to launchpad (for example to share your backport with the world), it may be useful for you to <a href="http://opensourcehacker.com/2013/03/20/how-to-backport-packages-on-ubuntu-linux/">check out this site</a> after reading through this guide.</p>

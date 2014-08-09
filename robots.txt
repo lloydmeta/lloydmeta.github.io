@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: 
 
-Sitemap: http://lloydmeta.github.io/lloydmeta/sitemap.xml 
+Sitemap: http://beachape.com/sitemap.xml 

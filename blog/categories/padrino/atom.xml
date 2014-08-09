@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Padrino | BeachApe.]]></title>
-  <link href="http://lloydmeta.github.io/lloydmeta/blog/categories/padrino/atom.xml" rel="self"/>
-  <link href="http://lloydmeta.github.io/lloydmeta/"/>
-  <updated>2014-05-10T13:05:57+09:00</updated>
-  <id>http://lloydmeta.github.io/lloydmeta/</id>
+  <link href="http://beachape.com/blog/categories/padrino/atom.xml" rel="self"/>
+  <link href="http://beachape.com/"/>
+  <updated>2014-08-09T16:09:02+09:00</updated>
+  <id>http://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
     
@@ -14,10 +14,10 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Padrino with Resque-web UI]]></title>
-    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/02/19/padrino-with-resque-web-ui/"/>
+    <title type="html"><![CDATA[Padrino With Resque-web UI]]></title>
+    <link href="http://beachape.com/blog/2013/02/19/padrino-with-resque-web-ui/"/>
     <updated>2013-02-19T17:44:00+09:00</updated>
-    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/02/19/padrino-with-resque-web-ui</id>
+    <id>http://beachape.com/blog/2013/02/19/padrino-with-resque-web-ui</id>
     <content type="html"><![CDATA[<p>Finally got a chance to play around with Padrino last week to build a <a href="https://github.com/lloydmeta/push_to_devices">Push to Devices notification server</a>, but ran into a bit of an issue trying to get Resque-web / Resque server UI to show up.</p>
 
 <p>Finally ran into <a href="http://d.hatena.ne.jp/hiro_nemu/20120809/1344476207">this great blog entry</a>. It's written in Japanese so I decided to create a short version in English here in case anyone else runs into the same issue</p>

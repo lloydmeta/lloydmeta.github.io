@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: page meta | BeachApe.]]></title>
-  <link href="http://lloydmeta.github.io/lloydmeta/blog/categories/page-meta/atom.xml" rel="self"/>
-  <link href="http://lloydmeta.github.io/lloydmeta/"/>
-  <updated>2014-05-10T13:05:57+09:00</updated>
-  <id>http://lloydmeta.github.io/lloydmeta/</id>
+  <title><![CDATA[Category: Page Meta | BeachApe.]]></title>
+  <link href="http://beachape.com/blog/categories/page-meta/atom.xml" rel="self"/>
+  <link href="http://beachape.com/"/>
+  <updated>2014-08-09T16:09:02+09:00</updated>
+  <id>http://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Metascraper v0.2.1 Released]]></title>
-    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/09/12/metascraper-v0-dot-2-1-released/"/>
+    <link href="http://beachape.com/blog/2013/09/12/metascraper-v0-dot-2-1-released/"/>
     <updated>2013-09-12T10:04:00+09:00</updated>
-    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/09/12/metascraper-v0-dot-2-1-released</id>
+    <id>http://beachape.com/blog/2013/09/12/metascraper-v0-dot-2-1-released</id>
     <content type="html"><![CDATA[<p>Sorry for the quick version-up. Version 0.1.1 added non-blocking I/O, but was using Dispatch without configuring the threadpool used for HTTP connections. This caused issues on Heroku where there is a 256 combined thread + process limit for 1x dynos (512 for 2x dynos), whereby Java OOM "unable to create new native thread" errors would be thrown.</p>
 
 <p>0.2.1 adds:</p>
@@ -42,10 +42,10 @@
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Metascraper v0.1.1 released]]></title>
-    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/09/11/metascraper-v0-dot-1-1-released/"/>
+    <title type="html"><![CDATA[Metascraper v0.1.1 Released]]></title>
+    <link href="http://beachape.com/blog/2013/09/11/metascraper-v0-dot-1-1-released/"/>
     <updated>2013-09-11T16:13:00+09:00</updated>
-    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/09/11/metascraper-v0-dot-1-1-released</id>
+    <id>http://beachape.com/blog/2013/09/11/metascraper-v0-dot-1-1-released</id>
     <content type="html"><![CDATA[<p>Metascraper v0.1.1 has been released. Major changes include:</p>
 
 <ul>
@@ -69,10 +69,10 @@
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Introducing Metascraper - a Scala library for scraping page metadata]]></title>
-    <link href="http://lloydmeta.github.io/lloydmeta/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata/"/>
+    <title type="html"><![CDATA[Introducing Metascraper - a Scala Library for Scraping Page Metadata]]></title>
+    <link href="http://beachape.com/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata/"/>
     <updated>2013-09-05T10:26:00+09:00</updated>
-    <id>http://lloydmeta.github.io/lloydmeta/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata</id>
+    <id>http://beachape.com/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata</id>
     <content type="html"><![CDATA[<p>Scraping metadata (e.g. <code>title</code>, <code>description</code>, <code>url</code>, etc.) from a URL is something that <a href="https://www.facebook.com/">Facebook</a> currently does for you when you paste a URL into the "Update Status" box. For a service that I'm currently building out, we wanted to do this as well for our users. Thus <a href="https://github.com/lloydmeta/metascraper">Metascraper</a> was born.</p>
 
 <p>There was already a Ruby solution called <a href="https://github.com/gottfrois/link_thumbnailer">link_thumbnailer</a>, but since this is a I/O heavy operation, I knew I wanted to build a solution using tools that supported non-blocking I/O and could be used without getting caught in callback spaghetti. Scala, Akka, and the Play framework immediately came to mind.</p>
