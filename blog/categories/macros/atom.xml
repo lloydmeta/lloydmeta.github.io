@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Macros | BeachApe.]]></title>
   <link href="http://beachape.com/blog/categories/macros/atom.xml" rel="self"/>
   <link href="http://beachape.com/"/>
-  <updated>2014-08-12T21:59:01+09:00</updated>
+  <updated>2014-08-12T22:03:33+09:00</updated>
   <id>http://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -18,7 +18,7 @@
     <link href="http://beachape.com/blog/2014/08/11/scala-unless-when-via-macros/"/>
     <updated>2014-08-11T18:41:00+09:00</updated>
     <id>http://beachape.com/blog/2014/08/11/scala-unless-when-via-macros</id>
-    <content type="html"><![CDATA[<p>Last week, I decided to take a stab at learning <a href="http://scalamacros.org/">Scala macros</a>. I had played around with macros before, when I wrote Scheme for a living (yes, believe it or not, these places exist...and existed long before Clojure made Lisp hip again), but the complexity of Scala's macros always put me off (if you don't believe me, check out the example given in the offical docs for a simple <a href="http://docs.scala-lang.org/overviews/macros/overview.html#a-complete-example">print macro</a>), since macros in Scheme were so damned easy.</p>
+    <content type="html"><![CDATA[<p>Last week, I decided to take a stab at learning <a href="http://scalamacros.org/">Scala macros</a>. I had played around with macros when I wrote Scheme for a living (yes, believe it or not, these places exist...and existed long before Clojure made Lisp hip again), but the complexity of Scala's macros always put me off (if you don't believe me, check out the example given in the offical docs for a simple <a href="http://docs.scala-lang.org/overviews/macros/overview.html#a-complete-example">print macro</a>), since macros in Scheme were so damned easy.</p>
 
 <p>In Scala, things are not so simple, but with the introduction of <a href="docs.scala-lang.org/overviews/macros/quasiquotes.html">quasiquotes</a> and some refinements brought by Scala 2.11, things are smoother. Still, for a guy like me, the documentation was both sparse and DRY. Since I learn best when I'm actively engaged in building something, I decided to try writing the <a href="http://clhs.lisp.se/Body/m_when_.htm">run-of-the-mill unless-when</a> macros in Scala.</p>
 
