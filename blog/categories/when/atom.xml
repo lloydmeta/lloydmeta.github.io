@@ -4,7 +4,7 @@
   <title><![CDATA[Category: When | BeachApe.]]></title>
   <link href="http://beachape.com/blog/categories/when/atom.xml" rel="self"/>
   <link href="http://beachape.com/"/>
-  <updated>2014-08-12T22:04:24+09:00</updated>
+  <updated>2014-08-12T22:14:29+09:00</updated>
   <id>http://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -27,7 +27,7 @@
 <!-- more -->
 
 
-<p><em>Note</em>: this blog post aims to explore macros as they are usable in Scala 2.10+. It also focuses on implementing macros with quasiquotes, as using them is human-friendly than manually constructing Abstract Syntax Trees (AST).</p>
+<p><em>Note</em>: this blog post aims to explore macros as they are usable in Scala 2.10+. It also focuses on implementing macros with quasiquotes, as using them is more human-friendly than manually constructing Abstract Syntax Trees (AST).</p>
 
 <h2>Goal</h2>
 
