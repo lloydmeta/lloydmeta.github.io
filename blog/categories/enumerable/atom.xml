@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Enumerable | BeachApe.]]></title>
-  <link href="http://beachape.com/blog/categories/enumerable/atom.xml" rel="self"/>
-  <link href="http://beachape.com/"/>
-  <updated>2014-08-12T22:14:29+09:00</updated>
-  <id>http://beachape.com/</id>
+  <link href="https://beachape.com/blog/categories/enumerable/atom.xml" rel="self"/>
+  <link href="https://beachape.com/"/>
+  <updated>2015-02-11T17:36:04+09:00</updated>
+  <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Ruby 2.0.0 Enumerable Lazy Benchmark]]></title>
-    <link href="http://beachape.com/blog/2013/06/12/ruby-2-dot-0-0-enumerable-lazy-benchmark/"/>
+    <link href="https://beachape.com/blog/2013/06/12/ruby-2-dot-0-0-enumerable-lazy-benchmark/"/>
     <updated>2013-06-12T10:30:00+09:00</updated>
-    <id>http://beachape.com/blog/2013/06/12/ruby-2-dot-0-0-enumerable-lazy-benchmark</id>
+    <id>https://beachape.com/blog/2013/06/12/ruby-2-dot-0-0-enumerable-lazy-benchmark</id>
     <content type="html"><![CDATA[<p>Ruby 2.0.0 was released a few months back and I finally had some time to look into some of the features and changes that came with it. Lazy collections has always been a cool concept for me and so I decided to do a few benchmarks.</p>
 
 <!-- more -->

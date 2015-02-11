@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Threads | BeachApe.]]></title>
-  <link href="http://beachape.com/blog/categories/threads/atom.xml" rel="self"/>
-  <link href="http://beachape.com/"/>
-  <updated>2014-08-12T22:14:29+09:00</updated>
-  <id>http://beachape.com/</id>
+  <link href="https://beachape.com/blog/categories/threads/atom.xml" rel="self"/>
+  <link href="https://beachape.com/"/>
+  <updated>2015-02-11T17:36:04+09:00</updated>
+  <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Resolving 'Java OOM: Unable to Create New Native Thread' Errors on Heroku]]></title>
-    <link href="http://beachape.com/blog/2013/09/12/resolving-java-oom-unable-to-create-new-native-thread-errors-on-heroku/"/>
+    <link href="https://beachape.com/blog/2013/09/12/resolving-java-oom-unable-to-create-new-native-thread-errors-on-heroku/"/>
     <updated>2013-09-12T13:25:00+09:00</updated>
-    <id>http://beachape.com/blog/2013/09/12/resolving-java-oom-unable-to-create-new-native-thread-errors-on-heroku</id>
+    <id>https://beachape.com/blog/2013/09/12/resolving-java-oom-unable-to-create-new-native-thread-errors-on-heroku</id>
     <content type="html"><![CDATA[<p>For the most part, I'm a very happy Heroku user. The platform allows me deploy my apps, be they Java, Scala or Ruby-based without having to think/worry about infrastructure, which is amazing. They also allow me to, for the most part, do this for free. For the most part, I love it, and so do many others. That said, sometimes you do run into problems that cause you to lose lots of time debugging ... in the wrong direction.</p>
 
 <p>Yesterday, after adding non-blocking I/O to my <a href="https://github.com/lloydmeta/metascraper">Metascraper library</a>, I load tested my deployed application and found it fatally crashing with <code>java.lang.OutOfMemoryError: unable to create new native thread</code> errors. <strong>Not Good</strong></p>

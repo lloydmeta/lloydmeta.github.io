@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Rubygem | BeachApe.]]></title>
-  <link href="http://beachape.com/blog/categories/rubygem/atom.xml" rel="self"/>
-  <link href="http://beachape.com/"/>
-  <updated>2014-08-12T22:14:29+09:00</updated>
-  <id>http://beachape.com/</id>
+  <link href="https://beachape.com/blog/categories/rubygem/atom.xml" rel="self"/>
+  <link href="https://beachape.com/"/>
+  <updated>2015-02-11T17:36:04+09:00</updated>
+  <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Ruby Hash Traversal]]></title>
-    <link href="http://beachape.com/blog/2013/01/18/walking-a-ruby-hash/"/>
+    <link href="https://beachape.com/blog/2013/01/18/walking-a-ruby-hash/"/>
     <updated>2013-01-18T23:52:00+09:00</updated>
-    <id>http://beachape.com/blog/2013/01/18/walking-a-ruby-hash</id>
+    <id>https://beachape.com/blog/2013/01/18/walking-a-ruby-hash</id>
     <content type="html"><![CDATA[<p><em>TL;DR</em> If you're using Ruby, want to perform operations on the values of a hash only at specific locations in the hash, check out <a href="https://rubygems.org/gems/hash_walker">hash_walker</a></p>
 
 <p>A while back I worked at a Tokyo-based startup focused on building a crowd-sourced translation platform. The great thing about <a href="http://gengo.com/">Gengo</a> was that we (and they still do) offered a translation API that allowed clients to integrate and thus order huge amounts of translations, receive translated content back via callbacks and do whatever it is that clients do with translated materials.</p>

@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Maybe | BeachApe.]]></title>
-  <link href="http://beachape.com/blog/categories/maybe/atom.xml" rel="self"/>
-  <link href="http://beachape.com/"/>
-  <updated>2014-08-12T22:14:29+09:00</updated>
-  <id>http://beachape.com/</id>
+  <link href="https://beachape.com/blog/categories/maybe/atom.xml" rel="self"/>
+  <link href="https://beachape.com/"/>
+  <updated>2015-02-11T17:36:04+09:00</updated>
+  <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Scala: Processing Option-wrapped Collections]]></title>
-    <link href="http://beachape.com/blog/2013/06/20/scala-processing-option-wrapped-collections/"/>
+    <link href="https://beachape.com/blog/2013/06/20/scala-processing-option-wrapped-collections/"/>
     <updated>2013-06-20T11:14:00+09:00</updated>
-    <id>http://beachape.com/blog/2013/06/20/scala-processing-option-wrapped-collections</id>
+    <id>https://beachape.com/blog/2013/06/20/scala-processing-option-wrapped-collections</id>
     <content type="html"><![CDATA[<p>In Scala, there are a lot of cool things - too many to list. Among them is something borrowed from Haskell; the <strong>Maybe</strong>, spelt <a href="http://www.scala-lang.org/api/current/index.html#scala.Option"><em>Option</em> in Scala</a>, which itself is based on the concept of computing via <a href="http://en.wikibooks.org/wiki/Haskell/Understanding_monads">monads</a>.</p>
 
 <p>The reason why <code>Option</code> is awesome is that, if used properly, it largely frees the programmer from having to worry about various variables being in states of nothingness (Nil, null, etc). Without fail, every programmer has at one point or another written things like <code>thing.nil? ? do_nothing : do_something</code> .... all over the place. The point (in my mind, at least) of <code>Option</code> is to free us from having to do this in as many places as possible.</p>
