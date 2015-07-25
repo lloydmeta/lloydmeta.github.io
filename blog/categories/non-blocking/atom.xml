@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Non-blocking | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/non-blocking/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2015-07-25T22:55:48+09:00</updated>
+  <updated>2015-07-25T22:56:31+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -133,7 +133,7 @@ contains our simple router)</li>
 
 <p>For example, I filed an issue with <a href="https://github.com/scalatra/scalatra/issues/513">Scalatra</a> a few months ago that was largely caused by indiscriminate copying of Sinatra's DSL, as well being based on the Servlet async API (an intro to <a href="http://petercipov.com/not-only-servlet/">why we should move away from Servlets</a>), leading to a thread-safety.  Scalatra (and its wrapper Skinny) are not considered to be idiomatic Scala because the routing implementation allows you to return <code>Any</code> to a route definition, including...yes, shutting down the Servlet container. Losing static typing is terrible at design-time (IDE assistence and refactoring perspective), as well as runtime (performance).</p>
 
-<p>If you're coming to Scala from Ruby and what you want is to build a small app using Sinatra-esque DSL in Scala, I would highly suggest evaluating Spray or slim-Play (as presented here) before choosing to go with Scalatra: "Thar be dragons".</p>
+<p>If you're coming to Scala from Ruby and what you want is to build a small app using Sinatra-esque DSL in Scala, I would highly suggest evaluating Spray or slim-Play (as presented here) before choosing to go with Scalatra: "Thar be dragons" in the long-run.</p>
 ]]></content>
   </entry>
   
