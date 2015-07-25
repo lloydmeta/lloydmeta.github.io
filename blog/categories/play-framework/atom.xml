@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Play Framework | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/play-framework/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2015-07-25T22:30:06+09:00</updated>
+  <updated>2015-07-25T22:55:48+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -119,7 +119,7 @@ contains our simple router)</li>
 </ol>
 
 
-<p>For more information, take a look at the <a href="https://github.com/lloydmeta/slim-play">slim-play</a> repo on Github.</p>
+<p>The end result is a small, one-file Play app powered by a custom router and compile-time dependency injection. For more information, take a look at the <a href="https://github.com/lloydmeta/slim-play">slim-play</a> repo on Github.</p>
 
 <h3>Conclusion</h3>
 
