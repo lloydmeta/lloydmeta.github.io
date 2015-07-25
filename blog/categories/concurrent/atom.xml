@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Concurrent | BeachApe.]]></title>
+  <link href="https://beachape.com/blog/categories/concurrent/atom.xml" rel="self"/>
+  <link href="https://beachape.com/"/>
+  <updated>2015-07-25T22:19:02+09:00</updated>
+  <id>https://beachape.com/</id>
+  <author>
+    <name><![CDATA[Lloyd]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Slim Play App]]></title>
+    <link href="https://beachape.com/blog/2015/07/25/slim-play-app/"/>
+    <updated>2015-07-25T20:50:00+09:00</updated>
+    <id>https://beachape.com/blog/2015/07/25/slim-play-app</id>
+    <content type="html"><![CDATA[<p><a href="https://www.playframework.com/">Play</a> is one of two officially-supported web frameworks from Typesafe, the company behind Scala (the other is <a href="http://spray.io/">Spray</a>). It runs on its own webserver, is non-blocking, and encourages the use of idiomatic Scala. It is often compared with Rails because of its emphasis on convention over configuration and because it's a full-on framework that comes with most of the bells and whistles needed to build a full-featured webapp. Spray is considered by many to be the defacto API-centric alternative to Play, offering a Sinatra-esque DSL for routing and being slimmer to boot (from a files + LOC perspective).</p>
+
+<p>After looking around  I began suspecting that Play comes with the ability to be slimmed down. By combining the <a href="https://www.playframework.com/documentation/2.4.x/ScalaSirdRouter">String Interpolating Routing DSL</a> and <a href="https://www.playframework.com/documentation/2.4.x/ScalaCompileTimeDependencyInjection">Compile-time dependency injection</a> of Play 2.4, I was able to build a Scala app that would give Sinatra a run for its money in terms of the whole brevity thing.</p>
+
+<p><img src="/images/duderino.jpeg" width="350" height="350" title="image" alt="images"></p>
+
+<!-- more -->
+
+
+<h3>Methodology</h3>
+
+<p>All I did was:</p>
+
+<ol>
+<li>Use activator to generate a new Play app (<code>$ activator new slim-play play-scala</code>)</li>
+<li>Delete the auto-generated controller, public, and view directories (won't be using them)</li>
+<li>Create a <code>AppLoader.scala</code> file in the <code>./app</code> directory, which holds an ApplicationLoader and the router, which is
+super simple:
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Play app in 38 lines including imports and comments (AppLoader.scala)</span> <a href='/downloads/code/scala/AppLoader.scala'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">play.api.ApplicationLoader.Context</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">play.api._</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">play.api.libs.concurrent.Execution.Implicits._</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">play.api.mvc.Results._</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">play.api.mvc._</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">play.api.routing.Router</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">play.api.routing.sird._</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">import</span> <span class="nn">scala.concurrent.Future</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">AppLoader</span> <span class="k">extends</span> <span class="nc">ApplicationLoader</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="n">load</span><span class="o">(</span><span class="n">context</span><span class="k">:</span> <span class="kt">Context</span><span class="o">)</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">BuiltInComponentsFromContext</span><span class="o">(</span><span class="n">context</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Simple &amp; fairly self-explanatory router</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">router</span> <span class="k">=</span> <span class="nc">Router</span><span class="o">.</span><span class="n">from</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="c1">// Essentially copied verbatim from the SIRD example</span>
+</span><span class='line'>      <span class="k">case</span> <span class="nc">GET</span><span class="o">(</span><span class="n">p</span><span class="s">&quot;/hello/$to&quot;</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Action</span> <span class="o">{</span>
+</span><span class='line'>        <span class="nc">Ok</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Hello $to&quot;</span><span class="o">)</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="cm">/*</span>
+</span><span class='line'><span class="cm">       Use Action.async to return a Future result (sqrt can be intense :P)</span>
+</span><span class='line'><span class="cm">       Note the use of double(num) to bind only numbers (built-in :)</span>
+</span><span class='line'><span class="cm">        */</span>
+</span><span class='line'>      <span class="k">case</span> <span class="nc">GET</span><span class="o">(</span><span class="n">p</span><span class="s">&quot;/sqrt/${double(num)}&quot;</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Action</span><span class="o">.</span><span class="n">async</span> <span class="o">{</span>
+</span><span class='line'>        <span class="nc">Future</span> <span class="o">{</span>
+</span><span class='line'>          <span class="nc">Ok</span><span class="o">(</span><span class="nc">Math</span><span class="o">.</span><span class="n">sqrt</span><span class="o">(</span><span class="n">num</span><span class="o">).</span><span class="n">toString</span><span class="o">)</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>  <span class="o">}.</span><span class="n">application</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></li>
+<li>Add <code>play.application.loader=AppLoader</code> to <code>./conf/application.conf</code> so that Play knows to load our custom app (that
+contains our simple router)</li>
+</ol>
+
+
+<p>For more information, take a look at the <a href="https://github.com/lloydmeta/slim-play">slim-play</a> repo on Github.</p>
+
+<h3>Conclusion</h3>
+
+<p>Play is an awesome framework; scalable, idiomatic (type-safe, threadsafe), well documented, and well supported by Typesafe and a great community. I've been happily using it to build various-sized apps for the better part of 2.5 years. If you want to have a well-structured app, it comes out of the box configured to provide that. However, it also has the surprising ability to shed weight and turn into a slim API-focused engine.</p>
+
+<h3>A word Sinatra-clones in Scala</h3>
+
+<p>Ruby is fairly ubiquitous when it comes to server-side web programming.  Rails aside, <a href="http://www.sinatrarb.com/">Sinatra</a> has made its mark on the world and made a name for itself as <em>the</em> DSL to mimic and has imitators in Ruby (Cuba), Python (Bottle, Flask), PHP (Laravel), Scala (Scalatra, Skinny), and Javascript (Express).  Thanks to its simple and easy to follow DSL routing, it's gained a large following as well.</p>
+
+<p>That said, blindly copying the DSL in other languages may be problematic, because Sinatra's DSL relies on the Rack execution model (one request at a time per process/thread), and embraces Ruby's spirit of developer happiness at the cost of performance.  This is especially true in Scala, where the language was designed for concurrency and the community places heavy emphasis adhering to a non-blocking execution model, eschewing mutation of data.</p>
+
+<p>For example, I filed an issue with <a href="https://github.com/scalatra/scalatra/issues/513">Scalatra</a> a few months ago that was largely due to too much copying of Sinatra and being based on the Servlet async API (an intro to <a href="http://petercipov.com/not-only-servlet/">why we should move away from Servlets</a>), both of which lead to lack of thread-safety. In addition, Scalatra and its wrapper Skinny are not considered to be idiomatic Scala because the routing implementation allows you to return <code>Any</code> to a route definition, including...yes, shutting down the Servlet container. Losing static typing is terrible at design-time (IDE assistence and refactoring) perspective, as well as runtime (performance).</p>
+
+<p>If you're coming to Scala from Ruby and what you want is to build a small app using Sinatra-esque DSL in Scala, I would highly suggest evaluating Spray or slim-Play (as presented here) before choosing to go with Scalatra.</p>
+]]></content>
+  </entry>
+  
+</feed>

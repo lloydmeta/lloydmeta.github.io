@@ -121,6 +121,52 @@
 
 
 
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2015-07-25T20:50:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Jul 25<span>th</span>, 2015</time>
+        
+      </p>
+    
+    
+      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2015/07/25/slim-play-app/" itemprop="url">Slim Play App</a></h1>
+    
+  </header>
+
+
+  <div class="entry-content clearfix" itemprop="articleBody description"><p><a href="https://www.playframework.com/">Play</a> is one of two officially-supported web frameworks from Typesafe, the company behind Scala (the other is <a href="http://spray.io/">Spray</a>). It runs on its own webserver, is non-blocking, and encourages the use of idiomatic Scala. It is often compared with Rails because of its emphasis on convention over configuration and because it&#8217;s a full-on framework that comes with most of the bells and whistles needed to build a full-featured webapp. Spray is considered by many to be the defacto API-centric alternative to Play, offering a Sinatra-esque DSL for routing and being slimmer to boot (from a files + LOC perspective).</p>
+
+<p>After looking around  I began suspecting that Play comes with the ability to be slimmed down. By combining the <a href="https://www.playframework.com/documentation/2.4.x/ScalaSirdRouter">String Interpolating Routing DSL</a> and <a href="https://www.playframework.com/documentation/2.4.x/ScalaCompileTimeDependencyInjection">Compile-time dependency injection</a> of Play 2.4, I was able to build a Scala app that would give Sinatra a run for its money in terms of the whole brevity thing.</p>
+
+<p><img src="/images/duderino.jpeg" width="350" height="350" title="image" alt="images"></p>
+
+</div>
+  
+  
+    <footer>
+      <a class="btn btn-default" href="/blog/2015/07/25/slim-play-app/">Read on &rarr;</a>
+    </footer>
+  
+
+
+        </article>
+      
+      
+        <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+          
+  <header class="page-header">
+    
+      <p class="meta text-muted text-uppercase">
+        
+
+
+
+
+
+
+
+
+
+
+
+
 <span class="glyphicon glyphicon-calendar"></span> <time datetime="2015-02-11T16:47:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Feb 11<span>th</span>, 2015</time>
         
       </p>
@@ -607,50 +653,6 @@
 
         </article>
       
-      
-        <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-          
-  <header class="page-header">
-    
-      <p class="meta text-muted text-uppercase">
-        
-
-
-
-
-
-
-
-
-
-
-
-
-<span class="glyphicon glyphicon-calendar"></span> <time datetime="2013-09-12T13:25:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Sep 12<span>th</span>, 2013</time>
-        
-      </p>
-    
-    
-      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2013/09/12/resolving-java-oom-unable-to-create-new-native-thread-errors-on-heroku/" itemprop="url">Resolving &#8216;Java OOM: Unable to Create New Native Thread&#8217; Errors on Heroku</a></h1>
-    
-  </header>
-
-
-  <div class="entry-content clearfix" itemprop="articleBody description"><p>For the most part, I&#8217;m a very happy Heroku user. The platform allows me deploy my apps, be they Java, Scala or Ruby-based without having to think/worry about infrastructure, which is amazing. They also allow me to, for the most part, do this for free. For the most part, I love it, and so do many others. That said, sometimes you do run into problems that cause you to lose lots of time debugging &#8230; in the wrong direction.</p>
-
-<p>Yesterday, after adding non-blocking I/O to my <a href="https://github.com/lloydmeta/metascraper">Metascraper library</a>, I load tested my deployed application and found it fatally crashing with <code>java.lang.OutOfMemoryError: unable to create new native thread</code> errors. <strong>Not Good</strong></p>
-
-</div>
-  
-  
-    <footer>
-      <a class="btn btn-default" href="/blog/2013/09/12/resolving-java-oom-unable-to-create-new-native-thread-errors-on-heroku/">Read on &rarr;</a>
-    </footer>
-  
-
-
-        </article>
-      
     </div>
 
     <ul class="pager">
@@ -674,6 +676,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2015/07/25/slim-play-app/">Slim Play App</a>
+    
     <a class="list-group-item " href="/blog/2015/02/11/enumeratum-sealed-trait-enums-for-scala/">Enumeratum: Sealed Trait Enums for Scala</a>
     
     <a class="list-group-item " href="/blog/2014/08/11/scala-unless-when-via-macros/">Scala Unless-when via Macros</a>
@@ -681,8 +685,6 @@
     <a class="list-group-item " href="/blog/2014/05/03/rxscala-and-schwatcher/">RxScala and Schwatcher</a>
     
     <a class="list-group-item " href="/blog/2014/05/02/schwatcher-v0-dot-1-3-released/">Schwatcher v0.1.3 Released</a>
-    
-    <a class="list-group-item " href="/blog/2014/03/06/schwatcher-v0-dot-1-0-released/">Schwatcher v0.1.0 Released</a>
     
   </div>
 </section>
