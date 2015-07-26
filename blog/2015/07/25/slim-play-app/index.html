@@ -243,9 +243,13 @@ contains our simple router)</li>
 
 <p>That said, blindly copying Sinatra&#8217;s DSL in other languages may be problematic, because Sinatra&#8217;s DSL relies on the Rack execution model (one request at a time per process/thread), and embraces Ruby&#8217;s spirit of developer happiness at the cost of performance.  This is especially true in Scala, where the language was designed for concurrency and the community places heavy emphasis on adhering to a non-blocking execution model, eschewing mutation of data.</p>
 
-<p>For example, I filed an issue with <a href="https://github.com/scalatra/scalatra/issues/513">Scalatra</a> a few months ago that was largely caused by indiscriminate copying of Sinatra&#8217;s DSL, as well being based on the Servlet async API (an intro to <a href="http://petercipov.com/not-only-servlet/">why we should move away from Servlets</a>).  Among other things, it led to:
-  - Loss of thread-safety, meaning you can no longer take advantage of Scala&#8217;s strength in concurrency for scaling purposes (a lot of Scala libraries also return Futures when dealing with I/O, as they should).
-  - Loss of static typing at compile time, which is  terrible at design-time (IDE assistence and refactoring perspective), as well as runtime (performance). In addition, Scalatra is not considered to be idiomatic Scala because it encourages you to mutate existing data (setting statuses on responses) and the routing implementation takes an <code>Any</code> as the result of a route definition, including&#8230;yes, shutting down the Servlet container.</p>
+<p>For example, I filed an issue with <a href="https://github.com/scalatra/scalatra/issues/513">Scalatra</a> a few months ago that was largely caused by indiscriminate copying of Sinatra&#8217;s DSL, as well being based on the Servlet async API (an intro to <a href="http://petercipov.com/not-only-servlet/">why we should move away from Servlets</a>).  Among other things, it led to:</p>
+
+<ul>
+<li>Loss of thread-safety, meaning you can no longer take advantage of Scala&#8217;s strength in concurrency for scaling purposes (a lot of Scala libraries also return Futures when dealing with I/O, as they should).</li>
+<li>Loss of static typing at compile time, which is  terrible at design-time (IDE assistence and refactoring perspective), as well as runtime (performance). In addition, Scalatra is not considered to be idiomatic Scala because it encourages you to mutate existing data (setting statuses on responses) and the routing implementation takes an <code>Any</code> as the result of a route definition, including&#8230;yes, shutting down the Servlet container.</li>
+</ul>
+
 
 <p>If you&#8217;re coming to Scala from Ruby and what you want is to build a small app using Sinatra-esque DSL in Scala, I would highly suggest evaluating Spray or slim-Play (as presented here) before choosing to go with Scalatra and friends: &#8220;Thar be dragons&#8221; in the long-run.</p>
 </div>
