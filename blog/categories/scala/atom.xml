@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Scala | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/scala/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2015-07-26T13:40:59+09:00</updated>
+  <updated>2015-07-26T13:44:50+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -135,7 +135,7 @@ contains our simple router)</li>
 
 <ul>
 <li>Loss of thread-safety, meaning you can no longer take advantage of Scala's strength in concurrency for scaling purposes (a lot of Scala libraries also return Futures when dealing with I/O, as they should).</li>
-<li>Loss of static typing at compile time, which is  terrible at design-time (IDE assistence and refactoring perspective), as well as runtime (performance). In addition, Scalatra is not considered to be idiomatic Scala because it encourages you to mutate existing data (setting statuses on responses) and the routing implementation takes an <code>Any</code> as the result of a route definition, including...yes, shutting down the Servlet container.</li>
+<li>Loss of static typing, which is  terrible at design-time (IDE assistence and refactoring perspective), as well as runtime (performance).  Scalatra apps are written in non-idiomatic Scala because the routing implementation takes an <code>Any</code> as the result of a route definition, including...yes, shutting down the Servlet container. In addition, it encourages you to mutate existing data (setting statuses on responses).</li>
 </ul>
 
 
