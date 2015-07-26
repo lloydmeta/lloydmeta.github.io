@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Skinny | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/skinny/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2015-07-25T22:56:31+09:00</updated>
+  <updated>2015-07-26T11:13:37+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -127,13 +127,13 @@ contains our simple router)</li>
 
 <h3>A word Sinatra-clones in Scala</h3>
 
-<p>Ruby is fairly ubiquitous when it comes to server-side web programming.  Rails aside, <a href="http://www.sinatrarb.com/">Sinatra</a> has made its mark on the world and made a name for itself as <em>the</em> DSL to mimic, with imitators in Ruby (Cuba), Python (Bottle, Flask), PHP (Laravel), Scala (Scalatra, Skinny), and Javascript (Express).  Thanks to its simple and easy to follow DSL routing, it's gained a large following as well.</p>
+<p>Ruby is fairly ubiquitous when it comes to server-side web programming.  Rails aside, <a href="http://www.sinatrarb.com/">Sinatra</a> has made its mark on the world and made a name for itself as <em>the</em> DSL to mimic, with imitators in Ruby (Cuba), Python (Bottle, Flask), PHP (Laravel), Scala (Scalatra and its wrapper Skinny), and Javascript (Express).  Thanks to its simple and easy to follow DSL routing, it's gained a large following as well.</p>
 
-<p>That said, blindly copying Scalatra's DSL in other languages may be problematic, because Sinatra's DSL relies on the Rack execution model (one request at a time per process/thread), and embraces Ruby's spirit of developer happiness at the cost of performance.  This is especially true in Scala, where the language was designed for concurrency and the community places heavy emphasis on adhering to a non-blocking execution model, eschewing mutation of data.</p>
+<p>That said, blindly copying Sinatra's DSL in other languages may be problematic, because Sinatra's DSL relies on the Rack execution model (one request at a time per process/thread), and embraces Ruby's spirit of developer happiness at the cost of performance.  This is especially true in Scala, where the language was designed for concurrency and the community places heavy emphasis on adhering to a non-blocking execution model, eschewing mutation of data.</p>
 
-<p>For example, I filed an issue with <a href="https://github.com/scalatra/scalatra/issues/513">Scalatra</a> a few months ago that was largely caused by indiscriminate copying of Sinatra's DSL, as well being based on the Servlet async API (an intro to <a href="http://petercipov.com/not-only-servlet/">why we should move away from Servlets</a>), leading to a thread-safety.  Scalatra (and its wrapper Skinny) are not considered to be idiomatic Scala because the routing implementation allows you to return <code>Any</code> to a route definition, including...yes, shutting down the Servlet container. Losing static typing is terrible at design-time (IDE assistence and refactoring perspective), as well as runtime (performance).</p>
+<p>For example, I filed an issue with <a href="https://github.com/scalatra/scalatra/issues/513">Scalatra</a> a few months ago that was largely caused by indiscriminate copying of Sinatra's DSL, as well being based on the Servlet async API (an intro to <a href="http://petercipov.com/not-only-servlet/">why we should move away from Servlets</a>).  Among other things, it led to lack of thread-safety, meaning you can no longer take advantage of Scala's strength in concurrency for scaling purposes (a lot of Scala libraries also return Futures when dealing with I/O, as they should).  In addition, Scalatra is not considered to be idiomatic Scala because it encourages you to mutate existing data (setting statuses on responses) and the routing implementation takes an <code>Any</code> as the result of a route definition, including...yes, shutting down the Servlet container. Losing static typing is terrible at design-time (IDE assistence and refactoring perspective), as well as runtime (performance).</p>
 
-<p>If you're coming to Scala from Ruby and what you want is to build a small app using Sinatra-esque DSL in Scala, I would highly suggest evaluating Spray or slim-Play (as presented here) before choosing to go with Scalatra: "Thar be dragons" in the long-run.</p>
+<p>If you're coming to Scala from Ruby and what you want is to build a small app using Sinatra-esque DSL in Scala, I would highly suggest evaluating Spray or slim-Play (as presented here) before choosing to go with Scalatra and friends: "Thar be dragons" in the long-run.</p>
 ]]></content>
   </entry>
   
