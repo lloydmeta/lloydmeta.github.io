@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-02-14T16:48:37+09:00</updated>
+  <updated>2016-03-05T18:43:25+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -12,6 +12,52 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[OpenCV SBT Plugin]]></title>
+    <link href="https://beachape.com/blog/2016/03/05/opencv-sbt-plugin/"/>
+    <updated>2016-03-05T00:30:00+09:00</updated>
+    <id>https://beachape.com/blog/2016/03/05/opencv-sbt-plugin</id>
+    <content type="html"><![CDATA[<p> OpenCV is arguably the defacto free, open-source computer vision library, but setting it up for usage in a JVM project can be hard because OpenCV itself is written in C++, so there are a bunch of system-dependent things that you need to download/compile/install before you can use it.</p>
+
+<p> <a href="https://github.com/bytedeco/javacv">JavaCV</a>, written by <a href="http://bytedeco.org/">Bytedeco</a> is a library that makes it more bearable to use OpenCV from JVM projects by providing a bunch of wrapper classes and logic around OpenCV (there&#8217;s a lot more to it, see their page for details).</p>
+
+<p> Still, because JavaCV depends on <a href="https://github.com/bytedeco/javacpp-presets">JavaCPP</a> for common and OpenCV C++ wrappers, and JavaCPP requires you to set your target platform (what platform you want to run on), I thought getting started could be easier still.</p>
+
+<p> <!-- more --></p>
+
+<p>After taking a look at <a href="https://github.com/chimpler/blog-scala-javacv/blob/master/build.sbt#L19">this Github project</a>, I created an SBT plugin, SBT-OpenCV, that allows you to add just one line to your <code>project/plugins.sbt</code> to begin playing around with OpenCV:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="n">addSbtPlugin</span><span class="o">(</span><span class="s">&quot;com.beachape&quot;</span> <span class="o">%</span> <span class="s">&quot;sbt-opencv&quot;</span> <span class="o">%</span> <span class="s">&quot;1.2&quot;</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The following is a list of SBT setting keys that you can set in order to customise the behaviour of the plugin:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="o">*</span> <span class="n">`javaCVPlatform`</span><span class="k">:</span> <span class="kt">The</span> <span class="kt">platform</span> <span class="kt">that</span> <span class="kt">you</span> <span class="kt">want</span> <span class="kt">to</span> <span class="kt">compile</span> <span class="kt">for</span> <span class="o">(</span><span class="kt">defaults</span> <span class="kt">to</span> <span class="kt">the</span> <span class="kt">platform</span> <span class="kt">of</span> <span class="kt">the</span> <span class="kt">current</span> <span class="kt">computer</span><span class="o">)</span><span class="kt">.</span> <span class="kt">You</span> <span class="kt">can</span> <span class="kt">also</span> <span class="kt">set</span> <span class="kt">this</span> <span class="kt">via</span> <span class="kt">the</span> <span class="err">&quot;</span><span class="kt">sbt.javacv.platform</span><span class="err">&quot;</span> <span class="kt">System</span> <span class="kt">Property</span>
+</span><span class='line'><span class="o">*</span> <span class="n">`javaCppVersion`</span><span class="k">:</span> <span class="kt">Version</span> <span class="kt">of</span> <span class="kt">Java</span> <span class="kt">CPP</span> <span class="kt">that</span> <span class="kt">you</span> <span class="kt">want</span> <span class="kt">to</span> <span class="kt">use</span>
+</span><span class='line'><span class="o">*</span> <span class="n">`javaCppPresetsVersion`</span><span class="k">:</span>  <span class="kt">Version</span> <span class="kt">of</span> <span class="kt">Java</span> <span class="kt">CPP</span> <span class="kt">Presets</span> <span class="kt">that</span> <span class="kt">you</span> <span class="kt">want</span> <span class="kt">to</span> <span class="kt">use</span>
+</span><span class='line'><span class="o">*</span> <span class="n">`javaCVVersion`</span><span class="k">:</span> <span class="kt">Version</span> <span class="kt">of</span> <span class="kt">Java</span> <span class="kt">CV</span> <span class="kt">that</span> <span class="kt">you</span> <span class="kt">want</span> <span class="kt">to</span> <span class="kt">use</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I think <code>javaCVPlatform</code> is the one that will be most interesting, since you may want to compile JARs for different target platforms; for a list of supported strings, look at the classifiers supported by <a href="https://github.com/bytedeco/javacpp-presets">JavaCPP presets</a>, or work out the different strings that can result from <a href="https://github.com/bytedeco/javacpp/blob/master/src/main/java/org/bytedeco/javacpp/Loader.java#L65-L95">the JavaCPP Loader</a>.</p>
+
+<p>For example:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="n">javaCVPlatform</span> <span class="o">:=</span> <span class="s">&quot;android-arm&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Feel free to try it out and submit issues, ideas, and PRs :)</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Slim Play App]]></title>
@@ -1869,34 +1915,6 @@ contains our simple router)</li>
 <h2>Conclusion</h2>
 
 <p>In my case, PNGquant gave me better results than PNGNQ, but your mileage may vary.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Padrino With Resque-web UI]]></title>
-    <link href="https://beachape.com/blog/2013/02/19/padrino-with-resque-web-ui/"/>
-    <updated>2013-02-19T17:44:00+09:00</updated>
-    <id>https://beachape.com/blog/2013/02/19/padrino-with-resque-web-ui</id>
-    <content type="html"><![CDATA[<p>Finally got a chance to play around with Padrino last week to build a <a href="https://github.com/lloydmeta/push_to_devices">Push to Devices notification server</a>, but ran into a bit of an issue trying to get Resque-web / Resque server UI to show up.</p>
-
-<p>Finally ran into <a href="http://d.hatena.ne.jp/hiro_nemu/20120809/1344476207">this great blog entry</a>. It&#8217;s written in Japanese so I decided to create a short version in English here in case anyone else runs into the same issue</p>
-
-<p>If you already have the following:</p>
-
-<figure class='code'><figcaption><span>config.ru</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># snip</span>
-</span><span class='line'><span class="n">run</span> <span class="ss">Rack</span><span class="p">:</span><span class="ss">:URLMap</span><span class="o">.</span><span class="n">new</span> <span class="p">\</span>
-</span><span class='line'>  <span class="s2">&quot;/&quot;</span>       <span class="o">=&gt;</span> <span class="no">Padrino</span><span class="o">.</span><span class="n">application</span><span class="p">,</span>
-</span><span class='line'>  <span class="s2">&quot;/resque&quot;</span> <span class="o">=&gt;</span> <span class="ss">Resque</span><span class="p">:</span><span class="ss">:Server</span><span class="o">.</span><span class="n">new</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>in your <code>config.ru</code> and yet don&#8217;t see anything when you hit /resque on your local environment, run your server with</p>
-
-<p><code>$rackup -p 3000</code></p>
 ]]></content>
   </entry>
   
