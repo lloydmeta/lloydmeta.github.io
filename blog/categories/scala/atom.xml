@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Scala | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/scala/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-03-05T18:46:11+09:00</updated>
+  <updated>2016-03-07T23:50:36+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -12,6 +12,456 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Scala and OpenCV Ep 1: Akka Webcam]]></title>
+    <link href="https://beachape.com/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/"/>
+    <updated>2016-03-08T16:16:00+09:00</updated>
+    <id>https://beachape.com/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam</id>
+    <content type="html"><![CDATA[<p>In a <a href="/blog/2016/03/05/opencv-sbt-plugin/">previous post</a>, I talked about SBT-OpenCV, a plugin for SBT that makes it easy to get started with OpenCV in any SBT-defined JVM app using just one line in <code>project/plugins.sbt</code>.  Having handled the issue of getting the proper dependencies into a project, we can turn our attention to actually using the libraries to do something cool.</p>
+
+<p>This post is the beginning of a series, where the end goal is to build a smile detector.  Akka and OpenCV will be used, with Spark joining later on to complete the buzzwords treble.</p>
+
+<p>A well-rounded and fun first step is to get a video feed from a webcam showing on our screen. To do this, we will cover a variety of things, including how to define a custom Akka <code>Source</code>, how to use JavaCV, and some basic OpenCV image manipulation utilities.</p>
+
+<!-- more -->
+
+
+<h2>Akka Streams</h2>
+
+<p>Many of the OpenCV tutorials floating around on the interwebs use a procedural approach; perhaps because it better fits the programming language of the tutorial, or for performance. In this series of posts, we will instead adopt a stream processing model, specifically in the manner of <a href="http://www.reactive-streams.org/">Reactive Streams</a>.</p>
+
+<p>There are many benefits of using the Reactive Stream model (<a href="https://medium.com/@kvnwbbr/a-journey-into-reactive-streams-5ee2a9cd7e29#.am5eyvz5x">this blog post</a>, and <a href="http://www.slideshare.net/rolandkuhn/reactive-streams">this slide deck by Roland Kuhn</a> are great places to start reading), but the main ones I feel are relevant for us are:</p>
+
+<ol>
+<li><p><strong>Simplicity</strong>: by turning data processing into a series of simple stateless transformations, your code is easy to maintain, easy to change, and easy to understand: in other words, it becomes agile (<em>relax</em>: your code, not your team...).</p></li>
+<li><p><strong>Backpressure</strong>: Reactive Streams implementations ensure that backpressure (when downstream transforms take too long, upstream is informed so as to not overload your system) is handled automatically</p></li>
+<li><p><strong>Asynchronous</strong>: Reactive Streams are run asynchronously by default, leaving your main thread(s) responsive</p></li>
+</ol>
+
+
+<p>In Scala, <a href="http://doc.akka.io/docs/akka-stream-and-http-experimental/snapshot/scala.html">Akka-Streams</a> is the defacto implementation of the Reactive Streams spec, and although it is labelled experimental, its adoption looks imminent (for example, <a href="https://www.playframework.com/documentation/2.4.x/ReactiveStreamsIntegration">there is already a Play integration</a> and the innards of Play are being rewritten to use Akka-Http, which is based on Akka-Streams).  Another nice Reactive Streams implementation in Scala is <a href="https://github.com/monixio/monix">Monix</a>, which offers a (subjectively) cleaner interface that is more familiar for people who come from RxScala/RxJava.</p>
+
+<p>For the purposes of this tutorial, we will be using Akka-Streams because it seems to have higher chances of wide-spread adoption.</p>
+
+<p><em>Note that this tutorial was written based on an <strong>experimental</strong> version of Akka streams.</em></p>
+
+<h3>Flow chart</h3>
+
+<p>Asides from wrapping OpenCV, JavaCV comes with a number of useful classes. One such class is <code>CanvasFrame</code>, which is a hardware-accelerated Swing Frame implementation for showing images.  <code>CanvasFrame</code>'s <code>.showImage</code> method accepts a <code>Frame</code>, which is the exact same type that <code>OpenCVFrameGrabber</code> (another useful JavaCV class) returns from its <code>.grabh()</code> method.</p>
+
+<p>Before showing the image, we will flip the image so that the feed we see on screen moves in the direction we expect. This requires us to do a simple transformation to a <code>Mat</code>, a wrapper type for OpenCV's native matrix, do the actual flipping of the matrix, convert the <code>Mat</code> back into a <code>Frame</code>, and then show it on the <code>CanvasFrame</code>.</p>
+
+<p>In short, our pipeline looks something like this:</p>
+
+<div id="flow-chart"><img class="center" src="/images/opencv-flowchart-part-1.png" title="'Simple wecam feed flow'" ></div>
+
+
+<h3>The Source</h3>
+
+<p>As the diagram suggests, the first thing we need is a <code>Source</code> that produces <code>Frames</code>; in other words, a <code>Source[Frame]</code>.</p>
+
+<p>The <code>OpenCVFrameGrabber</code> API for grabbing frames from a webcam is fairly simple: you instantiate one passing in an <code>Int</code> for the device id of the webcam (usually 0), optionally pass some settings to it, and then call <code>start</code> to initialise the grabber.  Afterwards, it is simly a matter of calling <code>.grab()</code> to obtain a <code>Frame</code>.</p>
+
+<p>```scala
+val grabber = new OpenCVFrameGrabber(deviceId)
+grabber.setImageWidth(imageWidth)
+grabber.setImageHeight(imageHeight)
+grabber.setBitsPerPixel(bitsPerPixel)
+grabber.setImageMode(imageMode)
+grabber.start()</p>
+
+<p>//...</p>
+
+<p>grabber.grab() // returns a Frame
+<code>``
+In order to create an Akka</code>Source[Frame]<code>, we will make use of the Akka-provided</code>ActorPublisher` class, which provides helper methods that specifically make it easy to send data only when there is downstream demand (this is how backpressure is automagically handled).</p>
+
+<p>In the actor's <code>receive</code> method, we match on</p>
+
+<ul>
+<li><code>Request</code> message type, which use to then call <code>emitFrames()</code></li>
+<li>A custom <code>Continue</code> object, which also calls <code>emitFrames()</code></li>
+<li><code>Cancel</code> in order to know when to stop the actor.</li>
+</ul>
+
+
+<p>The <code>emitFrames()</code> method is a method that checks to see if the Actor is currently active (whether it has any subscribers), and if it is, grabs a frame and sends it to the <code>onNext</code> helper method from <code>ActorPublisher</code> to send a piece of data. It then checks if <code>totalDemand</code> (another <code>ActorPublisher</code> method) is greater than 0, and sends <em>itself</em> a <code>Continue</code> message, which invokes <code>emitFrames()</code> again. This somewhat convoluted way of sending data downstream is required because <code>grabber.grab()</code> is a blocking call, and we don't want to block the Actor threadpool for too long at a time (this pattern is used by the built-in <a href="https://github.com/akka/akka/blob/master/akka-stream/src/main/scala/akka/stream/impl/io/InputStreamPublisher.scala#L43"><code>InputStreamPublisher</code></a>).</p>
+
+<p>In order to make a <code>Source[Frame]</code>, we instantiate an instance of our actor, pass its <code>ActorRef</code> to a method that creates a <code>Publisher[Frame]</code>, and then pass the publisher to a method that makes a <code>Source[Frame]</code>.</p>
+
+<p>For the purposes of keeping our API clean, we make it a private class and expose only a static method for creating a source.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Webcam Source[Frame] (WebcamSource.scala)</span> <a href='/downloads/code/scala/WebcamSource.scala'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">Webcam</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/**</span>
+</span><span class='line'><span class="cm">   * Builds a Frame [[Source]]</span>
+</span><span class='line'><span class="cm">   *</span>
+</span><span class='line'><span class="cm">   * @param deviceId device ID for the webcam</span>
+</span><span class='line'><span class="cm">   * @param dimensions</span>
+</span><span class='line'><span class="cm">   * @param bitsPerPixel</span>
+</span><span class='line'><span class="cm">   * @param imageMode</span>
+</span><span class='line'><span class="cm">   * @param system ActorSystem</span>
+</span><span class='line'><span class="cm">   * @return a Source of [[Frame]]s</span>
+</span><span class='line'><span class="cm">   */</span>
+</span><span class='line'>  <span class="k">def</span> <span class="n">source</span><span class="o">(</span>
+</span><span class='line'>    <span class="n">deviceId</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">dimensions</span><span class="k">:</span> <span class="kt">Dimensions</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">bitsPerPixel</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="nc">CV_8U</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">imageMode</span><span class="k">:</span> <span class="kt">ImageMode</span> <span class="o">=</span> <span class="nc">ImageMode</span><span class="o">.</span><span class="nc">COLOR</span>
+</span><span class='line'>  <span class="o">)(</span><span class="k">implicit</span> <span class="n">system</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">)</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">Frame</span>, <span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">props</span> <span class="k">=</span> <span class="nc">Props</span><span class="o">(</span>
+</span><span class='line'>      <span class="k">new</span> <span class="nc">WebcamFramePublisher</span><span class="o">(</span>
+</span><span class='line'>        <span class="n">deviceId</span> <span class="k">=</span> <span class="n">deviceId</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">imageWidth</span> <span class="k">=</span> <span class="n">dimensions</span><span class="o">.</span><span class="n">width</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">imageHeight</span> <span class="k">=</span> <span class="n">dimensions</span><span class="o">.</span><span class="n">height</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">bitsPerPixel</span> <span class="k">=</span> <span class="n">bitsPerPixel</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">imageMode</span> <span class="k">=</span> <span class="n">imageMode</span>
+</span><span class='line'>      <span class="o">)</span>
+</span><span class='line'>    <span class="o">)</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">webcamActorRef</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="n">props</span><span class="o">)</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">webcamActorPublisher</span> <span class="k">=</span> <span class="nc">ActorPublisher</span><span class="o">[</span><span class="kt">Frame</span><span class="o">](</span><span class="n">webcamActorRef</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nc">Source</span><span class="o">.</span><span class="n">fromPublisher</span><span class="o">(</span><span class="n">webcamActorPublisher</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Building a started grabber seems finicky if not synchronised; there may be some freaky stuff happening somewhere.</span>
+</span><span class='line'>  <span class="k">private</span> <span class="k">def</span> <span class="n">buildGrabber</span><span class="o">(</span>
+</span><span class='line'>    <span class="n">deviceId</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">imageWidth</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">imageHeight</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">bitsPerPixel</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">imageMode</span><span class="k">:</span> <span class="kt">ImageMode</span>
+</span><span class='line'>  <span class="o">)</span> <span class="k">=</span> <span class="n">synchronized</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">g</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">OpenCVFrameGrabber</span><span class="o">(</span><span class="n">deviceId</span><span class="o">)</span>
+</span><span class='line'>    <span class="n">g</span><span class="o">.</span><span class="n">setImageWidth</span><span class="o">(</span><span class="n">imageWidth</span><span class="o">)</span>
+</span><span class='line'>    <span class="n">g</span><span class="o">.</span><span class="n">setImageHeight</span><span class="o">(</span><span class="n">imageHeight</span><span class="o">)</span>
+</span><span class='line'>    <span class="n">g</span><span class="o">.</span><span class="n">setBitsPerPixel</span><span class="o">(</span><span class="n">bitsPerPixel</span><span class="o">)</span>
+</span><span class='line'>    <span class="n">g</span><span class="o">.</span><span class="n">setImageMode</span><span class="o">(</span><span class="n">imageMode</span><span class="o">)</span>
+</span><span class='line'>    <span class="n">g</span><span class="o">.</span><span class="n">start</span><span class="o">()</span>
+</span><span class='line'>    <span class="n">g</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/**</span>
+</span><span class='line'><span class="cm">   * Actor that backs the Akka Stream source</span>
+</span><span class='line'><span class="cm">   */</span>
+</span><span class='line'>  <span class="k">private</span> <span class="k">class</span> <span class="nc">WebcamFramePublisher</span><span class="o">(</span>
+</span><span class='line'>      <span class="n">deviceId</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span>
+</span><span class='line'>      <span class="n">imageWidth</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span>
+</span><span class='line'>      <span class="n">imageHeight</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span>
+</span><span class='line'>      <span class="n">bitsPerPixel</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span>
+</span><span class='line'>      <span class="n">imageMode</span><span class="k">:</span> <span class="kt">ImageMode</span>
+</span><span class='line'>  <span class="o">)</span> <span class="k">extends</span> <span class="nc">ActorPublisher</span><span class="o">[</span><span class="kt">Frame</span><span class="o">]</span> <span class="k">with</span> <span class="nc">ActorLogging</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">implicit</span> <span class="k">val</span> <span class="n">ec</span> <span class="k">=</span> <span class="n">context</span><span class="o">.</span><span class="n">dispatcher</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Lazy so that nothing happens until the flow begins</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">lazy</span> <span class="k">val</span> <span class="n">grabber</span> <span class="k">=</span> <span class="n">buildGrabber</span><span class="o">(</span>
+</span><span class='line'>      <span class="n">deviceId</span> <span class="k">=</span> <span class="n">deviceId</span><span class="o">,</span>
+</span><span class='line'>      <span class="n">imageWidth</span> <span class="k">=</span> <span class="n">imageWidth</span><span class="o">,</span>
+</span><span class='line'>      <span class="n">imageHeight</span> <span class="k">=</span> <span class="n">imageHeight</span><span class="o">,</span>
+</span><span class='line'>      <span class="n">bitsPerPixel</span> <span class="k">=</span> <span class="n">bitsPerPixel</span><span class="o">,</span>
+</span><span class='line'>      <span class="n">imageMode</span> <span class="k">=</span> <span class="n">imageMode</span>
+</span><span class='line'>    <span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="n">receive</span><span class="k">:</span> <span class="kt">Receive</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">case</span> <span class="k">_:</span> <span class="kt">Request</span> <span class="o">=&gt;</span> <span class="n">emitFrames</span><span class="o">()</span>
+</span><span class='line'>      <span class="k">case</span> <span class="nc">Continue</span> <span class="k">=&gt;</span> <span class="n">emitFrames</span><span class="o">()</span>
+</span><span class='line'>      <span class="k">case</span> <span class="nc">Cancel</span> <span class="k">=&gt;</span> <span class="n">onCompleteThenStop</span><span class="o">()</span>
+</span><span class='line'>      <span class="k">case</span> <span class="n">unexpectedMsg</span> <span class="k">=&gt;</span> <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Unexpected message: $unexpectedMsg&quot;</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">def</span> <span class="n">emitFrames</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">if</span> <span class="o">(</span><span class="n">isActive</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="cm">/*</span>
+</span><span class='line'><span class="cm">          Grabbing a frame is a blocking I/O operation, so we don&#39;t send too many at once.</span>
+</span><span class='line'><span class="cm">         */</span>
+</span><span class='line'>        <span class="n">graphFrame</span><span class="o">().</span><span class="n">foreach</span><span class="o">(</span><span class="n">onNext</span><span class="o">)</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">totalDemand</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>          <span class="n">self</span> <span class="o">!</span> <span class="nc">Continue</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">def</span> <span class="n">graphFrame</span><span class="o">()</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">Frame</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>      <span class="nc">Option</span><span class="o">(</span><span class="n">grabber</span><span class="o">.</span><span class="n">grab</span><span class="o">())</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">private</span> <span class="k">case</span> <span class="k">object</span> <span class="nc">Continue</span> <span class="k">extends</span> <span class="nc">DeadLetterSuppression</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>We'll also define a simple <code>Dimensions</code> case class to make things a bit clearer (keyword arguments FTW)</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Tuple-like class for holding dimensions (Dimensions.scala)</span> <a href='/downloads/code/scala/Dimensions.scala'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="cm">/**</span>
+</span><span class='line'><span class="cm"> * Tuple-like class for holding width and height in pixels</span>
+</span><span class='line'><span class="cm"> */</span>
+</span><span class='line'><span class="k">case</span> <span class="k">class</span> <span class="nc">Dimensions</span><span class="o">(</span><span class="n">width</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">height</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<h3>Conversion</h3>
+
+<p>In order to begin processing our feed with OpenCV, we first need to transform our <code>Frame</code>, which is a JavaCV type, into a type that works with JavaCV's wrapping of OpenCV's main representation of images, the matrix, aka <code>Mat</code>.  Fortunately, JavaCV has a <code>OpenCVFrameConverter.ToMat</code> helper class that helps us do this.  Since the class uses a mutable private field for holding on to temporary results, it normally isn't advisable to use it in multithreaded code unless we make new copies of it each time, but we can make it thread safe by binding it to a <code>ThreadLocal</code>.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Media conversion utility methods (MediaConversion.scala)</span> <a href='/downloads/code/scala/MediaConversion.scala'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="cm">/**</span>
+</span><span class='line'><span class="cm"> * Holds conversion and transformation methods for media types</span>
+</span><span class='line'><span class="cm"> */</span>
+</span><span class='line'><span class="k">object</span> <span class="nc">MediaConversion</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Each thread gets its own greyMat for safety</span>
+</span><span class='line'>  <span class="k">private</span> <span class="k">val</span> <span class="n">frameToMatConverter</span> <span class="k">=</span> <span class="nc">ThreadLocal</span><span class="o">.</span><span class="n">withInitial</span><span class="o">(</span><span class="k">new</span> <span class="nc">Supplier</span><span class="o">[</span><span class="kt">OpenCVFrameConverter.ToMat</span><span class="o">]</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">def</span> <span class="n">get</span><span class="o">()</span><span class="k">:</span> <span class="kt">OpenCVFrameConverter.ToMat</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">OpenCVFrameConverter</span><span class="o">.</span><span class="nc">ToMat</span>
+</span><span class='line'>  <span class="o">})</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/**</span>
+</span><span class='line'><span class="cm">   * Returns an OpenCV Mat for a given JavaCV frame</span>
+</span><span class='line'><span class="cm">   */</span>
+</span><span class='line'>  <span class="k">def</span> <span class="n">toMat</span><span class="o">(</span><span class="n">frame</span><span class="k">:</span> <span class="kt">Frame</span><span class="o">)</span><span class="k">:</span> <span class="kt">Mat</span> <span class="o">=</span> <span class="n">frameToMatConverter</span><span class="o">.</span><span class="n">get</span><span class="o">().</span><span class="n">convert</span><span class="o">(</span><span class="n">frame</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/**</span>
+</span><span class='line'><span class="cm">   * Returns a JavaCV Frame for a given OpenCV Mat</span>
+</span><span class='line'><span class="cm">   */</span>
+</span><span class='line'>  <span class="k">def</span> <span class="n">toFrame</span><span class="o">(</span><span class="n">mat</span><span class="k">:</span> <span class="kt">Mat</span><span class="o">)</span><span class="k">:</span> <span class="kt">Frame</span> <span class="o">=</span> <span class="n">frameToMatConverter</span><span class="o">.</span><span class="n">get</span><span class="o">().</span><span class="n">convert</span><span class="o">(</span><span class="n">mat</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<h3>Manipulation</h3>
+
+<p>Once we have our <code>Mat</code>, we can use OpenCV methods to do manipulation.  One thing though, is that (perhaps for efficiency) by default, these methods mutate the original object. This can cause strange issues in a multi-threaded, multi-path Flow graph, so instead of using them as is, we make use of the convenient <code>clone</code> method before doing our flip so that the original matrix remains as-is.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span> (Flip.scala)</span> <a href='/downloads/code/scala/Flip.scala'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">Flip</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/**</span>
+</span><span class='line'><span class="cm">   * Clones the image and returns a flipped version of the given image matrix along the y axis (horizontally)</span>
+</span><span class='line'><span class="cm">   */</span>
+</span><span class='line'>  <span class="k">def</span> <span class="n">horizontal</span><span class="o">(</span><span class="n">mat</span><span class="k">:</span> <span class="kt">Mat</span><span class="o">)</span><span class="k">:</span> <span class="kt">Mat</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">cloned</span> <span class="k">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">clone</span><span class="o">()</span>
+</span><span class='line'>    <span class="n">flip</span><span class="o">(</span><span class="n">cloned</span><span class="o">,</span> <span class="n">cloned</span><span class="o">,</span> <span class="mi">1</span><span class="o">)</span>
+</span><span class='line'>    <span class="n">cloned</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<h3>Hooking things up</h3>
+
+<p>Now that we have all our components, all we need to do is create a simple application that instantiates all our components and hooks them all together:</p>
+
+<ol>
+<li>Instantiate our <code>ActorSystem</code> and <code>Materializer</code></li>
+<li>Instantiate a <code>CanvasFrame</code></li>
+<li>Instantiate our <code>Source[Frame]</code></li>
+<li>Define our <code>Graph</code> by using our components to transform it</li>
+<li>Run the graph</li>
+</ol>
+
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Webcam feed app (WebcamWindow.scala)</span> <a href='/downloads/code/scala/WebcamWindow.scala'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">WebcamWindow</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">implicit</span> <span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">()</span>
+</span><span class='line'>  <span class="k">implicit</span> <span class="k">val</span> <span class="n">materializer</span> <span class="k">=</span> <span class="nc">ActorMaterializer</span><span class="o">()</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">canvas</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CanvasFrame</span><span class="o">(</span><span class="s">&quot;Webcam&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="c1">//  Set Canvas frame to close on exit</span>
+</span><span class='line'>  <span class="n">canvas</span><span class="o">.</span><span class="n">setDefaultCloseOperation</span><span class="o">(</span><span class="n">javax</span><span class="o">.</span><span class="n">swing</span><span class="o">.</span><span class="nc">JFrame</span><span class="o">.</span><span class="nc">EXIT_ON_CLOSE</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">imageDimensions</span> <span class="k">=</span> <span class="nc">Dimensions</span><span class="o">(</span><span class="n">width</span> <span class="k">=</span> <span class="mi">640</span><span class="o">,</span> <span class="n">height</span> <span class="k">=</span> <span class="mi">480</span><span class="o">)</span>
+</span><span class='line'>  <span class="k">val</span> <span class="n">webcamSource</span> <span class="k">=</span> <span class="nc">Webcam</span><span class="o">.</span><span class="n">source</span><span class="o">(</span><span class="n">deviceId</span> <span class="k">=</span> <span class="mi">0</span><span class="o">,</span> <span class="n">dimensions</span> <span class="k">=</span> <span class="n">imageDimensions</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">graph</span> <span class="k">=</span> <span class="n">webcamSource</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="nc">MediaConversion</span><span class="o">.</span><span class="n">toMat</span><span class="o">)</span> <span class="c1">// most OpenCV manipulations require a Matrix</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="nc">Flip</span><span class="o">.</span><span class="n">horizontal</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="nc">MediaConversion</span><span class="o">.</span><span class="n">toFrame</span><span class="o">)</span> <span class="c1">// convert back to a frame</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">canvas</span><span class="o">.</span><span class="n">showImage</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">.</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">graph</span><span class="o">.</span><span class="n">run</span><span class="o">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Looking at the code, one of the rewards of using the stream processing model over the procedureal approach might jump out at you: the near 1 to 1 correspondence that the graph definition has with our earlier diagram.</p>
+
+<h2>Conclusion</h2>
+
+<p>So, with that we should now have a very simple app shows what your webcam sees, flipped so that when you move left, the image moves with you.  We've done it by declaring a custom Akka Stream <code>Source</code> and transforming it a little bit before shoving it onto the screen.</p>
+
+<p>In the next post, we will look at how to do something a bit more complex: face detection using OpenCV.</p>
+
+<h3>Credits</h3>
+
+<ol>
+<li><a href="https://chimpler.wordpress.com/2014/11/18/playing-with-opencv-in-scala-to-do-face-detection-with-haarcascade-classifier-using-a-webcam/">Playing with OpenCV in Scala to do face detection with Haarcascade classifier using a webcam</a></li>
+</ol>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[OpenCV SBT Plugin]]></title>
@@ -501,128 +951,6 @@ res1: Option[Int] = Some(3)
 <h2>Conclusion</h2>
 
 <p>I hope this post has been helpful in giving a simple, but full example of how to get started with macros in Scala. If you spot any errors, have questions or suggestions, please feel free to leave a comment!</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[RxScala and Schwatcher]]></title>
-    <link href="https://beachape.com/blog/2014/05/03/rxscala-and-schwatcher/"/>
-    <updated>2014-05-03T17:44:00+09:00</updated>
-    <id>https://beachape.com/blog/2014/05/03/rxscala-and-schwatcher</id>
-    <content type="html"><![CDATA[<p>A couple days ago, I released v0.1.3 of <a href="https://github.com/lloydmeta/schwatcher">Schwatcher</a>, which introduces the ability to monitor events on file paths using a composable <a href="https://rx.codeplex.com/">Rx Observable</a> interface. "What does that even mean and why should you care?" is what this blog post tries to answer.</p>
-
-<p>The original version of Schwatcher allowed you to tell a <code>MonitorActor</code> what callback you want to fire when a <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/file/StandardWatchEventKinds.html">certain type of event</a> happened on a file path. This is fine and there are people out there using it in production as is. The limitation to this approach is that (at least by default), the events are difficult to treat as data and thus difficult to compose.</p>
-
-<p>With <a href="https://rx.codeplex.com/">Rx</a>, we turn file path events into an asynchronous stream/channel. Essentially, you tell a <code>RxMonitor</code> object what path and event type you want to monitor and when an event happens, it will get pushed into its <code>observable</code> (the stream). You can then choose to filter, map, or fold over this data stream, creating new data streams. If you wish to cause side-effects, you can add one or more <code>observer</code>s to these data streams.</p>
-
-<!-- more -->
-
-
-<p><em>Note</em>: this blog post applies to v0.1.3 of Schwatcher, which uses v0.18.1 of RxScala. Future versions may introduce breaking changes that invalidate the examples in this blog post.</p>
-
-<h2>Example</h2>
-
-<p>Suppose we have the following directory structure:</p>
-
-<p><code>
-directory1
-  - directoryFile1
-</code></p>
-
-<p>Let's set up an <code>RxMonitor</code> object to monitor for file creation and modifications events in <code>directory1</code> (note: all operations on <code>RxMonitor</code> objects are thread-safe).</p>
-
-<p>While we're at it, let's grab the base <code>observable</code> from the monitor as well. Note that this <code>Observable</code> will, according to the <code>registerPath</code> and <code>unregisterPath</code> calls made to its parent <code>RxMonitor</code>, push all <code>EventAtPath</code>s to its <code>Observer</code>s. More on what an <code>Observer</code> is later, but for now, think of an <code>Observable</code> as a data stream and an <code>Observer</code> as an object gets pushed new objects from the <code>Observable</code> that it is, well, observing.</p>
-
-<p>```scala
-import com.beachape.filemanagement.RxMonitor
-import com.beachape.filemanagement.Messages.EventAtPath
-import java.nio.file.Paths
-import java.nio.file.StandardWatchEventKinds._
-import rx.lang.scala.Observer</p>
-
-<p>val monitor = RxMonitor()
-val observable = monitor.observable
-val directory1 = Paths get "/Users/lloyd/Desktop/directory1"</p>
-
-<p>monitor.registerPath(ENTRY_MODIFY, directory1)
-monitor.registerPath(ENTRY_CREATE, directory1)
-```</p>
-
-<p>Let's create 2 more <code>Observables</code>. Let's make one called <code>createsOnly</code> that will only care about create events in the directory and another one called <code>scalaSourceCreatesOnly</code> that only cares about create events for files ending in <code>.scala</code>. <strong>Notice</strong> that we're composing here :)</p>
-
-<p><code>scala
-val createsOnly = observable.filter(_.event == ENTRY_CREATE)
-val scalaSourceCreatesOnly = createsOnly.filter(_.path.toString.endsWith(".scala"))
-</code>
-Now, let's create some basic <code>Observers</code> that we can pass to the <code>subscribe</code> method of our new <code>Observable</code>s. An <code>Observer</code> at minimum implements an onNext function, which takes an element that will be pushed to it from the <code>Observable</code> that it subscribes to and returns nothing (<code>Unit</code>). It may optionally implement onError (a function which takes a <code>Throwable</code> as an argument and returns nothing) and onCompleted (0 argument function that is called when the <code>Observable</code> it is subscribed to is finished and will no longer send further objects):</p>
-
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>attach observers (attachObservers.scala)</span> <a href='/downloads/code/scala/attachObservers.scala'>download</a></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">val</span> <span class="n">createAndModifyObserver</span> <span class="k">=</span> <span class="nc">Observer</span><span class="o">[</span><span class="kt">EventAtPath</span><span class="o">](</span><span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Something was created or modified: $event&quot;</span><span class="o">)})</span>
-</span><span class='line'><span class="k">val</span> <span class="n">createOnlyObserver</span> <span class="k">=</span> <span class="nc">Observer</span><span class="o">[</span><span class="kt">EventAtPath</span><span class="o">](</span><span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Something was created: $event&quot;</span><span class="o">)})</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">observable</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">createAndModifyObserver</span><span class="o">)</span>
-</span><span class='line'><span class="n">createsOnly</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">createOnlyObserver</span><span class="o">)</span>
-</span><span class='line'><span class="cm">/*</span>
-</span><span class='line'><span class="cm"> * The same as</span>
-</span><span class='line'><span class="cm"> * {{{</span>
-</span><span class='line'><span class="cm"> * val createScalaOnlyObserver = Observer[EventAtPath](onNext = { event =&gt; println(s&quot;A Scala source file was created: $event&quot;)})</span>
-</span><span class='line'><span class="cm"> * scalaSourceCreatesOnly.subscribe(createScalaOnlyObserver)</span>
-</span><span class='line'><span class="cm"> * }}}</span>
-</span><span class='line'><span class="cm"> *</span>
-</span><span class='line'><span class="cm"> * The same as declaring an Observer separately and attaching it via #subscribe (as seen above),</span>
-</span><span class='line'><span class="cm"> * since Observer as a type is just a way of binding 3 different functions, onNext, onCompleted, and onError</span>
-</span><span class='line'><span class="cm"> *</span>
-</span><span class='line'><span class="cm"> */</span>
-</span><span class='line'><span class="n">scalaSourceCreatesOnly</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;A Scala source file was created: $event&quot;</span><span class="o">)})</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p>Now let's make stuff happen in another terminal.</p>
-
-<p><code>bash
-$ ~/Desktop/directory1: touch hello
-$ ~/Desktop/directory1: echo lol &gt;&gt; hello
-$ ~/Desktop/directory1: touch speedy.scala
-$ ~/Desktop/directory1: echo 'println("hmm")' &gt;&gt; speedy.scala
-</code></p>
-
-<p>The following will be outputted</p>
-
-<p><code>
-Something was created or modified: EventAtPath(ENTRY_CREATE,/Users/lloyd/Desktop/directory1/hello)
-Something was created: EventAtPath(ENTRY_CREATE,/Users/lloyd/Desktop/directory1/hello)
-Something was created or modified: EventAtPath(ENTRY_MODIFY,/Users/lloyd/Desktop/directory1/hello)
-Something was created or modified: EventAtPath(ENTRY_CREATE,/Users/lloyd/Desktop/directory1/speedy.scala)
-Something was created: EventAtPath(ENTRY_CREATE,/Users/lloyd/Desktop/directory1/speedy.scala)
-A Scala source file was created: EventAtPath(ENTRY_CREATE,/Users/lloyd/Desktop/directory1/speedy.scala)
-Something was created or modified: EventAtPath(ENTRY_MODIFY,/Users/lloyd/Desktop/directory1/speedy.scala)
-</code></p>
-
-<p>Lastly, since we're done, let's call the <code>stop()</code> method on the <code>RxMonitor</code> object so that subscribed <code>Observers</code> are notified and we stop the underlying <code>MonitorActor</code> as well. Cleaning up is A Good Thing (TM).</p>
-
-<p><code>scala
-monitor.stop()
-</code></p>
-
-<h2>Conclusion</h2>
-
-<p>I hope this post has demonstrated the power of using RxScala's <code>Observable</code> as an abstraction of asynchronous events into a tangible data structure, and how using it through Schwatcher might simplify the process of building your own applications. If you have any questions or spot any mistakes, please feel free to leave a comment.</p>
 ]]></content>
   </entry>
   

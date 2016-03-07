@@ -8,7 +8,6 @@ object Webcam {
    * @param bitsPerPixel
    * @param imageMode
    * @param system ActorSystem
-   *
    * @return a Source of [[Frame]]s
    */
   def source(
@@ -32,6 +31,23 @@ object Webcam {
     Source.fromPublisher(webcamActorPublisher)
   }
 
+  // Building a started grabber seems finicky if not synchronised; there may be some freaky stuff happening somewhere.
+  private def buildGrabber(
+    deviceId: Int,
+    imageWidth: Int,
+    imageHeight: Int,
+    bitsPerPixel: Int,
+    imageMode: ImageMode
+  ) = synchronized {
+    val g = new OpenCVFrameGrabber(deviceId)
+    g.setImageWidth(imageWidth)
+    g.setImageHeight(imageHeight)
+    g.setBitsPerPixel(bitsPerPixel)
+    g.setImageMode(imageMode)
+    g.start()
+    g
+  }
+
   /**
    * Actor that backs the Akka Stream source
    */
@@ -46,27 +62,38 @@ object Webcam {
     private implicit val ec = context.dispatcher
 
     // Lazy so that nothing happens until the flow begins
-    private lazy val grabber = {
-      val g = new OpenCVFrameGrabber(deviceId)
-      g.setImageWidth(imageWidth)
-      g.setImageHeight(imageHeight)
-      g.setBitsPerPixel(bitsPerPixel)
-      g.setImageMode(imageMode)
-      g.start()
-      g
-    }
+    private lazy val grabber = buildGrabber(
+      deviceId = deviceId,
+      imageWidth = imageWidth,
+      imageHeight = imageHeight,
+      bitsPerPixel = bitsPerPixel,
+      imageMode = imageMode
+    )
 
     def receive: Receive = {
-      case _: Request => sendFramesAsDemanded()
+      case _: Request => emitFrames()
+      case Continue => emitFrames()
       case Cancel => onCompleteThenStop()
       case unexpectedMsg => log.warning(s"Unexpected message: $unexpectedMsg")
     }
 
-    private def sendFramesAsDemanded(): Unit = {
-      while (totalDemand > 0) {
-        Option(grabber.grab()).foreach(onNext)
+    private def emitFrames(): Unit = {
+      if (isActive) {
+        /*
+          Grabbing a frame is a blocking I/O operation, so we don't send too many at once.
+         */
+        graphFrame().foreach(onNext)
+        if (totalDemand > 0) {
+          self ! Continue
+        }
       }
     }
+
+    private def graphFrame(): Option[Frame] = {
+      Option(grabber.grab())
+    }
   }
+
+  private case object Continue extends DeadLetterSuppression
 
 }
