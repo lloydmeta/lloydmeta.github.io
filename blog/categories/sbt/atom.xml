@@ -4,7 +4,7 @@
   <title><![CDATA[Category: SBT | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/sbt/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-03-07T23:59:58+09:00</updated>
+  <updated>2016-03-08T00:12:14+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -481,7 +481,7 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
 <p>After taking a look at <a href="https://github.com/chimpler/blog-scala-javacv/blob/master/build.sbt#L19">this Github project</a>, I created an SBT plugin, <a href="https://github.com/lloydmeta/sbt-opencv">SBT-OpenCV</a>, that allows you to add just one line to your <code>project/plugins.sbt</code> to begin playing around with OpenCV:</p>
 
 <p><code>scala
-addSbtPlugin("com.beachape" % "sbt-opencv" % "1.2")
+addSbtPlugin("com.beachape" % "sbt-opencv" % "1.4")
 </code></p>
 
 <p>The following is a list of SBT setting keys that you can set in order to customise the behaviour of the plugin:</p>
@@ -498,7 +498,7 @@ addSbtPlugin("com.beachape" % "sbt-opencv" % "1.2")
 <p>For example:</p>
 
 <p><code>scala
-javaCVPlatform := "android-arm"
+javaCppPlatform := "android-arm"
 </code></p>
 
 <p>Feel free to try it out and submit issues, ideas, and PRs at the <a href="https://github.com/lloydmeta/sbt-opencv">Github page</a> :)</p>
