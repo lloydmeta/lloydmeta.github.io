@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Akka | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/akka/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-03-07T23:50:36+09:00</updated>
+  <updated>2016-03-07T23:59:58+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -453,6 +453,8 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
 <p>So, with that we should now have a very simple app shows what your webcam sees, flipped so that when you move left, the image moves with you.  We've done it by declaring a custom Akka Stream <code>Source</code> and transforming it a little bit before shoving it onto the screen.</p>
 
 <p>In the next post, we will look at how to do something a bit more complex: face detection using OpenCV.</p>
+
+<p><strong>Note</strong> the code for this post is <a href="https://github.com/lloydmeta/scala-akka-cv-part1">on Github</a></p>
 
 <h3>Credits</h3>
 
