@@ -78,7 +78,7 @@ object Webcam {
     }
 
     private def emitFrames(): Unit = {
-      if (isActive) {
+      if (isActive && totalDemand > 0) {
         /*
           Grabbing a frame is a blocking I/O operation, so we don't send too many at once.
          */

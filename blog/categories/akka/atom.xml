@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Akka | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/akka/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-03-08T10:41:30+09:00</updated>
+  <updated>2016-03-10T12:12:36+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -272,7 +272,7 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
 </span><span class='line'>    <span class="o">}</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="k">private</span> <span class="k">def</span> <span class="n">emitFrames</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
-</span><span class='line'>      <span class="k">if</span> <span class="o">(</span><span class="n">isActive</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">if</span> <span class="o">(</span><span class="n">isActive</span> <span class="o">&amp;&amp;</span> <span class="n">totalDemand</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
 </span><span class='line'>        <span class="cm">/*</span>
 </span><span class='line'><span class="cm">          Grabbing a frame is a blocking I/O operation, so we don&#39;t send too many at once.</span>
 </span><span class='line'><span class="cm">         */</span>
