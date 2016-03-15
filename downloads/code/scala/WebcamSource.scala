@@ -82,14 +82,14 @@ object Webcam {
         /*
           Grabbing a frame is a blocking I/O operation, so we don't send too many at once.
          */
-        graphFrame().foreach(onNext)
+        grabFrame().foreach(onNext)
         if (totalDemand > 0) {
           self ! Continue
         }
       }
     }
 
-    private def graphFrame(): Option[Frame] = {
+    private def grabFrame(): Option[Frame] = {
       Option(grabber.grab())
     }
   }

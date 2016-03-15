@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Streams | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/streams/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-03-15T22:42:41+09:00</updated>
+  <updated>2016-03-15T22:43:45+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -824,14 +824,14 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
 </span><span class='line'>        <span class="cm">/*</span>
 </span><span class='line'><span class="cm">          Grabbing a frame is a blocking I/O operation, so we don&#39;t send too many at once.</span>
 </span><span class='line'><span class="cm">         */</span>
-</span><span class='line'>        <span class="n">graphFrame</span><span class="o">().</span><span class="n">foreach</span><span class="o">(</span><span class="n">onNext</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">grabFrame</span><span class="o">().</span><span class="n">foreach</span><span class="o">(</span><span class="n">onNext</span><span class="o">)</span>
 </span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">totalDemand</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
 </span><span class='line'>          <span class="n">self</span> <span class="o">!</span> <span class="nc">Continue</span>
 </span><span class='line'>        <span class="o">}</span>
 </span><span class='line'>      <span class="o">}</span>
 </span><span class='line'>    <span class="o">}</span>
 </span><span class='line'>
-</span><span class='line'>    <span class="k">private</span> <span class="k">def</span> <span class="n">graphFrame</span><span class="o">()</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">Frame</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">private</span> <span class="k">def</span> <span class="n">grabFrame</span><span class="o">()</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">Frame</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
 </span><span class='line'>      <span class="nc">Option</span><span class="o">(</span><span class="n">grabber</span><span class="o">.</span><span class="n">grab</span><span class="o">())</span>
 </span><span class='line'>    <span class="o">}</span>
 </span><span class='line'>  <span class="o">}</span>
