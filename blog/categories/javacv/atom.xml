@@ -4,7 +4,7 @@
   <title><![CDATA[Category: JavaCV | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/javacv/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-03-10T12:12:36+09:00</updated>
+  <updated>2016-03-15T22:42:41+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -12,6 +12,554 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Scala and OpenCV Ep 2: Akka Face Detector]]></title>
+    <link href="https://beachape.com/blog/2016/03/14/scala-and-opencv-ep-2-akka-face-detector/"/>
+    <updated>2016-03-14T17:24:00+09:00</updated>
+    <id>https://beachape.com/blog/2016/03/14/scala-and-opencv-ep-2-akka-face-detector</id>
+    <content type="html"><![CDATA[<p>In <a href="/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/">Episode 1</a> of this series on Scala and computer vision, we created a basic Akka-Streams-powered webcam feed app.  To bring it to the next level, we will dig a little deeper into the OpenCV toolset and bring in feature detection as well as video stream editing.</p>
+
+<p><img class="center" src="/images/ape-detected.png" width="400" height="400" title="'Beachape face detected'" ></p>
+
+<p>We will build on the foundations from the <a href="/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/">previous post</a> and continue with the usage of Akka Streams, modeling our application as a series of small transformations that are run asynchronously, with backpressure handled automatically.</p>
+
+<!-- more -->
+
+
+<h3>Flow chart</h3>
+
+<p>Previously, our app could be represented by somewhat trivial <a href="http://localhost:4000/blog/2016/03/03/scala-and-opencv-ep-1-akka-webcam/#flow-chart">flow chart</a> that nonetheless had all the elements of a useful Akka stream: a <code>Source</code>, multiple transformations, and controlled side-effecting.</p>
+
+<p>To build our face detector, we will add the following:</p>
+
+<ol>
+<li><strong>Conversion to grey scale</strong>: Many image analysis tools need to be run on greyscale images, both for simplicity and efficiency.</li>
+<li><strong>Facial features detector</strong>: We will make use of OpenCV's Haar Cascade feature detection API to detect and identify faces in our video feed.</li>
+<li><strong>Video editing</strong>: We want to draw rectangles around the faces that have been identified into the image.</li>
+</ol>
+
+
+<p>Our updated flow chart is as follows (new transformations are highlighted by a light green rectangle):</p>
+
+<div id="flow-chart"><img class="center" src="/images/opencv-flowchart-part-2.png" title="'Simple wecam feed flow'" ></div>
+
+
+<h3>Greyscale</h3>
+
+<p>To convert a given <code>Mat</code> to a greyscale <code>Mat</code>, we can make use of the OpenCV method <a href="http://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html"><code>cvtColor</code></a>. The only slight niggle is that the method isn't idempotent: if you try to convert a greyscale image to greyscale, the method will throw. No matter, we can try handle that scenario ourselves by detecting the number of channels in the matrix.</p>
+
+<p>```scala
+def toGreyScale(mat: Mat): Mat = {
+  if (mat.channels() == 1) {</p>
+
+<pre><code>mat // just hand back the matrix as is; it is already grey
+</code></pre>
+
+<p>  } else {</p>
+
+<pre><code>// allocate a new Matrix with the same dimensions
+val greyMat = {
+  val (rows, cols) = (mat.rows(), mat.cols())
+  new Mat(rows, cols, CV_8U)
+}
+opencv_imgproc.cvtColor(mat, greyMat, COLOR_BGR2GRAY, 1)
+greyMat
+</code></pre>
+
+<p>  }
+}
+```</p>
+
+<p>However, since we want to pass the original <em>colour</em> image and the new greyscale image down the pipeline, we'll make things a bit easier for ourselves by defining a simple <code>WithGreyscale</code> case class to hold both:</p>
+
+<p>```scala
+object WithGrey {</p>
+
+<p>  /<em>*
+   * Simple transformer method that produces a [[WithGrey]]
+   </em>/
+  def build(orig: Mat): WithGrey = {</p>
+
+<pre><code>val grey = toGreyScale(orig)
+WithGrey(orig = orig, grey = grey)
+</code></pre>
+
+<p>  }</p>
+
+<p>  // toGreyScale is in here too
+}</p>
+
+<p>/<em>*
+ * Original Matrix with a Grey image. Useful because almost all analysis processing requires a greyscale image instead of
+ * a colour image.
+ *
+ * The constructor is private to make sure we don't mix up the two references
+ *
+ * Passing [[WithGrey]] images along with the original saves us from having to process to grey scale over and over again.
+ </em>/
+final case class WithGrey private (orig: Mat, grey: Mat)
+```</p>
+
+<h3>Face detection</h3>
+
+<p>To find faces in the images in our video feed, we will make use of Haar feature-based cascade classifiers, which are supported directly by OpenCV.  Haar Cascade classifers define how to look at an image and quickly identify any areas in it that are of interest to us.  A given classifier definition will usually contain multiple stages, so that a region is considered to test positive if all features in all stages of the definition return positive (thus <em>cascade</em>).</p>
+
+<p>In actual usage, this relies on careful training and tuning of classifier defintions, as well as a combination of clever mathematics and pragmatic optimisation for detection.  I will not cover exactly how they work in this tutorial (my understanding is dubious and there is a wealth of information online about them), but the following are a couple links that really helped me understand the theory behind them and how they work in practice:</p>
+
+<ol>
+<li><a href="http://docs.opencv.org/3.1.0/d7/d8b/tutorial_py_face_detection.html#gsc.tab=0">OpenCV documentation on using Haar Cascades for face detection</a></li>
+<li><a href="https://www.youtube.com/watch?v=sWTvK72-SPU">Youtube video covering Haar Cascades with a really good explanation of summed area tables</a></li>
+</ol>
+
+
+<p>OpenCV's Haar Classifier API (or perhaps JavaCV's wrapping of it) is fairly straight forward and boils down to:</p>
+
+<ol>
+<li>Instantiating a <code>CascadeClassifier</code>, passing in a path to a classifier definition (you can find some <a href="https://github.com/Itseez/opencv/tree/master/data/haarcascades">here</a>) as a constructor argument</li>
+<li>Instantiating an instance of <code>RectVector</code>, which is aptly named because it is a wrapper for a native vector of rectangles.</li>
+<li>Pass the allocated instance of <code>RectVector</code> to the <code>CascadeClassifier</code>'s detectMultiScale along with a greyscale image and some other options (yes, OpenCV will mutate the <code>RectVector</code> you pass in by adding in <code>Rect</code>s)</li>
+</ol>
+
+
+<p>In our implementation of a face detector, we'll wrap a few raw (but aliased) primitives that serve as option flags in OpenCV, just for our own sanity.  We'll also create a delegator class that  has a <code>detect(withGrey: WithGrey): (WithGrey, Seq[Face])</code> method and wraps the classifier to hold constant values for the classifier options because for our purposes, those won't be changing on the fly.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Tuple-like class for holding width and height in pixels (Dimensions.scala)</span> <a href='/downloads/code/scala/Dimensions.scala'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="cm">/**</span>
+</span><span class='line'><span class="cm"> * Tuple-like class for holding width and height in pixels</span>
+</span><span class='line'><span class="cm"> */</span>
+</span><span class='line'><span class="k">case</span> <span class="k">class</span> <span class="nc">Dimensions</span><span class="o">(</span><span class="n">width</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">height</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Nothing face-specific in this class per say; it can hold ids and Rects for any detected object (Face.scala)</span> <a href='/downloads/code/scala/Face.scala'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="cm">/**</span>
+</span><span class='line'><span class="cm">  * Holds an id and an OpenCV Rect defining the corners of a rectangle.</span>
+</span><span class='line'><span class="cm">  *</span>
+</span><span class='line'><span class="cm">  * There is nothing *face* specific in this class per say; it can hold ids and Rects for any detected</span>
+</span><span class='line'><span class="cm">  * object</span>
+</span><span class='line'><span class="cm">  */</span>
+</span><span class='line'><span class="k">case</span> <span class="k">class</span> <span class="nc">Face</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">faceRect</span><span class="k">:</span> <span class="kt">Rect</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Haar classifier option wrapper class (HaarDetectorFlag.scala)</span> <a href='/downloads/code/scala/HaarDetectorFlag.scala'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">sealed</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">HaarDetectorFlag</span><span class="o">(</span><span class="k">val</span> <span class="n">flag</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">case</span> <span class="k">object</span> <span class="nc">HaarDetectorFlag</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">case</span> <span class="k">object</span> <span class="nc">DoCannyPruning</span> <span class="k">extends</span> <span class="nc">HaarDetectorFlag</span><span class="o">(</span><span class="nc">CV_HAAR_DO_CANNY_PRUNING</span><span class="o">)</span>
+</span><span class='line'>  <span class="k">case</span> <span class="k">object</span> <span class="nc">ScaleImage</span> <span class="k">extends</span> <span class="nc">HaarDetectorFlag</span><span class="o">(</span><span class="nc">CV_HAAR_SCALE_IMAGE</span><span class="o">)</span>
+</span><span class='line'>  <span class="k">case</span> <span class="k">object</span> <span class="nc">FindBiggestObject</span> <span class="k">extends</span> <span class="nc">HaarDetectorFlag</span><span class="o">(</span><span class="nc">CV_HAAR_FIND_BIGGEST_OBJECT</span><span class="o">)</span>
+</span><span class='line'>  <span class="k">case</span> <span class="k">object</span> <span class="nc">DoRoughSearch</span> <span class="k">extends</span> <span class="nc">HaarDetectorFlag</span><span class="o">(</span><span class="nc">CV_HAAR_DO_ROUGH_SEARCH</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Face detector class that holds a Haar classifier (FaceDetector.scala)</span> <a href='/downloads/code/scala/FaceDetector.scala'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">FaceDetector</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/**</span>
+</span><span class='line'><span class="cm">   * Builds a FaceDetector with the default Haar Cascade classifier in the resource directory</span>
+</span><span class='line'><span class="cm">   */</span>
+</span><span class='line'>  <span class="k">def</span> <span class="n">defaultCascadeFile</span><span class="o">(</span>
+</span><span class='line'>    <span class="n">dimensions</span><span class="k">:</span> <span class="kt">Dimensions</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">scaleFactor</span><span class="k">:</span> <span class="kt">Double</span> <span class="o">=</span> <span class="mf">1.3</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">minNeighbours</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">3</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">detectorFlag</span><span class="k">:</span> <span class="kt">HaarDetectorFlag</span> <span class="o">=</span> <span class="nc">HaarDetectorFlag</span><span class="o">.</span><span class="nc">DoCannyPruning</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">minSize</span><span class="k">:</span> <span class="kt">Dimensions</span> <span class="o">=</span> <span class="nc">Dimensions</span><span class="o">(</span><span class="n">width</span> <span class="k">=</span> <span class="mi">30</span><span class="o">,</span> <span class="n">height</span> <span class="k">=</span> <span class="mi">30</span><span class="o">),</span>
+</span><span class='line'>    <span class="n">maxSize</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">Dimensions</span><span class="o">]</span> <span class="k">=</span> <span class="nc">None</span>
+</span><span class='line'>  <span class="o">)</span><span class="k">:</span> <span class="kt">FaceDetector</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">classLoader</span> <span class="k">=</span> <span class="k">this</span><span class="o">.</span><span class="n">getClass</span><span class="o">.</span><span class="n">getClassLoader</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">faceXml</span> <span class="k">=</span> <span class="n">classLoader</span><span class="o">.</span><span class="n">getResource</span><span class="o">(</span><span class="s">&quot;haarcascade_frontalface_alt.xml&quot;</span><span class="o">).</span><span class="n">getPath</span>
+</span><span class='line'>    <span class="k">new</span> <span class="nc">FaceDetector</span><span class="o">(</span>
+</span><span class='line'>      <span class="n">dimensions</span> <span class="k">=</span> <span class="n">dimensions</span><span class="o">,</span>
+</span><span class='line'>      <span class="n">classifierPath</span> <span class="k">=</span> <span class="n">faceXml</span><span class="o">,</span>
+</span><span class='line'>      <span class="n">scaleFactor</span> <span class="k">=</span> <span class="n">scaleFactor</span><span class="o">,</span>
+</span><span class='line'>      <span class="n">minNeighbours</span> <span class="k">=</span> <span class="n">minNeighbours</span><span class="o">,</span>
+</span><span class='line'>      <span class="n">detectorFlag</span> <span class="k">=</span> <span class="n">detectorFlag</span><span class="o">,</span>
+</span><span class='line'>      <span class="n">minSize</span> <span class="k">=</span> <span class="n">minSize</span><span class="o">,</span>
+</span><span class='line'>      <span class="n">maxSize</span> <span class="k">=</span> <span class="n">maxSize</span>
+</span><span class='line'>    <span class="o">)</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">FaceDetector</span><span class="o">(</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">dimensions</span><span class="k">:</span> <span class="kt">Dimensions</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">classifierPath</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">scaleFactor</span><span class="k">:</span> <span class="kt">Double</span> <span class="o">=</span> <span class="mf">1.3</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">minNeighbours</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">3</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">detectorFlag</span><span class="k">:</span> <span class="kt">HaarDetectorFlag</span> <span class="o">=</span> <span class="nc">HaarDetectorFlag</span><span class="o">.</span><span class="nc">ScaleImage</span><span class="o">,</span>
+</span><span class='line'>    <span class="n">minSize</span><span class="k">:</span> <span class="kt">Dimensions</span> <span class="o">=</span> <span class="nc">Dimensions</span><span class="o">(</span><span class="n">width</span> <span class="k">=</span> <span class="mi">30</span><span class="o">,</span> <span class="n">height</span> <span class="k">=</span> <span class="mi">30</span><span class="o">),</span>
+</span><span class='line'>    <span class="n">maxSize</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">Dimensions</span><span class="o">]</span> <span class="k">=</span> <span class="nc">None</span>
+</span><span class='line'><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">private</span> <span class="k">val</span> <span class="n">faceCascade</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CascadeClassifier</span><span class="o">(</span><span class="n">classifierPath</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">private</span> <span class="k">val</span> <span class="n">minSizeOpenCV</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Size</span><span class="o">(</span><span class="n">minSize</span><span class="o">.</span><span class="n">width</span><span class="o">,</span> <span class="n">minSize</span><span class="o">.</span><span class="n">height</span><span class="o">)</span>
+</span><span class='line'>  <span class="k">private</span> <span class="k">val</span> <span class="n">maxSizeOpenCV</span> <span class="k">=</span> <span class="n">maxSize</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">d</span> <span class="k">=&gt;</span> <span class="k">new</span> <span class="nc">Size</span><span class="o">(</span><span class="n">d</span><span class="o">.</span><span class="n">width</span><span class="o">,</span> <span class="n">d</span><span class="o">.</span><span class="n">height</span><span class="o">)).</span><span class="n">getOrElse</span><span class="o">(</span><span class="k">new</span> <span class="nc">Size</span><span class="o">())</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/**</span>
+</span><span class='line'><span class="cm">   * Given a frame matrix, a series of detected faces</span>
+</span><span class='line'><span class="cm">   */</span>
+</span><span class='line'>  <span class="k">def</span> <span class="n">detect</span><span class="o">(</span><span class="n">frameMatWithGrey</span><span class="k">:</span> <span class="kt">WithGrey</span><span class="o">)</span><span class="k">:</span> <span class="o">(</span><span class="kt">WithGrey</span><span class="o">,</span> <span class="kt">Seq</span><span class="o">[</span><span class="kt">Face</span><span class="o">])</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">currentGreyMat</span> <span class="k">=</span> <span class="n">frameMatWithGrey</span><span class="o">.</span><span class="n">grey</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">faceRects</span> <span class="k">=</span> <span class="n">findFaces</span><span class="o">(</span><span class="n">currentGreyMat</span><span class="o">)</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">faces</span> <span class="k">=</span> <span class="k">for</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">i</span> <span class="k">&lt;-</span> <span class="mi">0L</span> <span class="n">until</span> <span class="n">faceRects</span><span class="o">.</span><span class="n">size</span><span class="o">()</span>
+</span><span class='line'>      <span class="n">faceRect</span> <span class="k">=</span> <span class="n">faceRects</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">i</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">yield</span> <span class="nc">Face</span><span class="o">(</span><span class="n">i</span><span class="o">,</span> <span class="n">faceRect</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">(</span><span class="n">frameMatWithGrey</span><span class="o">,</span> <span class="n">faces</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">private</span> <span class="k">def</span> <span class="n">findFaces</span><span class="o">(</span><span class="n">greyMat</span><span class="k">:</span> <span class="kt">Mat</span><span class="o">)</span><span class="k">:</span> <span class="kt">RectVector</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">faceRects</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">RectVector</span><span class="o">()</span>
+</span><span class='line'>    <span class="n">faceCascade</span><span class="o">.</span><span class="n">detectMultiScale</span><span class="o">(</span><span class="n">greyMat</span><span class="o">,</span> <span class="n">faceRects</span><span class="o">,</span> <span class="n">scaleFactor</span><span class="o">,</span> <span class="n">minNeighbours</span><span class="o">,</span> <span class="n">detectorFlag</span><span class="o">.</span><span class="n">flag</span><span class="o">,</span> <span class="n">minSizeOpenCV</span><span class="o">,</span> <span class="n">maxSizeOpenCV</span><span class="o">)</span>
+</span><span class='line'>    <span class="n">faceRects</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>To be clear, there is really nothing <em>face-specific</em> in our classifier because what it detects is entirely dependent on the Haar cascade XML file passed to it on construction.</p>
+
+<h3>Drawing rectangles</h3>
+
+<p>Once we have a list of rectangles that denote where our objects are in the image matrix, the last thing we need to do is draw the rectangles on the original image matrix. OpenCV provides a <code>rectangle</code> method that takes a <code>Mat</code> and two points denoting the top left and bottom right corners of a rectangle and draws the rectangle to the matrix it in-place.  Here again, our implementation will clone the matrix first before calling the OpenCV method so as to keep our code easy to reason about.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span> (FaceDrawer.scala)</span> <a href='/downloads/code/scala/FaceDrawer.scala'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">class</span> <span class="nc">FaceDrawer</span><span class="o">(</span><span class="n">fontScale</span><span class="k">:</span> <span class="kt">Float</span> <span class="o">=</span> <span class="mf">0.6f</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">private</span> <span class="k">val</span> <span class="nc">RedColour</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Scalar</span><span class="o">(</span><span class="nc">AbstractCvScalar</span><span class="o">.</span><span class="nc">RED</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/**</span>
+</span><span class='line'><span class="cm">   * Clones the Mat, draws squares around the faces on it using the provided [[Face]] sequence and returns the new Mat</span>
+</span><span class='line'><span class="cm">   */</span>
+</span><span class='line'>  <span class="k">def</span> <span class="n">drawFaces</span><span class="o">(</span><span class="n">withGrey</span><span class="k">:</span> <span class="kt">WithGrey</span><span class="o">,</span> <span class="n">faces</span><span class="k">:</span> <span class="kt">Seq</span><span class="o">[</span><span class="kt">Face</span><span class="o">])</span><span class="k">:</span> <span class="kt">Mat</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">clonedMat</span> <span class="k">=</span> <span class="n">withGrey</span><span class="o">.</span><span class="n">orig</span><span class="o">.</span><span class="n">clone</span><span class="o">()</span>
+</span><span class='line'>    <span class="k">for</span> <span class="o">(</span><span class="n">f</span> <span class="k">&lt;-</span> <span class="n">faces</span><span class="o">)</span> <span class="n">drawFace</span><span class="o">(</span><span class="n">clonedMat</span><span class="o">,</span> <span class="n">f</span><span class="o">)</span>
+</span><span class='line'>    <span class="n">clonedMat</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">private</span> <span class="k">def</span> <span class="n">drawFace</span><span class="o">(</span><span class="n">clonedMat</span><span class="k">:</span> <span class="kt">Mat</span><span class="o">,</span> <span class="n">f</span><span class="k">:</span> <span class="kt">Face</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">rectangle</span><span class="o">(</span>
+</span><span class='line'>      <span class="n">clonedMat</span><span class="o">,</span>
+</span><span class='line'>      <span class="k">new</span> <span class="nc">Point</span><span class="o">(</span><span class="n">f</span><span class="o">.</span><span class="n">faceRect</span><span class="o">.</span><span class="n">x</span><span class="o">,</span> <span class="n">f</span><span class="o">.</span><span class="n">faceRect</span><span class="o">.</span><span class="n">y</span><span class="o">),</span>
+</span><span class='line'>      <span class="k">new</span> <span class="nc">Point</span><span class="o">(</span><span class="n">f</span><span class="o">.</span><span class="n">faceRect</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">f</span><span class="o">.</span><span class="n">faceRect</span><span class="o">.</span><span class="n">width</span><span class="o">,</span> <span class="n">f</span><span class="o">.</span><span class="n">faceRect</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="n">f</span><span class="o">.</span><span class="n">faceRect</span><span class="o">.</span><span class="n">height</span><span class="o">),</span>
+</span><span class='line'>      <span class="nc">RedColour</span><span class="o">,</span>
+</span><span class='line'>      <span class="mi">1</span><span class="o">,</span>
+</span><span class='line'>      <span class="nc">CV_AA</span><span class="o">,</span>
+</span><span class='line'>      <span class="mi">0</span>
+</span><span class='line'>    <span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// draw the face number</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">cvPoint</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Point</span><span class="o">(</span><span class="n">f</span><span class="o">.</span><span class="n">faceRect</span><span class="o">.</span><span class="n">x</span><span class="o">,</span> <span class="n">f</span><span class="o">.</span><span class="n">faceRect</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="mi">20</span><span class="o">)</span>
+</span><span class='line'>    <span class="n">putText</span><span class="o">(</span><span class="n">clonedMat</span><span class="o">,</span> <span class="n">s</span><span class="s">&quot;Face ${f.id}&quot;</span><span class="o">,</span> <span class="n">cvPoint</span><span class="o">,</span> <span class="nc">FONT_HERSHEY_SIMPLEX</span><span class="o">,</span> <span class="n">fontScale</span><span class="o">,</span> <span class="nc">RedColour</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Our <code>FaceDrawer</code> will expose a<code>drawFaces</code> method that takes a <code>WithGrey</code> with a list of detected <code>Face</code>s and use the above method to draw rectanges around each face. We'll also make use of OpenCV's <code>putText</code> method to write the word "Face" along with a number right on top of the rectangle.</p>
+
+<h3>UI</h3>
+
+<p>We'll hook up all our components in a simple Swing app. To make things a little more interesting, the app will consist of 2 frames:</p>
+
+<ol>
+<li>An initial frame to allow the user to choose between loading a custom Haar cascade classifier file or to load the default one that's packaged in <code>resources</code></li>
+<li>The actual CanvasFrame shows our feed along with rectangles around detected objects</li>
+</ol>
+
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>WebcamFaceDetector UI (WebcamFaceDetector.scala)</span> <a href='/downloads/code/scala/WebcamFaceDetector.scala'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">WebcamFaceDetector</span> <span class="k">extends</span> <span class="nc">SimpleSwingApplication</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="n">top</span><span class="k">:</span> <span class="kt">Frame</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">OptionsFrame</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/**</span>
+</span><span class='line'><span class="cm">   * This is the initial frame, which presents two simple options, to load a custom Haar cascade file for face detection,</span>
+</span><span class='line'><span class="cm">   * or to use the default one</span>
+</span><span class='line'><span class="cm">   */</span>
+</span><span class='line'>  <span class="k">private</span> <span class="k">class</span> <span class="nc">OptionsFrame</span> <span class="k">extends</span> <span class="nc">Frame</span> <span class="o">{</span> <span class="n">currentFrame</span> <span class="k">=&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">peer</span><span class="o">.</span><span class="n">setDefaultCloseOperation</span><span class="o">(</span><span class="n">javax</span><span class="o">.</span><span class="n">swing</span><span class="o">.</span><span class="nc">JFrame</span><span class="o">.</span><span class="nc">EXIT_ON_CLOSE</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">val</span> <span class="n">imageDimensions</span> <span class="k">=</span> <span class="nc">Dimensions</span><span class="o">(</span><span class="n">width</span> <span class="k">=</span> <span class="mi">640</span><span class="o">,</span> <span class="n">height</span> <span class="k">=</span> <span class="mi">480</span><span class="o">)</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">chooseCascadeBtn</span> <span class="k">=</span> <span class="nc">Button</span><span class="o">(</span><span class="s">&quot;Load custom Haar cascade file&quot;</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">val</span> <span class="n">filePath</span> <span class="k">=</span> <span class="n">openChooser</span><span class="o">()</span>
+</span><span class='line'>      <span class="n">filePath</span><span class="o">.</span><span class="n">foreach</span> <span class="o">{</span> <span class="n">path</span> <span class="k">=&gt;</span>
+</span><span class='line'>        <span class="k">val</span> <span class="n">detector</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">FaceDetector</span><span class="o">(</span><span class="n">dimensions</span> <span class="k">=</span> <span class="n">imageDimensions</span><span class="o">,</span> <span class="n">classifierPath</span> <span class="k">=</span> <span class="n">path</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">openFaceDetectionWindow</span><span class="o">(</span><span class="n">detector</span><span class="o">)</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">defaultCascadeBtn</span> <span class="k">=</span> <span class="nc">Button</span><span class="o">(</span><span class="s">&quot;Use default face Haar cascade file&quot;</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">val</span> <span class="n">detector</span> <span class="k">=</span> <span class="nc">FaceDetector</span><span class="o">.</span><span class="n">defaultCascadeFile</span><span class="o">(</span><span class="n">imageDimensions</span><span class="o">)</span>
+</span><span class='line'>      <span class="n">openFaceDetectionWindow</span><span class="o">(</span><span class="n">detector</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">val</span> <span class="n">mainPanel</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">GridPanel</span><span class="o">(</span><span class="n">rows0</span> <span class="k">=</span> <span class="mi">0</span><span class="o">,</span> <span class="n">cols0</span> <span class="k">=</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">preferredSize</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Dimension</span><span class="o">(</span><span class="mi">300</span><span class="o">,</span> <span class="mi">200</span><span class="o">)</span>
+</span><span class='line'>      <span class="n">contents</span> <span class="o">++=</span> <span class="nc">Seq</span><span class="o">(</span><span class="n">chooseCascadeBtn</span><span class="o">,</span> <span class="n">defaultCascadeBtn</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">contents</span> <span class="k">=</span> <span class="n">mainPanel</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">def</span> <span class="n">openChooser</span><span class="o">()</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">val</span> <span class="n">chooser</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">FileChooser</span><span class="o">(</span><span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="nc">File</span><span class="o">(</span><span class="s">&quot;.&quot;</span><span class="o">))</span>
+</span><span class='line'>      <span class="n">chooser</span><span class="o">.</span><span class="n">fileSelectionMode</span> <span class="k">=</span> <span class="nc">FileChooser</span><span class="o">.</span><span class="nc">SelectionMode</span><span class="o">.</span><span class="nc">FilesOnly</span>
+</span><span class='line'>      <span class="n">chooser</span><span class="o">.</span><span class="n">showOpenDialog</span><span class="o">(</span><span class="n">currentFrame</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">case</span> <span class="nc">FileChooser</span><span class="o">.</span><span class="nc">Result</span><span class="o">.</span><span class="nc">Approve</span> <span class="k">=&gt;</span> <span class="nc">Some</span><span class="o">(</span><span class="n">chooser</span><span class="o">.</span><span class="n">selectedFile</span><span class="o">.</span><span class="n">toPath</span><span class="o">.</span><span class="n">toAbsolutePath</span><span class="o">.</span><span class="n">toString</span><span class="o">)</span>
+</span><span class='line'>        <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="nc">None</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">private</span> <span class="k">def</span> <span class="n">openFaceDetectionWindow</span><span class="o">(</span><span class="n">faceDetector</span><span class="k">:</span> <span class="kt">FaceDetector</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">new</span> <span class="nc">DetectionFrame</span><span class="o">(</span><span class="n">faceDetector</span><span class="o">)</span>
+</span><span class='line'>      <span class="n">peer</span><span class="o">.</span><span class="n">setDefaultCloseOperation</span><span class="o">(</span><span class="n">javax</span><span class="o">.</span><span class="n">swing</span><span class="o">.</span><span class="nc">WindowConstants</span><span class="o">.</span><span class="nc">DO_NOTHING_ON_CLOSE</span><span class="o">)</span>
+</span><span class='line'>      <span class="n">currentFrame</span><span class="o">.</span><span class="n">close</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/**</span>
+</span><span class='line'><span class="cm">   * Our detection window; opened by Initial Frame</span>
+</span><span class='line'><span class="cm">   */</span>
+</span><span class='line'>  <span class="k">private</span> <span class="k">class</span> <span class="nc">DetectionFrame</span><span class="o">(</span><span class="n">faceDetector</span><span class="k">:</span> <span class="kt">FaceDetector</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">implicit</span> <span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">()</span>
+</span><span class='line'>    <span class="k">implicit</span> <span class="k">val</span> <span class="n">materializer</span> <span class="k">=</span> <span class="nc">ActorMaterializer</span><span class="o">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">val</span> <span class="n">webcamSource</span> <span class="k">=</span> <span class="nc">Webcam</span><span class="o">.</span><span class="n">source</span><span class="o">(</span><span class="n">deviceId</span> <span class="k">=</span> <span class="mi">0</span><span class="o">,</span> <span class="n">dimensions</span> <span class="k">=</span> <span class="n">faceDetector</span><span class="o">.</span><span class="n">dimensions</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">val</span> <span class="n">canvas</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CanvasFrame</span><span class="o">(</span><span class="s">&quot;Webcam&quot;</span><span class="o">)</span>
+</span><span class='line'>    <span class="c1">//  //Set Canvas frame to close on exit</span>
+</span><span class='line'>    <span class="n">canvas</span><span class="o">.</span><span class="n">setDefaultCloseOperation</span><span class="o">(</span><span class="n">javax</span><span class="o">.</span><span class="n">swing</span><span class="o">.</span><span class="nc">JFrame</span><span class="o">.</span><span class="nc">EXIT_ON_CLOSE</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">val</span> <span class="n">faceDrawer</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">FaceDrawer</span><span class="o">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">val</span> <span class="n">flow</span> <span class="k">=</span> <span class="n">webcamSource</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="nc">MediaConversion</span><span class="o">.</span><span class="n">toMat</span><span class="o">)</span> <span class="c1">// most OpenCV manipulations require a Matrix</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="nc">Flip</span><span class="o">.</span><span class="n">horizontal</span><span class="o">)</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="nc">WithGrey</span><span class="o">.</span><span class="n">build</span><span class="o">)</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">faceDetector</span><span class="o">.</span><span class="n">detect</span><span class="o">)</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">map</span><span class="o">((</span><span class="n">faceDrawer</span><span class="o">.</span><span class="n">drawFaces</span> <span class="k">_</span><span class="o">).</span><span class="n">tupled</span><span class="o">)</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="nc">MediaConversion</span><span class="o">.</span><span class="n">toFrame</span><span class="o">)</span> <span class="c1">// convert back to a frame</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">canvas</span><span class="o">.</span><span class="n">showImage</span><span class="o">)</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">flow</span><span class="o">.</span><span class="n">run</span><span class="o">()</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Notice that once again, the code defining the Akka Flow Graph maps almost one to one to our flow chart.</p>
+
+<h2>Conclusion</h2>
+
+<p>We now have a face detector that uses  OpenCV's Haar cascade classifier toolbelt and draws rectangles around any identified faces, and we made it by expanding on the Akka Stream foundations laid in the <a href="/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/">previous post</a>. As before, the code for this tutorial can be found <a href="https://github.com/lloydmeta/scala-akka-cv-part2">on Github</a>.</p>
+
+<p>In the next post, we'll expand this further by classifying the faces that we've detected as smiling or not using a supervised machine-learning model. We could of course continue to use Haar cascades to identify smiles in our feed (we can simply choose to load a smile Haar cascade classifier file), but what would be the fun in that ? :)</p>
+
+<h3>Credits</h3>
+
+<ol>
+<li><a href="https://chimpler.wordpress.com/2014/11/18/playing-with-opencv-in-scala-to-do-face-detection-with-haarcascade-classifier-using-a-webcam/">Playing with OpenCV in Scala to do face detection with Haarcascade classifier using a webcam</a></li>
+</ol>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Scala and OpenCV Ep 1: Akka Webcam]]></title>
