@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Scala | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/scala/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-03-16T02:22:05+09:00</updated>
+  <updated>2016-03-17T03:54:36+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -740,7 +740,35 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
 <span class='line-number'>97</span>
 <span class='line-number'>98</span>
 <span class='line-number'>99</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">Webcam</span> <span class="o">{</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">package</span> <span class="nn">com.beachape.video</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">import</span> <span class="nn">akka.actor.</span><span class="o">{</span> <span class="nc">DeadLetterSuppression</span><span class="o">,</span> <span class="nc">Props</span><span class="o">,</span> <span class="nc">ActorSystem</span><span class="o">,</span> <span class="nc">ActorLogging</span> <span class="o">}</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">akka.stream.actor.ActorPublisher</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">akka.stream.actor.ActorPublisherMessage.</span><span class="o">{</span> <span class="nc">Cancel</span><span class="o">,</span> <span class="nc">Request</span> <span class="o">}</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">akka.stream.scaladsl.Source</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">org.bytedeco.javacpp.opencv_core._</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">org.bytedeco.javacv.</span><span class="o">{</span> <span class="nc">FrameGrabber</span><span class="o">,</span> <span class="nc">Frame</span> <span class="o">}</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">org.bytedeco.javacv.FrameGrabber.ImageMode</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/**</span>
+</span><span class='line'><span class="cm"> * Created by Lloyd on 2/13/16.</span>
+</span><span class='line'><span class="cm"> */</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">object</span> <span class="nc">Webcam</span> <span class="o">{</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="cm">/**</span>
 </span><span class='line'><span class="cm">   * Builds a Frame [[Source]]</span>
@@ -780,8 +808,8 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
 </span><span class='line'>    <span class="n">imageHeight</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span>
 </span><span class='line'>    <span class="n">bitsPerPixel</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span>
 </span><span class='line'>    <span class="n">imageMode</span><span class="k">:</span> <span class="kt">ImageMode</span>
-</span><span class='line'>  <span class="o">)</span> <span class="k">=</span> <span class="n">synchronized</span> <span class="o">{</span>
-</span><span class='line'>    <span class="k">val</span> <span class="n">g</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">OpenCVFrameGrabber</span><span class="o">(</span><span class="n">deviceId</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">)</span><span class="k">:</span> <span class="kt">FrameGrabber</span> <span class="o">=</span> <span class="n">synchronized</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">val</span> <span class="n">g</span> <span class="k">=</span> <span class="nc">FrameGrabber</span><span class="o">.</span><span class="n">createDefault</span><span class="o">(</span><span class="n">deviceId</span><span class="o">)</span>
 </span><span class='line'>    <span class="n">g</span><span class="o">.</span><span class="n">setImageWidth</span><span class="o">(</span><span class="n">imageWidth</span><span class="o">)</span>
 </span><span class='line'>    <span class="n">g</span><span class="o">.</span><span class="n">setImageHeight</span><span class="o">(</span><span class="n">imageHeight</span><span class="o">)</span>
 </span><span class='line'>    <span class="n">g</span><span class="o">.</span><span class="n">setBitsPerPixel</span><span class="o">(</span><span class="n">bitsPerPixel</span><span class="o">)</span>
