@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Enumerations | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/enumerations/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-04-16T22:56:34+09:00</updated>
+  <updated>2016-04-17T03:04:11+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -18,7 +18,7 @@
     <link href="https://beachape.com/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe/"/>
     <updated>2016-04-16T16:25:00+09:00</updated>
     <id>https://beachape.com/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe</id>
-    <content type="html"><![CDATA[<p>It's been a while since the last major release of <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a>, and in 1.4.0, minor changes include Play 2.5 support, integration library version bumps,and small internal refactorings. More excitingly though, the latest version adds support for a new kind of enumeration, <code>ValueEnum</code>, as well as an integration with the <a href="https://github.com/travisbrown/circe">Circe JSON library</a>.</p>
+    <content type="html"><![CDATA[<p>It's been a while since the last major release of <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a>, and in 1.4.0, minor changes include Play 2.5 support, integration library version bumps, and small internal refactorings. More excitingly though, the latest version adds support for a new kind of enumeration, <code>ValueEnum</code>, as well as an integration with the <a href="https://github.com/travisbrown/circe">Circe JSON library</a>.</p>
 
 <p>Points of interest:</p>
 
@@ -44,7 +44,7 @@
 <h2 id="valueenums">ValueEnums</h2>
 
 
-<p>What is a <code>ValueEnum</code>? It's an enum that represents a primitive value  (e.g. <code>Int</code>, <code>Long</code>, <code>Short</code>) instead of a <code>String</code>. I made have just made up the term, but it doesn't matter as long as you know what I mean.</p>
+<p>What is a <code>ValueEnum</code>? It's an enum that represents a primitive value  (e.g. <code>Int</code>, <code>Long</code>, <code>Short</code>) instead of a <code>String</code>. I may have just made up the term, but it doesn't matter as long as you know what I mean.</p>
 
 <p>```scala</p>
 
