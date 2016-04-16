@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Enumerations | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/enumerations/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-03-17T03:54:36+09:00</updated>
+  <updated>2016-04-16T22:56:34+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -12,6 +12,228 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Enumeratum 1.4: ValueEnums + Circe]]></title>
+    <link href="https://beachape.com/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe/"/>
+    <updated>2016-04-16T16:25:00+09:00</updated>
+    <id>https://beachape.com/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe</id>
+    <content type="html"><![CDATA[<p>It's been a while since the last major release of <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a>, and in 1.4.0, minor changes include Play 2.5 support, integration library version bumps,and small internal refactorings. More excitingly though, the latest version adds support for a new kind of enumeration, <code>ValueEnum</code>, as well as an integration with the <a href="https://github.com/travisbrown/circe">Circe JSON library</a>.</p>
+
+<p>Points of interest:</p>
+
+<ul>
+<li>Unlike other value enum implementations, Enumeration's value enums perform uniqueness checks at compile time to make sure you have unique values across your enum members.</li>
+<li>Circe integration allows you to send and receive JSON data between your front end and your server using the same code</li>
+</ul>
+
+
+<p><img class="center /images/abc-123.gif  400 400  'Enumeratum: Enums as easy as ABC" src="<em>and</em>" width="123"></p>
+
+<!-- more -->
+
+
+<p>The <a href="https://github.com/lloydmeta/enumeratum/releases/tag/v1.4.0">1.4.0 release page</a> on Github has a more detailed list of changes, but we'll specifically go through:</p>
+
+<ol>
+<li><a href="#valueenums">ValueEnums</a></li>
+<li><a href="#circe-integration">Circe Integration</a></li>
+</ol>
+
+
+<h2 id="valueenums">ValueEnums</h2>
+
+
+<p>What is a <code>ValueEnum</code>? It's an enum that represents a primitive value  (e.g. <code>Int</code>, <code>Long</code>, <code>Short</code>) instead of a <code>String</code>. I made have just made up the term, but it doesn't matter as long as you know what I mean.</p>
+
+<p>```scala</p>
+
+<p>// Have something like
+object ContentType {
+  case object Text(1)
+  case object Image(3)
+}</p>
+
+<p>// Want to do
+assert(ContentType.withValue(3) == ContentType.Image)
+```</p>
+
+<p>This may sound mundane, since you can already build something like this yourself with the standard library's <code>Enumeration</code> (or  previous versions of Enumeratum ), but sometimes the most straightforward solutions are suboptimal.</p>
+
+<h3>The trouble with <code>Enumeration</code></h3>
+
+<p>The standard lib's <code>Enumeration</code> comes with the notion of a customisable <code>id: Int</code> on each member, which is a great starting point for implementing numbers-based enumerations.</p>
+
+<p>```scala
+/<em>*
+  * This is an anti-example to show what can go wrong.
+  *
+  * Do not use this
+  </em>/
+object Things extends Enumeration {
+  val First = Value(1)
+  val Second = Value(2)
+  val Third = Value(3)
+  val Fourth = Value(3) // not enough coffeeeeee</p>
+
+<p>  def withValueOpt(i: Int): Option[Things.Value] = values.find(_.id == i)
+}</p>
+
+<p>/<em>
+ *  The above Enumeration will compile. Fine, but imagine now your app is deployed
+ *  and somewhere else in your code you have to actually use your enum.
+ </em>/</p>
+
+<p>Things.First // => java.lang.AssertionError: assertion failed: Duplicate id: 3</p>
+
+<p>// If at first you don't succeed???
+Things.First // => java.lang.NoClassDefFoundError: Could not initialize class Things$
+// newp
+```</p>
+
+<p>This funny behaviour is caused by the fact that <code>Enumeration#Value</code>s (<code>First</code>, <code>Second</code>, <code>Third</code>, <code>Fourth</code>) are not checked for unique ids at compile time, and are instantiated when their outer <code>Enumeration</code> object is lazily instantiated.  When a <code>Value</code> is instantiated, its <code>id</code> is stuffed into a <code>HashMap[Int, Value]</code> after an assertion check that the id does not already exist in the map.</p>
+
+<p>What has happend in the above example is the enumeration code compiles, but when we call <code>Things.First</code>, <code>object Things</code> gets instantiated, and throws an assertion error when <code>val Fourth</code> is being instantiated with an id of 3, which has already been assigned to <code>Third</code> and thus is already in the aforementioned <code>HashMap</code>.  This prevents the singleton <code>Things</code> from getting instantiated, and the next time you try to use it, Scala will throw a <code>NoClassDefFoundError</code>.</p>
+
+<p>One way to work around this is to write tests for every such <code>Enumeration</code> to make sure that no one working in the code base has fat-fingered any ids. I'm a big proponent of writing tests, but tests are also code and come with a maintenance and cognitive cost, so I would prefer not having to write tests to make sure my simple value enums can be safely initialised.</p>
+
+<p>This kind of problem is not limited to <code>Enumeration</code>: careless implementation of something similar may result in arguably freakier outcomes such as silent failures (2 members with the same value but only one of the members can be retrieved by value).</p>
+
+<h3><code>ValueEnum</code></h3>
+
+<p>In version 1.4.0 of Enumeratum, we've introduced 3 pairs of traits: <code>IntEnum</code> and <code>IntEnumEntry</code>, <code>LongEnum</code> and <code>LongEnumEntry</code>, and <code>ShortEnum</code> and <code>ShortEnumEntry</code>.  As their names suggest, these are value enum traits that allow you to create enums that are backed by <code>Int</code>, <code>Long</code> and <code>Short</code> respectively.  Each pair extends <code>ValueEnum</code> and <code>ValueEnumEntry</code>. Note that this class hierarchy is a bit extensive for now, and it may be more streamlined in the future.</p>
+
+<p>This is an example of how you would create an <code>Long</code> based value enum with Play integration:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>ContentType value enum (ContentType.scala)</span> <a href='/downloads/code/scala/ContentType.scala'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">enumeratum.values._</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sealed</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">ContentType</span><span class="o">(</span><span class="k">val</span> <span class="n">value</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">LongEnumEntry</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">case</span> <span class="k">object</span> <span class="nc">ContentType</span> <span class="k">extends</span> <span class="nc">LongPlayEnum</span><span class="o">[</span><span class="kt">ContentType</span><span class="o">]</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="n">findValues</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">case</span> <span class="k">object</span> <span class="nc">Text</span> <span class="k">extends</span> <span class="nc">ContentType</span><span class="o">(</span><span class="n">value</span> <span class="k">=</span> <span class="mi">1L</span><span class="o">,</span> <span class="n">name</span> <span class="k">=</span> <span class="s">&quot;text&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="k">case</span> <span class="k">object</span> <span class="nc">Image</span> <span class="k">extends</span> <span class="nc">ContentType</span><span class="o">(</span><span class="n">value</span> <span class="k">=</span> <span class="mi">2L</span><span class="o">,</span> <span class="n">name</span> <span class="k">=</span> <span class="s">&quot;image&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="k">case</span> <span class="k">object</span> <span class="nc">Video</span> <span class="k">extends</span> <span class="nc">ContentType</span><span class="o">(</span><span class="n">value</span> <span class="k">=</span> <span class="mi">3L</span><span class="o">,</span> <span class="n">name</span> <span class="k">=</span> <span class="s">&quot;video&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="k">case</span> <span class="k">object</span> <span class="nc">Audio</span> <span class="k">extends</span> <span class="nc">ContentType</span><span class="o">(</span><span class="n">value</span> <span class="k">=</span> <span class="mi">4L</span><span class="o">,</span> <span class="n">name</span> <span class="k">=</span> <span class="s">&quot;audio&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="cm">/* case object Sticker extends ContentType(value = 4L, name = &quot;audio&quot;)</span>
+</span><span class='line'><span class="cm">  *   =&gt; Fails at compile time because 4L is already used with the following error</span>
+</span><span class='line'><span class="cm">  *   It does not look like you have unique values. Found the following values correspond to more than one members: Map(4 -&gt; List(object Audio, object Sticker))</span>
+</span><span class='line'><span class="cm">  */</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">assert</span><span class="o">(</span><span class="nc">ContentType</span><span class="o">.</span><span class="n">withValue</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span> <span class="o">==</span> <span class="nc">ContentType</span><span class="o">.</span><span class="nc">Text</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="nc">ContentType</span><span class="o">.</span><span class="n">withValue</span><span class="o">(</span><span class="mi">10</span><span class="o">)</span> <span class="c1">// =&gt; java.util.NoSuchElementException:</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Use with Play-JSON</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">play.api.libs.json.</span><span class="o">{</span> <span class="nc">JsNumber</span><span class="o">,</span> <span class="nc">JsString</span><span class="o">,</span> <span class="nc">Json</span> <span class="k">=&gt;</span> <span class="nc">PlayJson</span> <span class="o">}</span>
+</span><span class='line'><span class="nc">ContentType</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">foreach</span> <span class="o">{</span> <span class="n">item</span> <span class="k">=&gt;</span>
+</span><span class='line'>    <span class="n">assert</span><span class="o">(</span><span class="nc">PlayJson</span><span class="o">.</span><span class="n">toJson</span><span class="o">(</span><span class="n">item</span><span class="o">)</span> <span class="o">==</span> <span class="nc">JsNumber</span><span class="o">(</span><span class="n">item</span><span class="o">.</span><span class="n">value</span><span class="o">))</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>The <code>findValues</code> method of <code>ValueEnum</code>s works similarly to the <code>findValues</code> method of Enumeratum's older <code>Enum</code>, except the macro will ensure that there is a literal <code>value</code> member or constructor for each enum entry and fails the compilation if there is more than one member shares the same value.</p>
+
+<p>As the above example demonstrates, there are Play (and standalone Play-JSON) integrations available for this new kind of enum, as well as for UPickle, and Circe.</p>
+
+<p>Note that this new feature is not available in Scala 2.10 and in the REPL due to Macro expansion differences but is otherwise operational and backed by an <a href="https://github.com/lloydmeta/enumeratum/blob/master/enumeratum-core/compat/src/test/scala-2.11/enumeratum/values/ValueEnumSpec.scala">extensive series of tests</a>.</p>
+
+<h2 id="circe-integration">Circe integration</h2>
+
+
+<p>Enumeratum 1.4.0 also adds support for serialising/deserialising to JSON using <a href="https://github.com/travisbrown/circe">Circe</a>, an up-and-coming performant and feature-filled JSON library published for both JVM <em>and</em> ScalaJS.</p>
+
+<p>This is how you would use Circe with Enumeratum's <code>Enum</code> (integrations for <code>ValueEnum</code> also exist)</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>ShirtSize Enum with Circe integration enum (ShirtSize.scala)</span> <a href='/downloads/code/scala/ShirtSize.scala'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">enumeratum._</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">ShirtSize</span> <span class="k">extends</span> <span class="nc">EnumEntry</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">case</span> <span class="k">object</span> <span class="nc">ShirtSize</span> <span class="k">extends</span> <span class="nc">CirceEnum</span><span class="o">[</span><span class="kt">ShirtSize</span><span class="o">]</span> <span class="k">with</span> <span class="nc">Enum</span><span class="o">[</span><span class="kt">ShirtSize</span><span class="o">]</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">case</span> <span class="k">object</span> <span class="nc">Small</span> <span class="k">extends</span> <span class="nc">ShirtSize</span>
+</span><span class='line'>  <span class="k">case</span> <span class="k">object</span> <span class="nc">Medium</span> <span class="k">extends</span> <span class="nc">ShirtSize</span>
+</span><span class='line'>  <span class="k">case</span> <span class="k">object</span> <span class="nc">Large</span> <span class="k">extends</span> <span class="nc">ShirtSize</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="n">findValues</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">import</span> <span class="nn">io.circe.Json</span>
+</span><span class='line'><span class="k">import</span> <span class="nn">io.circe.syntax._</span>
+</span><span class='line'>
+</span><span class='line'><span class="nc">ShirtSize</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">foreach</span> <span class="o">{</span> <span class="n">size</span> <span class="k">=&gt;</span>
+</span><span class='line'>    <span class="n">assert</span><span class="o">(</span><span class="n">size</span><span class="o">.</span><span class="n">asJson</span> <span class="o">==</span> <span class="nc">Json</span><span class="o">.</span><span class="n">fromString</span><span class="o">(</span><span class="n">size</span><span class="o">.</span><span class="n">entryName</span><span class="o">))</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<h2>Conclusion</h2>
+
+<p>Hopefully, Enumeratum's new <code>ValueEnum</code> implementations will make development easier and safer for engineers out there who need to use value enumerations.  Since uniqueness is checked at compile-time, you can save yourself the trouble of writing a bunch of pedantic tests.  Circe is a promising JSON library that was really easy to integrate with and I look forward to taking advantage of the fact that it works on both server side and on the front end.</p>
+
+<p>As always, if you have any problems, questions, suggestions, or better yet, PRs, please do not hesitate to get in touch on Github.</p>
+
+<h2>Links</h2>
+
+<ul>
+<li><a href="https://github.com/lloydmeta/enumeratum">Enumeratum on Github</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Enumeratum: Sealed Trait Enums for Scala]]></title>
