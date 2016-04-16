@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-04-17T03:04:11+09:00</updated>
+  <updated>2016-04-17T03:08:00+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -134,9 +134,9 @@
 
 <p>In version 1.4.0 of Enumeratum, we&#8217;ve introduced 3 pairs of traits: <code>IntEnum</code> and <code>IntEnumEntry</code>, <code>LongEnum</code> and <code>LongEnumEntry</code>, and <code>ShortEnum</code> and <code>ShortEnumEntry</code>.  As their names suggest, these are value enum traits that allow you to create enums that are backed by <code>Int</code>, <code>Long</code> and <code>Short</code> respectively.  Each pair extends <code>ValueEnum</code> and <code>ValueEnumEntry</code>. Note that this class hierarchy is a bit extensive for now, and it may be more streamlined in the future.</p>
 
-<p>This is an example of how you would create an <code>Long</code> based value enum with Play integration:</p>
+<p>This is an example of how you would create an <code>Long</code> based value enum with Play integration (JSON readers and writers, Query string binders, Path binders, Form formatters, etc):</p>
 
-<figure class='code'><figcaption><span>ContentType value enum (ContentType.scala)</span> <a href='https://beachape.com/downloads/code/scala/ContentType.scala'>download</a></figcaption>
+<figure class='code'><figcaption><span>ContentType value enum with full Play integration (ContentType.scala)</span> <a href='https://beachape.com/downloads/code/scala/ContentType.scala'>download</a></figcaption>
  <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -209,7 +209,7 @@
 
 <p>This is how you would use Circe with Enumeratum&#8217;s <code>Enum</code> (integrations for <code>ValueEnum</code> also exist)</p>
 
-<figure class='code'><figcaption><span>ShirtSize Enum with Circe integration enum (ShirtSize.scala)</span> <a href='https://beachape.com/downloads/code/scala/ShirtSize.scala'>download</a></figcaption>
+<figure class='code'><figcaption><span>ShirtSize Enum with Circe integration (ShirtSize.scala)</span> <a href='https://beachape.com/downloads/code/scala/ShirtSize.scala'>download</a></figcaption>
  <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
