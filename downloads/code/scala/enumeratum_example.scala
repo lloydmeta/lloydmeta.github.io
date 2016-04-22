@@ -4,7 +4,7 @@ import enumeratum._
 
 sealed trait Phone {
   def call(number: Int): String
-}
+} extends EnumEntry
 
 case object Phone extends Enum[Phone] {
 

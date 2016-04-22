@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-04-17T20:43:13+09:00</updated>
+  <updated>2016-04-22T13:54:18+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -1544,14 +1544,17 @@ contains our simple router)</li>
 
 <p>To use it, simply <a href="https://github.com/lloydmeta/enumeratum#sbt">add it as a dependency</a></p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>libraryDependencies ++= Seq(
-</span><span class='line'>    "com.beachape" %% "enumeratum" % "1.0.0",
-</span><span class='line'>    "com.beachape" %% "enumeratum-play" % "1.0.0" // if you are using Play and want to avoid boilerplate
-</span><span class='line'>)</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">val</span> <span class="n">enumeratumVersion</span> <span class="k">=</span> <span class="s">&quot;1.4.2&quot;</span>  <span class="c1">// latest version number can be found on the Maven Central version badge on the Github repo.</span>
+</span><span class='line'><span class="n">libraryDependencies</span> <span class="o">++=</span> <span class="nc">Seq</span><span class="o">(</span>
+</span><span class='line'>    <span class="s">&quot;com.beachape&quot;</span> <span class="o">%%</span> <span class="s">&quot;enumeratum&quot;</span> <span class="o">%</span> <span class="n">enumeratumVersion</span><span class="o">,</span>
+</span><span class='line'>    <span class="s">&quot;com.beachape&quot;</span> <span class="o">%%</span> <span class="s">&quot;enumeratum-play&quot;</span> <span class="o">%</span> <span class="n">enumeratumVersion</span> <span class="c1">// if you are using Play and want to avoid boilerplate</span>
+</span><span class='line'><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Then</p>
@@ -1605,7 +1608,7 @@ contains our simple router)</li>
 </span><span class='line'>
 </span><span class='line'><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">Phone</span> <span class="o">{</span>
 </span><span class='line'>  <span class="k">def</span> <span class="n">call</span><span class="o">(</span><span class="n">number</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">String</span>
-</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="o">}</span> <span class="k">extends</span> <span class="nc">EnumEntry</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">case</span> <span class="k">object</span> <span class="nc">Phone</span> <span class="k">extends</span> <span class="nc">Enum</span><span class="o">[</span><span class="kt">Phone</span><span class="o">]</span> <span class="o">{</span>
 </span><span class='line'>
@@ -1654,18 +1657,22 @@ contains our simple router)</li>
 
 <h2>Play</h2>
 
-<p>If you want to use <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> in a Play app, you may as well add <a href="https://github.com/lloydmeta/enumeratum#play-2"><code>enumeratum-play</code></a> as a dependency instead so that you can use the <code>PlayEnum[A]</code> trait (instead of <code>Enum[A]</code>), which will give you nice things like QueryStringBinders, PathBinders, form mappers, and Json Reads/Writes/Formats. This means less boilerplate in your project, which is A Good Thing, right?</p>
+<p>If you want to use <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> in a Play app, you may as well add <a href="https://github.com/lloydmeta/enumeratum#play-2"><code>enumeratum-play</code></a> as a dependency instead so that you can use the <code>PlayEnum[A]</code> trait (instead of <code>Enum[A]</code>), which will give you nice things like QueryStringBinders, PathBinders, form mappers, and Json Reads/Writes/Formats. To make use of this integration, just extend from <code>PlayEnum</code> instead of <code>Enum</code> in the above example.</p>
+
+<p>This means less boilerplate in your project, which is A Good Thing, right?</p>
 
 <h2>Limitations</h2>
 
 <p>There are a few limitations with Enumeratum:</p>
 
 <ul>
-<li>Ordinality is not taken care of. From what I&#8217;ve seen, this is one of the least-used functions of Enums in general. That said, nothing is stoping you from defining an <code>Ordering</code> in your companion object for your sealed trait.</li>
+<li><del>Ordinality is not taken care of. From what I&#8217;ve seen, this is one of the least-used functions of Enums in general. That said, nothing is stoping you from defining an <code>Ordering</code> in your companion object for your sealed trait.</del></li>
 <li>Because the Enum values are case objects, they will be inferred to have their own specific type, which may cause problems with compilation for typeclasses that are not contravariant. In that case, simply help the compiler by adding a type (e.g. <code>val myPhone: Phone = Iphone</code>)</li>
-<li>The method <code>withName</code> relies on the <code>toString</code> method of the Enum values for lookup. Make sure to override this if you have specific requirements.</li>
+<li><del>The method <code>withName</code> relies on the <code>toString</code> method of the Enum values for lookup. Make sure to override this if you have specific requirements.</del></li>
 </ul>
 
+
+<p><strong>Update 2016/04/22</strong> Crossed out a bunch of limitations that no longer apply.</p>
 
 <h2>Enjoy</h2>
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Enumerations | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/enumerations/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-04-17T20:43:13+09:00</updated>
+  <updated>2016-04-22T13:54:18+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -253,11 +253,12 @@ Things.First // => java.lang.NoClassDefFoundError: Could not initialize class Th
 
 <p>To use it, simply <a href="https://github.com/lloydmeta/enumeratum#sbt">add it as a dependency</a></p>
 
-<p>```
+<p>```scala
+val enumeratumVersion = "1.4.2"  // latest version number can be found on the Maven Central version badge on the Github repo.
 libraryDependencies ++= Seq(</p>
 
-<pre><code>"com.beachape" %% "enumeratum" % "1.0.0",
-"com.beachape" %% "enumeratum-play" % "1.0.0" // if you are using Play and want to avoid boilerplate
+<pre><code>"com.beachape" %% "enumeratum" % enumeratumVersion,
+"com.beachape" %% "enumeratum-play" % enumeratumVersion // if you are using Play and want to avoid boilerplate
 </code></pre>
 
 <p>)
@@ -314,7 +315,7 @@ libraryDependencies ++= Seq(</p>
 </span><span class='line'>
 </span><span class='line'><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">Phone</span> <span class="o">{</span>
 </span><span class='line'>  <span class="k">def</span> <span class="n">call</span><span class="o">(</span><span class="n">number</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">String</span>
-</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="o">}</span> <span class="k">extends</span> <span class="nc">EnumEntry</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">case</span> <span class="k">object</span> <span class="nc">Phone</span> <span class="k">extends</span> <span class="nc">Enum</span><span class="o">[</span><span class="kt">Phone</span><span class="o">]</span> <span class="o">{</span>
 </span><span class='line'>
@@ -362,18 +363,22 @@ libraryDependencies ++= Seq(</p>
 
 <h2>Play</h2>
 
-<p>If you want to use <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> in a Play app, you may as well add <a href="https://github.com/lloydmeta/enumeratum#play-2"><code>enumeratum-play</code></a> as a dependency instead so that you can use the <code>PlayEnum[A]</code> trait (instead of <code>Enum[A]</code>), which will give you nice things like QueryStringBinders, PathBinders, form mappers, and Json Reads/Writes/Formats. This means less boilerplate in your project, which is A Good Thing, right?</p>
+<p>If you want to use <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> in a Play app, you may as well add <a href="https://github.com/lloydmeta/enumeratum#play-2"><code>enumeratum-play</code></a> as a dependency instead so that you can use the <code>PlayEnum[A]</code> trait (instead of <code>Enum[A]</code>), which will give you nice things like QueryStringBinders, PathBinders, form mappers, and Json Reads/Writes/Formats. To make use of this integration, just extend from <code>PlayEnum</code> instead of <code>Enum</code> in the above example.</p>
+
+<p>This means less boilerplate in your project, which is A Good Thing, right?</p>
 
 <h2>Limitations</h2>
 
 <p>There are a few limitations with Enumeratum:</p>
 
 <ul>
-<li>Ordinality is not taken care of. From what I've seen, this is one of the least-used functions of Enums in general. That said, nothing is stoping you from defining an <code>Ordering</code> in your companion object for your sealed trait.</li>
+<li><del>Ordinality is not taken care of. From what I've seen, this is one of the least-used functions of Enums in general. That said, nothing is stoping you from defining an <code>Ordering</code> in your companion object for your sealed trait.</del></li>
 <li>Because the Enum values are case objects, they will be inferred to have their own specific type, which may cause problems with compilation for typeclasses that are not contravariant. In that case, simply help the compiler by adding a type (e.g. <code>val myPhone: Phone = Iphone</code>)</li>
-<li>The method <code>withName</code> relies on the <code>toString</code> method of the Enum values for lookup. Make sure to override this if you have specific requirements.</li>
+<li><del>The method <code>withName</code> relies on the <code>toString</code> method of the Enum values for lookup. Make sure to override this if you have specific requirements.</del></li>
 </ul>
 
+
+<p><strong>Update 2016/04/22</strong> Crossed out a bunch of limitations that no longer apply.</p>
 
 <h2>Enjoy</h2>
 
