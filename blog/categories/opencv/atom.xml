@@ -4,7 +4,7 @@
   <title><![CDATA[Category: OpenCV | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/opencv/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-07-10T12:26:19+09:00</updated>
+  <updated>2016-07-10T13:11:28+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -29,7 +29,7 @@
 
 <h3>Flow chart</h3>
 
-<p>Previously, our app could be represented by a somewhat trivial <a href="http://localhost:4000/blog/2016/03/03/scala-and-opencv-ep-1-akka-webcam/#flow-chart">flow chart</a> that nonetheless had all the elements of a useful Akka stream: a <code>Source</code>, multiple transformations, and controlled side-effecting.</p>
+<p>Previously, our app could be represented by a somewhat trivial <a href="/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/#flow-chart">flow chart</a> that nonetheless had all the elements of a useful Akka stream: a <code>Source</code>, multiple transformations, and controlled side-effecting.</p>
 
 <p>To build our face detector, we will add the following:</p>
 
