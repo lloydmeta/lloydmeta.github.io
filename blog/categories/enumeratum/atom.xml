@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Enumeratum | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/enumeratum/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-08-25T15:18:32+09:00</updated>
+  <updated>2016-08-25T15:25:12+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -168,7 +168,7 @@ Things.First // => java.lang.NoClassDefFoundError: Could not initialize class Th
 
 <p>As the above example demonstrates, there are Play (and standalone Play-JSON) integrations available for this new kind of enum, as well as for UPickle, and Circe.</p>
 
-<p>Note that this new feature is not yet available in Scala 2.10 <del>and in the REPL due to Macro expansion differences</del> (update: now works in the REPL!)but is otherwise operational and backed by an <a href="https://github.com/lloydmeta/enumeratum/blob/master/enumeratum-core/compat/src/test/scala-2.11/enumeratum/values/ValueEnumSpec.scala">extensive series of tests</a>.</p>
+<p>Note that this new feature is not yet available in Scala 2.10 <del>and in the REPL due to Macro expansion differences</del> (update: now works in the REPL!) but is otherwise operational and backed by an <a href="https://github.com/lloydmeta/enumeratum/blob/master/enumeratum-core/compat/src/test/scala-2.11/enumeratum/values/ValueEnumSpec.scala">extensive series of tests</a>.</p>
 
 <h2 id="circe-integration">Circe integration</h2>
 
