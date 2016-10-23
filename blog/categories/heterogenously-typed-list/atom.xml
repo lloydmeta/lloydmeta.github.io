@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Heterogenously Typed List | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/heterogenously-typed-list/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-10-23T14:31:15+09:00</updated>
+  <updated>2016-10-24T00:10:26+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -20,7 +20,10 @@
     <id>https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list</id>
     <content type="html"><![CDATA[<p>A heterogeneous list (henceforth "HList") is a useful abstraction that is implemented in many statically-typed functional programming languages. Unlike normal list-like structures (e.g. <code>Vec</code>, <code>Slice</code>, <code>Array</code>), a heterogenous list is able to hold elements of different types (hence heterogenous) and expose those types in its own type signature.</p>
 
-<p><img class="center" src="/images/hlist-intro.png" title="'Statically typed heterogenous lists'" ></p>
+<p><code>rust
+let h = hlist!["Joe", "Blow", 30, true];
+// h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;
+</code></p>
 
 <p>Now, you might be thinking "Isn't that just a tuple?". The answer is: in a way. Indeed, in terms of data structure, a given implementation of HList is usually really nothing more than deeply nested pairs (tuple of 2 elements) that each hold an element of arbitrary type in its 1st element and knows that its 2nd element is itself an HList-like thing. While it may seem convoluted, HList buys us the ability to abstract over arity, which turns out to be extremely useful, as you can see from <a href="http://stackoverflow.com/questions/11825129/are-hlists-nothing-more-than-a-convoluted-way-of-writing-tuples">this Stackoverflow answer</a> by Miles Sabin, the creater of the <a href="https://github.com/milessabin/shapeless">Shapeless</a> library, which provides an HList implementation in Scala.</p>
 
@@ -106,7 +109,7 @@ assert_eq!(joe.length(), 3);
 
 <h2>Have fun !</h2>
 
-<p>It will be interesting to see what you can cook up with HList. As mentioned before, abstracting over arity allows you to do some really cool stuff, for example <a href="https://crates.io/crates/frunk">Frunk</a> already uses HList to define a <a href="https://beachape.com/frunk/frunk/validated/"><code>Validated</code> abstraction</a> to help accumulate errors over many different <code>Result&lt;T, E&gt;</code> (we'll go through this in another post):</p>
+<p>It will be interesting to see what you can cook up with HList. As mentioned before, abstracting over arity allows you to do some really cool stuff, for example <a href="https://crates.io/crates/frunk">Frunk</a> already uses HList to define a <a href="https://beachape.com/frunk/frunk/validated/"><code>Validated</code> abstraction</a> to help accumulate errors over many different <code>Result&lt;T, E&gt;</code> (we'll go through this in <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">another post</a>):</p>
 
 <p>```rust
 pub enum Validated&lt;T, E></p>

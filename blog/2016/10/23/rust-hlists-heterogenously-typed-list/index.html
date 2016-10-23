@@ -68,9 +68,6 @@
                 <li >
                     <a href="/about">About</a>
                 </li>
-                <li >
-                    <a href="/company">Company</a>
-                </li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li>
@@ -136,7 +133,12 @@
 
 <div class="entry-content clearfix" itemprop="articleBody"><p>A heterogeneous list (henceforth &#8220;HList&#8221;) is a useful abstraction that is implemented in many statically-typed functional programming languages. Unlike normal list-like structures (e.g. <code>Vec</code>, <code>Slice</code>, <code>Array</code>), a heterogenous list is able to hold elements of different types (hence heterogenous) and expose those types in its own type signature.</p>
 
-<p><img class="center" src="/images/hlist-intro.png" title="'Statically typed heterogenous lists'" ></p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">,</span> <span class="k">true</span><span class="p">];</span>
+</span><span class='line'><span class="c1">// h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
 
 <p>Now, you might be thinking &#8220;Isn&#8217;t that just a tuple?&#8221;. The answer is: in a way. Indeed, in terms of data structure, a given implementation of HList is usually really nothing more than deeply nested pairs (tuple of 2 elements) that each hold an element of arbitrary type in its 1st element and knows that its 2nd element is itself an HList-like thing. While it may seem convoluted, HList buys us the ability to abstract over arity, which turns out to be extremely useful, as you can see from <a href="http://stackoverflow.com/questions/11825129/are-hlists-nothing-more-than-a-convoluted-way-of-writing-tuples">this Stackoverflow answer</a> by Miles Sabin, the creater of the <a href="https://github.com/milessabin/shapeless">Shapeless</a> library, which provides an HList implementation in Scala.</p>
 
@@ -244,7 +246,7 @@
 
 <h2>Have fun !</h2>
 
-<p>It will be interesting to see what you can cook up with HList. As mentioned before, abstracting over arity allows you to do some really cool stuff, for example <a href="https://crates.io/crates/frunk">Frunk</a> already uses HList to define a <a href="https://beachape.com/frunk/frunk/validated/"><code>Validated</code> abstraction</a> to help accumulate errors over many different <code>Result&lt;T, E&gt;</code> (we&#8217;ll go through this in another post):</p>
+<p>It will be interesting to see what you can cook up with HList. As mentioned before, abstracting over arity allows you to do some really cool stuff, for example <a href="https://crates.io/crates/frunk">Frunk</a> already uses HList to define a <a href="https://beachape.com/frunk/frunk/validated/"><code>Validated</code> abstraction</a> to help accumulate errors over many different <code>Result&lt;T, E&gt;</code> (we&#8217;ll go through this in <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">another post</a>):</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -325,6 +327,8 @@
             <li class="previous"><a href="/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe/" title="Previous Post: Enumeratum 1.4: ValueEnums + Circe">&laquo; Enumeratum 1.4: ValueEnums + Circe</a></li>
             
             
+            <li class="next"><a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/" title="Next Post: Accumulating Results in Rust with Validated">Accumulating Results in Rust with Validated &raquo;</a></li>
+            
           </ul>
         
       </footer>
@@ -348,6 +352,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Accumulating Results in Rust With Validated</a>
+    
     <a class="list-group-item active" href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">Rust HLists (Heterogenous List)</a>
     
     <a class="list-group-item " href="/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe/">Enumeratum 1.4: ValueEnums + Circe</a>
@@ -355,8 +361,6 @@
     <a class="list-group-item " href="/blog/2016/03/14/scala-and-opencv-ep-2-akka-face-detector/">Scala and OpenCV Ep 2: Akka Face Detector</a>
     
     <a class="list-group-item " href="/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/">Scala and OpenCV Ep 1: Akka Webcam</a>
-    
-    <a class="list-group-item " href="/blog/2016/03/05/opencv-sbt-plugin/">OpenCV SBT Plugin</a>
     
   </div>
 </section>

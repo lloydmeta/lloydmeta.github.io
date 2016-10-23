@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-10-23T14:31:15+09:00</updated>
+  <updated>2016-10-24T00:10:26+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -14,13 +14,282 @@
 
   
   <entry>
+    <title type="html"><![CDATA[Accumulating Results in Rust With Validated]]></title>
+    <link href="https://beachape.com/blog/2016/10/24/accumulating-results-in-rust-with-validated/"/>
+    <updated>2016-10-24T15:00:00+09:00</updated>
+    <id>https://beachape.com/blog/2016/10/24/accumulating-results-in-rust-with-validated</id>
+    <content type="html"><![CDATA[<p>Rust comes out of the box with a <code>Result&lt;T, E&gt;</code> type in its standard library. For those not familiar with it, it is a union-like enum type where <code>T</code> is a type parameter denoting the kind object held in a <code>Result</code> in the success case (<code>Result::Ok&lt;T&gt;</code>), and <code>E</code> is a type paramter denoting the kind of error object held in the failure case (<code>Result::Err&lt;E&gt;</code>).  In Scala, this is represented in the standard library as <code>Either[+A, +B]</code>, where the the success and error type params are swapped (traditionally, the one on the left stands for error and the one on the right is&#8230;well, right).</p>
+
+<p>By default, <code>Result</code> comes with really good support for what I call &#8220;early return on error&#8221;. That is, you can use <code>map</code>, <code>and_then</code> (flatMap in some other languages) to transform them, and if there&#8217;s an error at an intermediate step, the chain returns early with a <code>Result::Err&lt;E&gt;</code> :</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">fn</span> <span class="n">double_arg</span><span class="p">(</span><span class="k">mut</span> <span class="n">argv</span><span class="o">:</span> <span class="n">env</span><span class="o">::</span><span class="n">Args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="o">&lt;</span><span class="k">i32</span><span class="p">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">argv</span><span class="p">.</span><span class="n">nth</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">ok_or</span><span class="p">(</span><span class="s">&quot;Please give at least one argument&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">())</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">and_then</span><span class="p">(</span><span class="o">|</span><span class="n">arg</span><span class="o">|</span> <span class="n">arg</span><span class="p">.</span><span class="n">parse</span><span class="o">::&lt;</span><span class="k">i32</span><span class="o">&gt;</span><span class="p">().</span><span class="n">map_err</span><span class="p">(</span><span class="o">|</span><span class="n">err</span><span class="o">|</span> <span class="n">err</span><span class="p">.</span><span class="n">to_string</span><span class="p">()))</span>
+</span><span class='line'>        <span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">n</span><span class="o">|</span> <span class="m">2</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But .. what happens when you have multiple <code>Result</code>s that are independent of each other, and you want to accumulate not only their collective success case, but also <em>all</em> their collective errors in the failure case?</p>
+
+<p><img class="center" src="https://beachape.com/images/oh-shit-cat.jpg" title="'wait, we have to accumulate errors? oh ... shiz'" ></p>
+
+<p>Let&#8217;s have a look at <a href="https://beachape.com/frunk/frunk/validated">Validated</a> in <a href="https://crates.io/crates/frunk">Frunk</a> (which is itself inspired by <a href="http://typelevel.org/cats/datatypes/validated.html"><code>Validated</code> in Cats</a>)</p>
+
+<!-- more -->
+
+
+<p><a href="https://crates.io/crates/frunk">Frunk</a> is published to <a href="crates.io/crates/frust">Crates.io</a>, so to begin, add the crate to your list of dependencies:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="p">[</span><span class="n">dependencies</span><span class="p">]</span>
+</span><span class='line'><span class="n">frunk</span> <span class="o">=</span> <span class="s">&quot;0.1.4&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>By the way, to take a dive into the deep end, jump <a href="https://beachape.com/frunk/frunk/validated/index.html" target="_blank">straight to Validated&#8217;s Rustdocs</a>.</p>
+
+<h3>Imports</h3>
+
+<p>Next, let&#8217;s add a few imports.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">use</span> <span class="n">frunk</span><span class="o">::</span><span class="n">hlist</span><span class="o">::*</span><span class="p">;</span> <span class="c1">// brings the .to_tuple2() method in scope so we can destructure our HList easily</span>
+</span><span class='line'><span class="k">use</span> <span class="n">frunk</span><span class="o">::</span><span class="n">validated</span><span class="o">::*</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Scenario</h3>
+
+<p>Suppose we have a <code>Person</code> struct defined as follows:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="cp">#[derive(PartialEq, Eq, Debug)]</span>
+</span><span class='line'><span class="n">struct</span> <span class="n">Person</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">age</span><span class="o">:</span> <span class="k">i32</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">name</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">email</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And, we have 3 methods that produce age, name and email for us, but all could potentially fail with a <code>Nope</code> error.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="c1">/// For demonstrations purposes only</span>
+</span><span class='line'><span class="cp">#[derive(PartialEq, Eq, Debug)]</span>
+</span><span class='line'><span class="n">pub</span> <span class="k">enum</span> <span class="n">YahNah</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">Yah</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">Nah</span><span class="p">,</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">/// Our Errors</span>
+</span><span class='line'><span class="cp">#[derive(PartialEq, Eq, Debug)]</span>
+</span><span class='line'><span class="n">pub</span> <span class="k">enum</span> <span class="n">Nope</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">NameNope</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">AgeNope</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">EmailNope</span><span class="p">,</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">fn</span> <span class="n">get_name</span><span class="p">(</span><span class="n">yah_nah</span><span class="o">:</span> <span class="n">YahNah</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span> <span class="n">Nope</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">match</span> <span class="n">yah_nah</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span> <span class="o">=&gt;</span> <span class="n">Result</span><span class="o">::</span><span class="n">Ok</span><span class="p">(</span><span class="s">&quot;James&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">()),</span>
+</span><span class='line'>        <span class="n">_</span> <span class="o">=&gt;</span> <span class="n">Result</span><span class="o">::</span><span class="n">Err</span><span class="p">(</span><span class="n">Nope</span><span class="o">::</span><span class="n">NameNope</span><span class="p">),</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">fn</span> <span class="n">get_age</span><span class="p">(</span><span class="n">yah_nah</span><span class="o">:</span> <span class="n">YahNah</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="o">&lt;</span><span class="k">i32</span><span class="p">,</span> <span class="n">Nope</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">match</span> <span class="n">yah_nah</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span> <span class="o">=&gt;</span> <span class="n">Result</span><span class="o">::</span><span class="n">Ok</span><span class="p">(</span><span class="m">32</span><span class="p">),</span>
+</span><span class='line'>        <span class="n">_</span> <span class="o">=&gt;</span> <span class="n">Result</span><span class="o">::</span><span class="n">Err</span><span class="p">(</span><span class="n">Nope</span><span class="o">::</span><span class="n">AgeNope</span><span class="p">),</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">fn</span> <span class="n">get_email</span><span class="p">(</span><span class="n">yah_nah</span><span class="o">:</span> <span class="n">YahNah</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span> <span class="n">Nope</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">match</span> <span class="n">yah_nah</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span> <span class="o">=&gt;</span> <span class="n">Result</span><span class="o">::</span><span class="n">Ok</span><span class="p">(</span><span class="s">&quot;hello@world.com&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">()),</span>
+</span><span class='line'>        <span class="n">_</span> <span class="o">=&gt;</span> <span class="n">Result</span><span class="o">::</span><span class="n">Err</span><span class="p">(</span><span class="n">Nope</span><span class="o">::</span><span class="n">EmailNope</span><span class="p">),</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In real life, these methods would probably be taking an HTML form as an argument and doing some kind of parsing/validation or making calls to a service somewhere, but for simplicity, in our example, each of them takes a single argument that will let us toggle between the success and error cases.</p>
+
+<h3>Using Validated</h3>
+
+<p>Having set all that up, actually using <code>Validated</code> to accumulate our <code>Results</code> is actually very simple:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">v</span> <span class="o">=</span> <span class="n">get_name</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span><span class="p">).</span><span class="n">into_validated</span><span class="p">()</span> <span class="o">+</span>
+</span><span class='line'>           <span class="n">get_age</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span><span class="p">)</span> <span class="o">+</span>
+</span><span class='line'>           <span class="n">get_email</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Turn it into a result and then map, passing a lambda that takes the HList contained inside</span>
+</span><span class='line'><span class="k">let</span> <span class="n">person</span> <span class="o">=</span> <span class="n">v</span><span class="p">.</span><span class="n">into_result</span><span class="p">()</span>
+</span><span class='line'>                        <span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">hlist</span><span class="o">|</span> <span class="p">{</span>
+</span><span class='line'>                            <span class="k">let</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">age</span><span class="p">,</span> <span class="n">email</span><span class="p">))</span> <span class="o">=</span> <span class="n">hlist</span><span class="p">.</span><span class="n">into_tuple2</span><span class="p">();</span>
+</span><span class='line'>                            <span class="n">Person</span> <span class="p">{</span>
+</span><span class='line'>                                <span class="n">name</span><span class="o">:</span> <span class="n">name</span><span class="p">,</span>
+</span><span class='line'>                                <span class="n">age</span><span class="o">:</span> <span class="n">age</span><span class="p">,</span>
+</span><span class='line'>                                <span class="n">email</span><span class="o">:</span> <span class="n">email</span><span class="p">,</span>
+</span><span class='line'>                            <span class="p">}</span>
+</span><span class='line'>                        <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">person</span><span class="p">.</span><span class="n">unwrap</span><span class="p">(),</span>
+</span><span class='line'>                   <span class="n">Person</span> <span class="p">{</span>
+</span><span class='line'>                       <span class="n">name</span><span class="o">:</span> <span class="s">&quot;James&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">(),</span>
+</span><span class='line'>                       <span class="n">age</span><span class="o">:</span> <span class="m">32</span><span class="p">,</span>
+</span><span class='line'>                       <span class="n">email</span><span class="o">:</span> <span class="s">&quot;hello@world.com&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">(),</span>
+</span><span class='line'>                   <span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As you can see, all we need to do is call <code>into_validated()</code> on a given <code>Result</code> to kick off the validation context, and use <code>+</code> to add subsequent <code>Result</code>s into it. At the end, you call <code>into_result()</code> on the <code>Validated</code> to turn it back into a <code>Result</code> and map on the <code>HList</code> that is contained inside.  Inside the lambda, we turn the <code>HList</code> into a Tuple2 pair to get access to easy destructuring, and then instantiate our <code>Person</code>.</p>
+
+<p>Oh, in case isn&#8217;t obvious, the <code>hlist</code> passed into the lambda in map is <strong>statically typed</strong> in the order that your <code>Result</code>s were added into the <code>Validated</code> context, so your code is completely type safe.</p>
+
+<p>Having said that, perhaps in the success case, not much has really changed with respect to using naked <code>Result</code>s in that you could have gotten here simply by chaining with <code>map</code> and/or <code>and_then</code>. But take a look at what happens when one or more of these fail:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">v</span> <span class="o">=</span> <span class="n">get_name</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Nah</span><span class="p">).</span><span class="n">into_validated</span><span class="p">()</span> <span class="o">+</span>  <span class="c1">// get_name will fail</span>
+</span><span class='line'>           <span class="n">get_age</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span><span class="p">)</span> <span class="o">+</span>  <span class="c1">// get_age will succeed</span>
+</span><span class='line'>           <span class="n">get_email</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Nah</span><span class="p">);</span> <span class="c1">// get_email will fail</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">let</span> <span class="n">person</span> <span class="o">=</span> <span class="n">v</span><span class="p">.</span><span class="n">into_result</span><span class="p">()</span>
+</span><span class='line'>              <span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">_</span><span class="o">|</span> <span class="n">unimplemented</span><span class="o">!</span><span class="p">());</span> <span class="c1">// won&#39;t get here anyways</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">person</span><span class="p">.</span><span class="n">unwrap_err</span><span class="p">(),</span>
+</span><span class='line'>           <span class="n">vec</span><span class="o">!</span><span class="p">[</span><span class="n">Nope</span><span class="o">::</span><span class="n">NameNope</span><span class="p">,</span> <span class="n">Nope</span><span class="o">::</span><span class="n">EmailNope</span><span class="p">]);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As you can see, the error case is interesting to because <code>Validated</code> gives us the ability to accumulate all errors cleanly. For operations like parsing user input or checking parameters passed into our API, this non-early-abort behaviour is highly desirable compared with telling the user what went wrong One. Thing. At. At. Time.</p>
+
+<p>Oh, <code>Validated</code>s can also be appended to each other:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">r1</span><span class="o">:</span> <span class="n">Result</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">Result</span><span class="o">::</span><span class="n">Ok</span><span class="p">(</span><span class="n">String</span><span class="o">::</span><span class="n">from</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">));</span>
+</span><span class='line'><span class="k">let</span> <span class="n">r2</span><span class="o">:</span> <span class="n">Result</span><span class="o">&lt;</span><span class="k">i32</span><span class="p">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">Result</span><span class="o">::</span><span class="n">Ok</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
+</span><span class='line'><span class="k">let</span> <span class="n">r3</span><span class="o">:</span> <span class="n">Result</span><span class="o">&lt;</span><span class="k">i32</span><span class="p">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">Result</span><span class="o">::</span><span class="n">Ok</span><span class="p">(</span><span class="m">3</span><span class="p">);</span>
+</span><span class='line'><span class="k">let</span> <span class="n">v1</span> <span class="o">=</span> <span class="n">r1</span><span class="p">.</span><span class="n">into_validated</span><span class="p">();</span>
+</span><span class='line'><span class="k">let</span> <span class="n">v2</span> <span class="o">=</span> <span class="n">r2</span><span class="p">.</span><span class="n">into_validated</span><span class="p">();</span>
+</span><span class='line'><span class="k">let</span> <span class="n">v3</span> <span class="o">=</span> <span class="n">r3</span><span class="p">.</span><span class="n">into_validated</span><span class="p">();</span>
+</span><span class='line'><span class="k">let</span> <span class="n">comb</span> <span class="o">=</span> <span class="n">v1</span> <span class="o">+</span> <span class="n">v2</span> <span class="o">+</span> <span class="n">v3</span><span class="p">;</span>
+</span><span class='line'><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">comb</span><span class="p">,</span> <span class="n">Validated</span><span class="o">::</span><span class="n">Ok</span><span class="p">(</span><span class="n">hlist</span><span class="o">!</span><span class="p">(</span><span class="n">String</span><span class="o">::</span><span class="n">from</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">),</span> <span class="m">1</span><span class="p">,</span> <span class="m">3</span><span class="p">)))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Conclusion</h2>
+
+<p>Please take <code>Validated</code> out for a spin and send suggestions, comments, PRs !  I&#8217;ve found this abstraction to be helpful in the Scala world so I&#8217;m eager to hear impressions from Rustaceans.</p>
+
+<h2>Links</h2>
+
+<ol>
+<li><a href="https://github.com/lloydmeta/frunk">Frunk on Github</a></li>
+<li><a href="https://crates.io/crates/frunk">Frunk on Crates.io</a></li>
+</ol>
+
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Rust HLists (Heterogenous List)]]></title>
     <link href="https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list/"/>
     <updated>2016-10-23T13:05:00+09:00</updated>
     <id>https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list</id>
     <content type="html"><![CDATA[<p>A heterogeneous list (henceforth &#8220;HList&#8221;) is a useful abstraction that is implemented in many statically-typed functional programming languages. Unlike normal list-like structures (e.g. <code>Vec</code>, <code>Slice</code>, <code>Array</code>), a heterogenous list is able to hold elements of different types (hence heterogenous) and expose those types in its own type signature.</p>
 
-<p><img class="center" src="https://beachape.com/images/hlist-intro.png" title="'Statically typed heterogenous lists'" ></p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">,</span> <span class="k">true</span><span class="p">];</span>
+</span><span class='line'><span class="c1">// h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
 
 <p>Now, you might be thinking &#8220;Isn&#8217;t that just a tuple?&#8221;. The answer is: in a way. Indeed, in terms of data structure, a given implementation of HList is usually really nothing more than deeply nested pairs (tuple of 2 elements) that each hold an element of arbitrary type in its 1st element and knows that its 2nd element is itself an HList-like thing. While it may seem convoluted, HList buys us the ability to abstract over arity, which turns out to be extremely useful, as you can see from <a href="http://stackoverflow.com/questions/11825129/are-hlists-nothing-more-than-a-convoluted-way-of-writing-tuples">this Stackoverflow answer</a> by Miles Sabin, the creater of the <a href="https://github.com/milessabin/shapeless">Shapeless</a> library, which provides an HList implementation in Scala.</p>
 
@@ -128,7 +397,7 @@
 
 <h2>Have fun !</h2>
 
-<p>It will be interesting to see what you can cook up with HList. As mentioned before, abstracting over arity allows you to do some really cool stuff, for example <a href="https://crates.io/crates/frunk">Frunk</a> already uses HList to define a <a href="https://beachape.com/frunk/frunk/validated/"><code>Validated</code> abstraction</a> to help accumulate errors over many different <code>Result&lt;T, E&gt;</code> (we&#8217;ll go through this in another post):</p>
+<p>It will be interesting to see what you can cook up with HList. As mentioned before, abstracting over arity allows you to do some really cool stuff, for example <a href="https://crates.io/crates/frunk">Frunk</a> already uses HList to define a <a href="https://beachape.com/frunk/frunk/validated/"><code>Validated</code> abstraction</a> to help accumulate errors over many different <code>Result&lt;T, E&gt;</code> (we&#8217;ll go through this in <a href="https://beachape.com/blog/2016/10/24/accumulating-results-in-rust-with-validated/">another post</a>):</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -2800,194 +3069,6 @@ contains our simple router)</li>
 <h2>Conclusion</h2>
 
 <p>Please give <a href="https://github.com/lloydmeta/metascraper">Metascraper</a> a test drive and submit issues and pull requests !</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Introducing Schwatcher]]></title>
-    <link href="https://beachape.com/blog/2013/07/23/introducing-schwatcher/"/>
-    <updated>2013-07-23T07:55:00+09:00</updated>
-    <id>https://beachape.com/blog/2013/07/23/introducing-schwatcher</id>
-    <content type="html"><![CDATA[<p>The <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/file/WatchService.html">WatchService</a> was added as part of Java 7 and introduced the ability to monitor files through the JVM without the use of external libraries like <a href="http://jnotify.sourceforge.net/">JNotify</a> that require installing native libraries. Using this API for a project that requires monitoring files makes handling dependencies for both deployment and development much simpler.</p>
-
-<p>Since Scala is able to directly invoke Java, I wanted to use this API when I was building <a href="https://github.com/lloydmeta/akanori-thrift">Akanori-thrift</a>, a trending-words detection service that is focused on the Japanese language. This post will not go over that service in detail (that will take up an entire post of its own if not more) but my use-case there was monitor a custom dictionary file for updates and then spawn a new instance of the <code>Tokenizer</code> that uses the updated state of the file.</p>
-
-<p>I quickly realised a few pain-points:</p>
-
-<ol>
-<li>There existed no file monitoring Scala library (at the time),</li>
-<li>Using the WatchService API requires the use of a blocking thread to get events,</li>
-<li>The WatchService API does not have recursive monitoring support built in</li>
-</ol>
-
-
-<p>To address these, I set out to create <a href="https://github.com/lloydmeta/schwatcher">Schwatcher</a>, a Scala library that wraps the WatchService API of Java7 and allows callbacks to be registered and unregistered on both directories and files both as individual paths and recursively. Furthermore, I wanted to facilitate the use of the Java7 API in Scala in a simple way that is in line with the functional programming paradigm.</p>
-
-<!-- more -->
-
-
-<h2>Components</h2>
-
-<p>The main components of the Schwatcher library include:</p>
-
-<ol>
-<li><a href="http://akka.io/">Akka actors</a>: While I was building <a href="https://github.com/lloydmeta/akanori-thrift">Akanori-thrift</a>, I already knew that I wanted to use Akka actors as an abstraction of concurrency for their resilience and concurrency control tools (<a href="http://doc.akka.io/docs/akka/2.1.4/scala/agents.html">Agents</a> in particular).</li>
-<li>Threads: After reading <a href="http://java.dzone.com/articles/watchservice-combined-akka">this awesome blog post</a> on how to use Akka actors with Watchservice by encapsulating the blocking loop in a thread via Runnable, I knew I wanted to use this pattern for Schwatcher.</li>
-<li>CallbackRegistry: A callback registry that maps paths to a list of callback functions that get called when the Java 7 service signals that an event has occured on a specific path.</li>
-</ol>
-
-
-<h2>Basic workflow (a.k.a. how to use)</h2>
-
-<p>This post won&#8217;t go over in too much detail how to use the library because that stuff is available from the <a href="https://github.com/lloydmeta/schwatcher">Schwatcher Github page</a> and will probably change over time, but this is the basic workflow:</p>
-
-<ol>
-<li>Instantiate a <code>MonitorActor</code></li>
-<li>Register callbacks by sending <code>RegisterCallback</code> messages to the MonitorActor and passing in a path with an <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/file/StandardWatchEventKinds.html">event type</a>.</li>
-<li>Carry on, as your callbacks will be called when events happen</li>
-</ol>
-
-
-<p>The project is Mavenised and is availale from the Central Repository, so simply add the <code>libraryDependency</code> in your <code>build.sbt</code> (when you read this the versioning might be different so refer to the project&#8217;s Github page):</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;com.beachape.filemanagement&quot;</span> <span class="o">%%</span> <span class="s">&quot;schwatcher&quot;</span> <span class="o">%</span> <span class="s">&quot;0.0.2&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And to use it,</p>
-
-<figure class='code'><figcaption><span>Schwatcher example code (schwatcher_example.scala)</span> <a href='https://beachape.com/downloads/code/scala/schwatcher_example.scala'>download</a></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
-</span><span class='line'><span class="k">import</span> <span class="nn">com.beachape.filemanagement.MonitorActor</span>
-</span><span class='line'><span class="k">import</span> <span class="nn">com.beachape.filemanagement.RegistryTypes._</span>
-</span><span class='line'><span class="k">import</span> <span class="nn">com.beachape.filemanagement.Messages._</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">import</span> <span class="nn">java.io.</span><span class="o">{</span><span class="nc">FileWriter</span><span class="o">,</span> <span class="nc">BufferedWriter</span><span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">import</span> <span class="nn">java.nio.file.Paths</span>
-</span><span class='line'><span class="k">import</span> <span class="nn">java.nio.file.StandardWatchEventKinds._</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">implicit</span> <span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">&quot;actorSystem&quot;</span><span class="o">)</span>
-</span><span class='line'><span class="k">val</span> <span class="n">fileMonitorActor</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">MonitorActor</span><span class="o">(</span><span class="n">concurrency</span> <span class="k">=</span> <span class="mi">2</span><span class="o">))</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">val</span> <span class="n">modifyCallbackFile</span><span class="k">:</span> <span class="kt">Callback</span> <span class="o">=</span> <span class="o">{</span>
-</span><span class='line'>  <span class="n">path</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Something was modified in a file: $path&quot;</span><span class="o">)</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'><span class="k">val</span> <span class="n">modifyCallbackDirectory</span><span class="k">:</span> <span class="kt">Callback</span> <span class="o">=</span> <span class="o">{</span>
-</span><span class='line'>  <span class="n">path</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Something was modified in a directory: $path&quot;</span><span class="o">)</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">val</span> <span class="n">desktop</span> <span class="k">=</span> <span class="nc">Paths</span> <span class="n">get</span> <span class="s">&quot;/Users/lloyd/Desktop&quot;</span>
-</span><span class='line'><span class="k">val</span> <span class="n">desktopFile</span> <span class="k">=</span> <span class="nc">Paths</span> <span class="n">get</span> <span class="s">&quot;/Users/lloyd/Desktop/test&quot;</span>
-</span><span class='line'>
-</span><span class='line'><span class="cm">/*</span>
-</span><span class='line'><span class="cm">  This will receive callbacks for just the one file</span>
-</span><span class='line'><span class="cm"> */</span>
-</span><span class='line'><span class="n">fileMonitorActor</span> <span class="o">!</span> <span class="nc">RegisterCallback</span><span class="o">(</span>
-</span><span class='line'>  <span class="nc">ENTRY_MODIFY</span><span class="o">,</span>
-</span><span class='line'>  <span class="n">recursive</span> <span class="k">=</span> <span class="kc">false</span><span class="o">,</span>
-</span><span class='line'>  <span class="n">path</span> <span class="k">=</span> <span class="n">desktopFile</span><span class="o">,</span>
-</span><span class='line'>  <span class="n">modifyCallbackFile</span><span class="o">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="cm">/*</span>
-</span><span class='line'><span class="cm">  If desktopFile is modified, this will also receive a callback</span>
-</span><span class='line'><span class="cm">  it will receive callbacks for everything under the desktop directory</span>
-</span><span class='line'><span class="cm">*/</span>
-</span><span class='line'><span class="n">fileMonitorActor</span> <span class="o">!</span> <span class="nc">RegisterCallback</span><span class="o">(</span>
-</span><span class='line'>  <span class="nc">ENTRY_MODIFY</span><span class="o">,</span>
-</span><span class='line'>  <span class="n">recursive</span> <span class="k">=</span> <span class="kc">false</span><span class="o">,</span>
-</span><span class='line'>  <span class="n">path</span> <span class="k">=</span> <span class="n">desktop</span><span class="o">,</span>
-</span><span class='line'>  <span class="n">modifyCallbackDirectory</span><span class="o">)</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="c1">//modify a monitored file</span>
-</span><span class='line'><span class="k">val</span> <span class="n">writer</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">BufferedWriter</span><span class="o">(</span><span class="k">new</span> <span class="nc">FileWriter</span><span class="o">(</span><span class="n">desktopFile</span><span class="o">.</span><span class="n">toFile</span><span class="o">))</span>
-</span><span class='line'><span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="s">&quot;Theres text in here wee!!&quot;</span><span class="o">)</span>
-</span><span class='line'><span class="n">writer</span><span class="o">.</span><span class="n">close</span><span class="o">()</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// #=&gt; Something was modified in a file: /Users/a13075/Desktop/test.txt</span>
-</span><span class='line'><span class="c1">//     Something was modified in a directory: /Users/a13075/Desktop/test.txt</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Behind the scenes workflow</h2>
-
-<p>A few things happen behind the scenes (accurate at time of writing):</p>
-
-<ol>
-<li>Upon the <code>MonitorActor</code>  &#8216;s instantiation, a private <code>WatchServiceTask</code> <code>Runnable</code> object is created and its accompanying <code>WatchService</code> thread (the blocking thread that takes events from the Java 7 WatchService) is started. The <code>MonitorActor</code> is in charge of keeping tabs (starting and stopping) the <code>WatchService</code> thread.</li>
-<li>The <code>MonitorActor</code> also instantiates a <code>Map</code> of type <code>[EventType, Agent[CallbackRegistry]]</code>. <code>CallbackRegistry</code> objects are themselves Maps of type <code>[Path, List[Path =&gt; Unit]]</code> and are immutable. The callbacks are put inside an <code>Agent</code> to assure atomic concurrent updates.</li>
-<li>When registering a <code>Path</code> and file system event type with a <code>Callback</code> function, a <code>RegisterCallback</code> message is sent to the MonitorActor and the <code>MonitorActor</code> sends an update message on the <code>Agent</code> containing the <code>CallbackRegistry</code> for that event type. Adding callback functions or paths to a <code>CallbackRegistry</code> creates a new one containing the (new) path and its new accompanying <code>List[Callback]</code> while leaving the old one untouched. Un-registering a path&#8217;s callbacks work the same way (but in reverse).</li>
-<li>If <code>recursive</code> is set to <code>true</code> in the <code>RegisterCallback</code> or <code>UnRegisterCallback</code> messages, then the path&#8217;s tree is walked and each directory is registered with callbacks as long as the initial path given is that of a directory.</li>
-<li>When an event is picked up from the Java 7 WatchService within the <code>WatchService</code> thread (mentioned in 1), a <code>EventAtPath</code> message is sent from that thread its parent <code>MonitorActor</code>, containing the event type and the path of the event.</li>
-<li>The <code>MonitorActor</code> receives the <code>EventAtPath</code> message and looks up the proper list of callbacks for the event type and path and sends each callback packaged inside <code>PerformCallback</code> messages to it&#8217;s pool of <code>CallbackActor</code>s via a <code>SmallestMailbox</code> router. Thus, callbacks are handled concurrently (or, if desired, one at a time by sending <code>MonitorActor</code>&#8217;s <code>concurrency</code> parameter to 1 when instantiating it)</li>
-</ol>
-
-
-<h2>Conclusion</h2>
-
-<p>Hopefully, <a href="https://github.com/lloydmeta/schwatcher">Schwatcher</a> is useful for Scala developers looking to monitor the file system. Questions, pull requests, feedback are greatly appreciated !</p>
-
-<h2>Publishing to Maven</h2>
-
-<p>As a side-note, when publishing this library to Maven via Sonatype, I found the following links very helpful:</p>
-
-<ol>
-<li><a href="http://www.scala-sbt.org/0.12.3/docs/Community/Using-Sonatype.html">Offical Scala-sbt&#8217;s guide to Deploying to Sonatype</a></li>
-<li><a href="https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide">Sonatype OSS Maven Repository usage guide</a></li>
-</ol>
-
 ]]></content>
   </entry>
   

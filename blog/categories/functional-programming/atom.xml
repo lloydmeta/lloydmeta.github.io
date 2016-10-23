@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Functional Programming | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/functional-programming/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-10-23T14:31:15+09:00</updated>
+  <updated>2016-10-24T00:10:26+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -14,13 +14,232 @@
 
   
   <entry>
+    <title type="html"><![CDATA[Accumulating Results in Rust With Validated]]></title>
+    <link href="https://beachape.com/blog/2016/10/24/accumulating-results-in-rust-with-validated/"/>
+    <updated>2016-10-24T15:00:00+09:00</updated>
+    <id>https://beachape.com/blog/2016/10/24/accumulating-results-in-rust-with-validated</id>
+    <content type="html"><![CDATA[<p>Rust comes out of the box with a <code>Result&lt;T, E&gt;</code> type in its standard library. For those not familiar with it, it is a union-like enum type where <code>T</code> is a type parameter denoting the kind object held in a <code>Result</code> in the success case (<code>Result::Ok&lt;T&gt;</code>), and <code>E</code> is a type paramter denoting the kind of error object held in the failure case (<code>Result::Err&lt;E&gt;</code>).  In Scala, this is represented in the standard library as <code>Either[+A, +B]</code>, where the the success and error type params are swapped (traditionally, the one on the left stands for error and the one on the right is...well, right).</p>
+
+<p>By default, <code>Result</code> comes with really good support for what I call "early return on error". That is, you can use <code>map</code>, <code>and_then</code> (flatMap in some other languages) to transform them, and if there's an error at an intermediate step, the chain returns early with a <code>Result::Err&lt;E&gt;</code> :</p>
+
+<p>```rust
+fn double_arg(mut argv: env::Args) -> Result&lt;i32, String> {</p>
+
+<pre><code>argv.nth(1)
+    .ok_or("Please give at least one argument".to_owned())
+    .and_then(|arg| arg.parse::&lt;i32&gt;().map_err(|err| err.to_string()))
+    .map(|n| 2 * n)
+</code></pre>
+
+<p>}
+```</p>
+
+<p>But .. what happens when you have multiple <code>Result</code>s that are independent of each other, and you want to accumulate not only their collective success case, but also <em>all</em> their collective errors in the failure case?</p>
+
+<p><img class="center" src="/images/oh-shit-cat.jpg" title="'wait, we have to accumulate errors? oh ... shiz'" ></p>
+
+<p>Let's have a look at <a href="https://beachape.com/frunk/frunk/validated">Validated</a> in <a href="https://crates.io/crates/frunk">Frunk</a> (which is itself inspired by <a href="http://typelevel.org/cats/datatypes/validated.html"><code>Validated</code> in Cats</a>)</p>
+
+<!-- more -->
+
+
+<p><a href="https://crates.io/crates/frunk">Frunk</a> is published to <a href="crates.io/crates/frust">Crates.io</a>, so to begin, add the crate to your list of dependencies:</p>
+
+<p><code>rust
+[dependencies]
+frunk = "0.1.4"
+</code></p>
+
+<p>By the way, to take a dive into the deep end, jump <a href="https://beachape.com/frunk/frunk/validated/index.html" target="_blank">straight to Validated's Rustdocs</a>.</p>
+
+<h3>Imports</h3>
+
+<p>Next, let's add a few imports.</p>
+
+<p><code>rust
+use frunk::hlist::*; // brings the .to_tuple2() method in scope so we can destructure our HList easily
+use frunk::validated::*;
+</code></p>
+
+<h3>Scenario</h3>
+
+<p>Suppose we have a <code>Person</code> struct defined as follows:</p>
+
+<p>```rust</p>
+
+<h1>[derive(PartialEq, Eq, Debug)]</h1>
+
+<p>struct Person {</p>
+
+<pre><code>age: i32,
+name: String,
+email: String,
+</code></pre>
+
+<p>}
+```</p>
+
+<p>And, we have 3 methods that produce age, name and email for us, but all could potentially fail with a <code>Nope</code> error.</p>
+
+<p>```rust
+/// For demonstrations purposes only</p>
+
+<h1>[derive(PartialEq, Eq, Debug)]</h1>
+
+<p>pub enum YahNah {</p>
+
+<pre><code>Yah,
+Nah,
+</code></pre>
+
+<p>}</p>
+
+<p>/// Our Errors</p>
+
+<h1>[derive(PartialEq, Eq, Debug)]</h1>
+
+<p>pub enum Nope {</p>
+
+<pre><code>NameNope,
+AgeNope,
+EmailNope,
+</code></pre>
+
+<p>}</p>
+
+<p>fn get_name(yah_nah: YahNah) -> Result&lt;String, Nope> {</p>
+
+<pre><code>match yah_nah {
+    YahNah::Yah =&gt; Result::Ok("James".to_owned()),
+    _ =&gt; Result::Err(Nope::NameNope),
+}
+</code></pre>
+
+<p>}</p>
+
+<p>fn get_age(yah_nah: YahNah) -> Result&lt;i32, Nope> {</p>
+
+<pre><code>match yah_nah {
+    YahNah::Yah =&gt; Result::Ok(32),
+    _ =&gt; Result::Err(Nope::AgeNope),
+}
+</code></pre>
+
+<p>}</p>
+
+<p>fn get_email(yah_nah: YahNah) -> Result&lt;String, Nope> {</p>
+
+<pre><code>match yah_nah {
+    YahNah::Yah =&gt; Result::Ok("hello@world.com".to_owned()),
+    _ =&gt; Result::Err(Nope::EmailNope),
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>In real life, these methods would probably be taking an HTML form as an argument and doing some kind of parsing/validation or making calls to a service somewhere, but for simplicity, in our example, each of them takes a single argument that will let us toggle between the success and error cases.</p>
+
+<h3>Using Validated</h3>
+
+<p>Having set all that up, actually using <code>Validated</code> to accumulate our <code>Results</code> is actually very simple:</p>
+
+<p>```rust
+let v = get_name(YahNah::Yah).into_validated() +</p>
+
+<pre><code>       get_age(YahNah::Yah) +
+       get_email(YahNah::Yah);
+</code></pre>
+
+<p>// Turn it into a result and then map, passing a lambda that takes the HList contained inside
+let person = v.into_result()</p>
+
+<pre><code>                    .map(|hlist| {
+                        let (name, (age, email)) = hlist.into_tuple2();
+                        Person {
+                            name: name,
+                            age: age,
+                            email: email,
+                        }
+                    });
+</code></pre>
+
+<p>assert_eq!(person.unwrap(),</p>
+
+<pre><code>               Person {
+                   name: "James".to_owned(),
+                   age: 32,
+                   email: "hello@world.com".to_owned(),
+               });
+</code></pre>
+
+<p>```</p>
+
+<p>As you can see, all we need to do is call <code>into_validated()</code> on a given <code>Result</code> to kick off the validation context, and use <code>+</code> to add subsequent <code>Result</code>s into it. At the end, you call <code>into_result()</code> on the <code>Validated</code> to turn it back into a <code>Result</code> and map on the <code>HList</code> that is contained inside.  Inside the lambda, we turn the <code>HList</code> into a Tuple2 pair to get access to easy destructuring, and then instantiate our <code>Person</code>.</p>
+
+<p>Oh, in case isn't obvious, the <code>hlist</code> passed into the lambda in map is <strong>statically typed</strong> in the order that your <code>Result</code>s were added into the <code>Validated</code> context, so your code is completely type safe.</p>
+
+<p>Having said that, perhaps in the success case, not much has really changed with respect to using naked <code>Result</code>s in that you could have gotten here simply by chaining with <code>map</code> and/or <code>and_then</code>. But take a look at what happens when one or more of these fail:</p>
+
+<p>```rust
+let v = get_name(YahNah::Nah).into_validated() +  // get_name will fail</p>
+
+<pre><code>       get_age(YahNah::Yah) +  // get_age will succeed
+       get_email(YahNah::Nah); // get_email will fail
+</code></pre>
+
+<p>let person = v.into_result()</p>
+
+<pre><code>          .map(|_| unimplemented!()); // won't get here anyways
+</code></pre>
+
+<p>assert_eq!(person.unwrap_err(),</p>
+
+<pre><code>       vec![Nope::NameNope, Nope::EmailNope]);
+</code></pre>
+
+<p>```</p>
+
+<p>As you can see, the error case is interesting to because <code>Validated</code> gives us the ability to accumulate all errors cleanly. For operations like parsing user input or checking parameters passed into our API, this non-early-abort behaviour is highly desirable compared with telling the user what went wrong One. Thing. At. At. Time.</p>
+
+<p>Oh, <code>Validated</code>s can also be appended to each other:</p>
+
+<p><code>rust
+let r1: Result&lt;String, String&gt; = Result::Ok(String::from("hello"));
+let r2: Result&lt;i32, String&gt; = Result::Ok(1);
+let r3: Result&lt;i32, String&gt; = Result::Ok(3);
+let v1 = r1.into_validated();
+let v2 = r2.into_validated();
+let v3 = r3.into_validated();
+let comb = v1 + v2 + v3;
+assert_eq!(comb, Validated::Ok(hlist!(String::from("hello"), 1, 3)))
+</code></p>
+
+<h2>Conclusion</h2>
+
+<p>Please take <code>Validated</code> out for a spin and send suggestions, comments, PRs !  I've found this abstraction to be helpful in the Scala world so I'm eager to hear impressions from Rustaceans.</p>
+
+<h2>Links</h2>
+
+<ol>
+<li><a href="https://github.com/lloydmeta/frunk">Frunk on Github</a></li>
+<li><a href="https://crates.io/crates/frunk">Frunk on Crates.io</a></li>
+</ol>
+
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Rust HLists (Heterogenous List)]]></title>
     <link href="https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list/"/>
     <updated>2016-10-23T13:05:00+09:00</updated>
     <id>https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list</id>
     <content type="html"><![CDATA[<p>A heterogeneous list (henceforth "HList") is a useful abstraction that is implemented in many statically-typed functional programming languages. Unlike normal list-like structures (e.g. <code>Vec</code>, <code>Slice</code>, <code>Array</code>), a heterogenous list is able to hold elements of different types (hence heterogenous) and expose those types in its own type signature.</p>
 
-<p><img class="center" src="/images/hlist-intro.png" title="'Statically typed heterogenous lists'" ></p>
+<p><code>rust
+let h = hlist!["Joe", "Blow", 30, true];
+// h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;
+</code></p>
 
 <p>Now, you might be thinking "Isn't that just a tuple?". The answer is: in a way. Indeed, in terms of data structure, a given implementation of HList is usually really nothing more than deeply nested pairs (tuple of 2 elements) that each hold an element of arbitrary type in its 1st element and knows that its 2nd element is itself an HList-like thing. While it may seem convoluted, HList buys us the ability to abstract over arity, which turns out to be extremely useful, as you can see from <a href="http://stackoverflow.com/questions/11825129/are-hlists-nothing-more-than-a-convoluted-way-of-writing-tuples">this Stackoverflow answer</a> by Miles Sabin, the creater of the <a href="https://github.com/milessabin/shapeless">Shapeless</a> library, which provides an HList implementation in Scala.</p>
 
@@ -106,7 +325,7 @@ assert_eq!(joe.length(), 3);
 
 <h2>Have fun !</h2>
 
-<p>It will be interesting to see what you can cook up with HList. As mentioned before, abstracting over arity allows you to do some really cool stuff, for example <a href="https://crates.io/crates/frunk">Frunk</a> already uses HList to define a <a href="https://beachape.com/frunk/frunk/validated/"><code>Validated</code> abstraction</a> to help accumulate errors over many different <code>Result&lt;T, E&gt;</code> (we'll go through this in another post):</p>
+<p>It will be interesting to see what you can cook up with HList. As mentioned before, abstracting over arity allows you to do some really cool stuff, for example <a href="https://crates.io/crates/frunk">Frunk</a> already uses HList to define a <a href="https://beachape.com/frunk/frunk/validated/"><code>Validated</code> abstraction</a> to help accumulate errors over many different <code>Result&lt;T, E&gt;</code> (we'll go through this in <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">another post</a>):</p>
 
 <p>```rust
 pub enum Validated&lt;T, E></p>
