@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-10-23T14:27:21+09:00</updated>
+  <updated>2016-10-23T14:31:15+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -12,6 +12,150 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Rust HLists (Heterogenous List)]]></title>
+    <link href="https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list/"/>
+    <updated>2016-10-23T13:05:00+09:00</updated>
+    <id>https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list</id>
+    <content type="html"><![CDATA[<p>A heterogeneous list (henceforth &#8220;HList&#8221;) is a useful abstraction that is implemented in many statically-typed functional programming languages. Unlike normal list-like structures (e.g. <code>Vec</code>, <code>Slice</code>, <code>Array</code>), a heterogenous list is able to hold elements of different types (hence heterogenous) and expose those types in its own type signature.</p>
+
+<p><img class="center" src="https://beachape.com/images/hlist-intro.png" title="'Statically typed heterogenous lists'" ></p>
+
+<p>Now, you might be thinking &#8220;Isn&#8217;t that just a tuple?&#8221;. The answer is: in a way. Indeed, in terms of data structure, a given implementation of HList is usually really nothing more than deeply nested pairs (tuple of 2 elements) that each hold an element of arbitrary type in its 1st element and knows that its 2nd element is itself an HList-like thing. While it may seem convoluted, HList buys us the ability to abstract over arity, which turns out to be extremely useful, as you can see from <a href="http://stackoverflow.com/questions/11825129/are-hlists-nothing-more-than-a-convoluted-way-of-writing-tuples">this Stackoverflow answer</a> by Miles Sabin, the creater of the <a href="https://github.com/milessabin/shapeless">Shapeless</a> library, which provides an HList implementation in Scala.</p>
+
+<p>Given that description and justification for the existence of HLists, let&#8217;s take a look at how to use <a href="https://github.com/lloydmeta/frunk">Frunk</a>&#8217;s implementation of HList in Rust.</p>
+
+<!-- more -->
+
+
+<p><a href="https://crates.io/crates/frunk">Frunk</a> is published to <a href="crates.io/crates/frust">Crates.io</a>, so to begin, add the crate to your list of dependencies:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="p">[</span><span class="n">dependencies</span><span class="p">]</span>
+</span><span class='line'><span class="n">frunk</span> <span class="o">=</span> <span class="s">&quot;0.1.4&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>By the way, to take a dive into the deep end, jump <a href="https://beachape.com/frunk/frunk/hlist/index.html" target="_blank">straight to HList&#8217;s Rustdocs</a>.</p>
+
+<h3>Imports</h3>
+
+<p>Next, let&#8217;s add a few imports. In particular, note that we have a <code>#[macro_use]</code> directive in order to enable the <code>hlist!</code> macro, which makes declaring <code>HList</code>s nicer by saving you the trouble of writing deeply nested <code>HCon</code>s.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="cp">#[macro_use]</span> <span class="n">extern</span> <span class="n">crate</span> <span class="n">frunk</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">frunk</span><span class="o">::</span><span class="n">hlist</span><span class="o">::*</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Creating an HList</h3>
+
+<p>Making an HList is easy if you use the <code>hlist!</code> macro:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">,</span> <span class="k">true</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// You can choose to explicitly annotate the type of HList</span>
+</span><span class='line'><span class="k">let</span> <span class="n">h2</span><span class="o">:</span> <span class="n">HCons</span><span class="o">&lt;&amp;</span><span class="n">str</span><span class="p">,</span> <span class="n">HCons</span><span class="o">&lt;&amp;</span><span class="n">str</span><span class="p">,</span> <span class="n">HCons</span><span class="o">&lt;</span><span class="p">{</span><span class="n">integer</span><span class="p">},</span> <span class="n">HCons</span><span class="o">&lt;</span><span class="n">bool</span><span class="p">,</span> <span class="n">HNil</span><span class="o">&gt;&gt;&gt;&gt;</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">,</span> <span class="k">true</span><span class="p">];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Getting the head of an HList</h3>
+
+<p>To retrieve the head element of an HList, use the <code>.head</code> accessor</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hList</span><span class="o">!</span><span class="p">[</span> <span class="s">&quot;Joe&quot;</span> <span class="p">];</span>
+</span><span class='line'><span class="k">let</span> <span class="n">joe</span> <span class="o">=</span> <span class="n">h</span><span class="p">.</span><span class="n">head</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Getting multiple elements from an HList</h3>
+
+<p>To retrieve multiple elements, it&#8217;s highly recommended to use the <code>.to_tuple2()</code> method to turn your HList into a nested Tuple2 for easy destructuring:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">,</span> <span class="k">true</span><span class="p">];</span>
+</span><span class='line'><span class="c1">// h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">let</span> <span class="p">(</span><span class="n">f_name</span><span class="p">,</span> <span class="p">(</span><span class="n">l_name</span><span class="p">,</span> <span class="p">(</span><span class="n">age</span><span class="p">,</span> <span class="n">is_admin</span><span class="p">)))</span> <span class="o">=</span> <span class="n">h</span><span class="p">.</span><span class="n">into_tuple2</span><span class="p">();</span>
+</span><span class='line'><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">f_name</span><span class="p">,</span> <span class="s">&quot;Joe&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">l_name</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">age</span><span class="p">,</span> <span class="m">30</span><span class="p">);</span>
+</span><span class='line'><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">is_admin</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Appending HLists</h3>
+
+<p>The <code>Add&lt;RHS&gt;</code> trait is implemented for <code>HList</code> so that you can simply call <code>+</code> to append to an existing HList</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">joe</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">];</span>
+</span><span class='line'><span class="k">let</span> <span class="n">is_admin</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="k">true</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">let</span> <span class="n">joe_is_admin</span> <span class="o">=</span> <span class="n">joe</span> <span class="o">+</span> <span class="n">is_admin</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Length</h3>
+
+<p>To get the length of an HList, simply call its <code>length()</code> method</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">joe</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">];</span>
+</span><span class='line'><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">joe</span><span class="p">.</span><span class="n">length</span><span class="p">(),</span> <span class="m">3</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Have fun !</h2>
+
+<p>It will be interesting to see what you can cook up with HList. As mentioned before, abstracting over arity allows you to do some really cool stuff, for example <a href="https://crates.io/crates/frunk">Frunk</a> already uses HList to define a <a href="https://beachape.com/frunk/frunk/validated/"><code>Validated</code> abstraction</a> to help accumulate errors over many different <code>Result&lt;T, E&gt;</code> (we&#8217;ll go through this in another post):</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">pub</span> <span class="k">enum</span> <span class="n">Validated</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">E</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="n">where</span> <span class="n">T</span><span class="o">:</span> <span class="n">HList</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">Ok</span><span class="p">(</span><span class="n">T</span><span class="p">),</span>
+</span><span class='line'>    <span class="n">Err</span><span class="p">(</span><span class="n">Vec</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;</span><span class="p">),</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So please check it out, take it for a spin, and come back with any ideas, criticisms, and PRs!</p>
+
+<h2>Links</h2>
+
+<ol>
+<li><a href="https://github.com/lloydmeta/frunk">Frunk on Github</a></li>
+<li><a href="https://crates.io/crates/frunk">Frunk on Crates.io</a></li>
+</ol>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Enumeratum 1.4: ValueEnums + Circe]]></title>
@@ -2844,121 +2988,6 @@ contains our simple router)</li>
 <li><a href="https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide">Sonatype OSS Maven Repository usage guide</a></li>
 </ol>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Scala: Processing Option-wrapped Collections]]></title>
-    <link href="https://beachape.com/blog/2013/06/20/scala-processing-option-wrapped-collections/"/>
-    <updated>2013-06-20T11:14:00+09:00</updated>
-    <id>https://beachape.com/blog/2013/06/20/scala-processing-option-wrapped-collections</id>
-    <content type="html"><![CDATA[<p>In Scala, there are a lot of cool things - too many to list. Among them is something borrowed from Haskell; the <strong>Maybe</strong>, spelt <a href="http://www.scala-lang.org/api/current/index.html#scala.Option"><em>Option</em> in Scala</a>, which itself is based on the concept of computing via <a href="http://en.wikibooks.org/wiki/Haskell/Understanding_monads">monads</a>.</p>
-
-<p>The reason why <code>Option</code> is awesome is that, if used properly, it largely frees the programmer from having to worry about various variables being in states of nothingness (Nil, null, etc). Without fail, every programmer has at one point or another written things like <code>thing.nil? ? do_nothing : do_something</code> &#8230;. all over the place. The point (in my mind, at least) of <code>Option</code> is to free us from having to do this in as many places as possible.</p>
-
-<p>Many libraries in Scala, such as <a href="https://github.com/debasishg/scala-redis">Scala-Redis</a> are made with the assumption that the programmer knows how to deal with <code>Option</code> and return results wrapped in either <code>Some[List[T]]</code> or <code>None</code>.  That said, how to work with these types of results is not exactly straight forward for someone coming from other languages that don&#8217;t have such constructs, so I&#8217;ve written down some of my thoughts.</p>
-
-<!-- more -->
-
-
-<p>As an example, let&#8217;s try tackling the issue of how to use a result like the one that comes from <a href="https://github.com/debasishg/scala-redis">Scala-Redis</a>: <code>Some[List[T]]</code>.</p>
-
-<p>To keep things simple, assume we have a <code>val maybeList = Some(List(1,2,3))</code> and we want to increment each member of the list inside the <code>Option</code>, and want to return another<code>Option</code> with the incremented list inside. While we could potentially do pattern matching to check if the <code>Option</code> is a <code>None</code>, we would prefer to take advantage of the patterns afforded to us by the fact that we&#8217;re dealing with an <code>Option</code>. This means using <code>map</code>, <code>flatMap</code> and <code>for</code>.</p>
-
-<p>Based on what <a href="http://www.scala-lang.org/api/current/index.html#scala.Option">official Scala documentation on Options</a> tells us, we have</p>
-
-<figure class='code'><figcaption><span>Scala option-wrapped collections (processing_option_wrapped_collections.scala)</span> <a href='https://beachape.com/downloads/code/scala/processing_option_wrapped_collections.scala'>download</a></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">def</span> <span class="n">incrementMaybeList</span><span class="o">(</span><span class="n">maybeList</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]],</span> <span class="n">increment</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1</span><span class="o">)</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]</span> <span class="k">=</span> <span class="o">{</span>
-</span><span class='line'>  <span class="n">maybeList</span><span class="o">.</span><span class="n">map</span><span class="o">{</span><span class="n">list</span> <span class="k">=&gt;</span>
-</span><span class='line'>    <span class="n">list</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="n">increment</span><span class="o">)</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">def</span> <span class="n">incrementMaybeListFor</span><span class="o">(</span><span class="n">maybeList</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]],</span> <span class="n">increment</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1</span><span class="o">)</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]</span> <span class="k">=</span> <span class="o">{</span>
-</span><span class='line'>  <span class="k">for</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">list</span> <span class="k">&lt;-</span> <span class="n">maybeList</span>
-</span><span class='line'>  <span class="o">}</span> <span class="k">yield</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">list</span> <span class="n">map</span> <span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>There are two versions that we can choose from; one using <code>map</code> and another using <code>for</code>. In essense, they are the same, because <a href="http://tataryn.net/2011/10/whats-in-a-scala-for-comprehension/">for-comprehensions boil down to appropriate <code>map</code> and <code>flatMap</code> methods</a> anyway. This also means that sometimes you may get funky errors with type mismatch errors, for which a good rule of thumb is to remember that <a href="http://stackoverflow.com/questions/4719592/type-mismatch-on-scala-for-comprehension">for comprehensions will try to return the type of the collection of the first generator</a></p>
-
-<p>Using the code above, we can do:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">val</span> <span class="n">maybeList</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span><span class="mi">2</span><span class="o">,</span><span class="mi">3</span><span class="o">))</span>
-</span><span class='line'><span class="k">val</span> <span class="n">incrementedMaybeList</span> <span class="k">=</span> <span class="n">incrementMaybeList</span><span class="o">(</span><span class="n">maybeList</span><span class="o">)</span>
-</span><span class='line'><span class="c1">// =&gt; incrementedMaybeList: Option[List[Int]] = Some(List(2, 3, 4))</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">val</span> <span class="n">maybeListNone</span> <span class="k">=</span> <span class="nc">None</span>
-</span><span class='line'><span class="k">val</span> <span class="n">incrementedMaybeList</span> <span class="k">=</span> <span class="n">incrementMaybeList</span><span class="o">(</span><span class="n">maybeListNone</span><span class="o">)</span>
-</span><span class='line'><span class="c1">// =&gt; incrementedMaybeList: Option[List[Int]] = None</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The fact that calling <code>incrementMaybeList</code> with <code>maybeList</code> worked should not be surprising, but notice how <code>maybeListNone</code> didn&#8217;t cause the function to throw up. This is because calling methods like <code>map</code> or using for-comprehnsion on <code>Option</code>s that are <code>None</code> immediately return None instead of proceeding to run internal logic. No need to write if/else guards !</p>
-
-<p>By building and using functions like <code>incrementMaybeList</code>, where an <code>Option</code> is processed and an <code>Option</code> is returned throughout the code, one can stop worrying about Nothingness (for the most part), because they can be chained together.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="n">incrementMaybeList</span><span class="o">(</span><span class="n">incrementMaybeList</span><span class="o">(</span><span class="nc">None</span><span class="o">))</span>
-</span><span class='line'><span class="c1">// =&gt; Option[List[Int]] = None</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>When the time comes to actually do something with those <code>Option</code>-wrapped results without returning another value, once again, its time to break out for-comprehensions.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="c1">// Unimaginatively print the incremented results</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">for</span><span class="o">{</span>
-</span><span class='line'>  <span class="n">list</span> <span class="k">&lt;-</span> <span class="n">incrementList</span><span class="o">(</span><span class="nc">Some</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span><span class="mi">2</span><span class="o">,</span><span class="mi">3</span><span class="o">)))</span>
-</span><span class='line'>  <span class="n">item</span> <span class="k">&lt;-</span> <span class="n">list</span>
-</span><span class='line'><span class="o">}</span> <span class="n">println</span><span class="o">(</span><span class="n">item</span><span class="o">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">for</span><span class="o">{</span>
-</span><span class='line'>  <span class="n">list</span> <span class="k">&lt;-</span> <span class="n">incrementMaybeList</span><span class="o">(</span><span class="n">incrementMaybeList</span><span class="o">(</span><span class="nc">None</span><span class="o">))</span>
-</span><span class='line'>  <span class="n">item</span> <span class="k">&lt;-</span> <span class="n">list</span>
-</span><span class='line'><span class="o">}</span> <span class="n">println</span><span class="o">(</span><span class="n">item</span><span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Conclusion</h2>
-
-<p><code>Option</code>s  free the programmer from worrying about Nothingness and thus from writing tons of boilerplate nothingness checks in our code. This blog post talks about a simplish, but applicable example on how to deal with <code>Option</code> in Scala.</p>
 ]]></content>
   </entry>
   

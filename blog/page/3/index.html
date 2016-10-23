@@ -125,6 +125,52 @@
 
 
 
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2013-06-20T11:14:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Jun 20<span>th</span>, 2013</time>
+        
+      </p>
+    
+    
+      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2013/06/20/scala-processing-option-wrapped-collections/" itemprop="url">Scala: Processing Option-wrapped Collections</a></h1>
+    
+  </header>
+
+
+  <div class="entry-content clearfix" itemprop="articleBody description"><p>In Scala, there are a lot of cool things - too many to list. Among them is something borrowed from Haskell; the <strong>Maybe</strong>, spelt <a href="http://www.scala-lang.org/api/current/index.html#scala.Option"><em>Option</em> in Scala</a>, which itself is based on the concept of computing via <a href="http://en.wikibooks.org/wiki/Haskell/Understanding_monads">monads</a>.</p>
+
+<p>The reason why <code>Option</code> is awesome is that, if used properly, it largely frees the programmer from having to worry about various variables being in states of nothingness (Nil, null, etc). Without fail, every programmer has at one point or another written things like <code>thing.nil? ? do_nothing : do_something</code> &#8230;. all over the place. The point (in my mind, at least) of <code>Option</code> is to free us from having to do this in as many places as possible.</p>
+
+<p>Many libraries in Scala, such as <a href="https://github.com/debasishg/scala-redis">Scala-Redis</a> are made with the assumption that the programmer knows how to deal with <code>Option</code> and return results wrapped in either <code>Some[List[T]]</code> or <code>None</code>.  That said, how to work with these types of results is not exactly straight forward for someone coming from other languages that don&#8217;t have such constructs, so I&#8217;ve written down some of my thoughts.</p>
+
+</div>
+  
+  
+    <footer>
+      <a class="btn btn-default" href="/blog/2013/06/20/scala-processing-option-wrapped-collections/">Read on &rarr;</a>
+    </footer>
+  
+
+
+        </article>
+      
+      
+        <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+          
+  <header class="page-header">
+    
+      <p class="meta text-muted text-uppercase">
+        
+
+
+
+
+
+
+
+
+
+
+
+
 <span class="glyphicon glyphicon-calendar"></span> <time datetime="2013-06-12T10:30:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Jun 12<span>th</span>, 2013</time>
         
       </p>
@@ -407,6 +453,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">Rust HLists (Heterogenous List)</a>
+    
     <a class="list-group-item " href="/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe/">Enumeratum 1.4: ValueEnums + Circe</a>
     
     <a class="list-group-item " href="/blog/2016/03/14/scala-and-opencv-ep-2-akka-face-detector/">Scala and OpenCV Ep 2: Akka Face Detector</a>
@@ -414,8 +462,6 @@
     <a class="list-group-item " href="/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/">Scala and OpenCV Ep 1: Akka Webcam</a>
     
     <a class="list-group-item " href="/blog/2016/03/05/opencv-sbt-plugin/">OpenCV SBT Plugin</a>
-    
-    <a class="list-group-item " href="/blog/2015/07/25/slim-play-app/">Slim Play App</a>
     
   </div>
 </section>

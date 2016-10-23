@@ -125,6 +125,54 @@
 
 
 
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2016-10-23T13:05:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Oct 23<span>rd</span>, 2016</time>
+        
+      </p>
+    
+    
+      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/" itemprop="url">Rust HLists (Heterogenous List)</a></h1>
+    
+  </header>
+
+
+  <div class="entry-content clearfix" itemprop="articleBody description"><p>A heterogeneous list (henceforth &#8220;HList&#8221;) is a useful abstraction that is implemented in many statically-typed functional programming languages. Unlike normal list-like structures (e.g. <code>Vec</code>, <code>Slice</code>, <code>Array</code>), a heterogenous list is able to hold elements of different types (hence heterogenous) and expose those types in its own type signature.</p>
+
+<p><img class="center" src="/images/hlist-intro.png" title="'Statically typed heterogenous lists'" ></p>
+
+<p>Now, you might be thinking &#8220;Isn&#8217;t that just a tuple?&#8221;. The answer is: in a way. Indeed, in terms of data structure, a given implementation of HList is usually really nothing more than deeply nested pairs (tuple of 2 elements) that each hold an element of arbitrary type in its 1st element and knows that its 2nd element is itself an HList-like thing. While it may seem convoluted, HList buys us the ability to abstract over arity, which turns out to be extremely useful, as you can see from <a href="http://stackoverflow.com/questions/11825129/are-hlists-nothing-more-than-a-convoluted-way-of-writing-tuples">this Stackoverflow answer</a> by Miles Sabin, the creater of the <a href="https://github.com/milessabin/shapeless">Shapeless</a> library, which provides an HList implementation in Scala.</p>
+
+<p>Given that description and justification for the existence of HLists, let&#8217;s take a look at how to use <a href="https://github.com/lloydmeta/frunk">Frunk</a>&#8217;s implementation of HList in Rust.</p>
+
+</div>
+  
+  
+    <footer>
+      <a class="btn btn-default" href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">Read on &rarr;</a>
+    </footer>
+  
+
+
+        </article>
+      
+      
+        <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+          
+  <header class="page-header">
+    
+      <p class="meta text-muted text-uppercase">
+        
+
+
+
+
+
+
+
+
+
+
+
+
 <span class="glyphicon glyphicon-calendar"></span> <time datetime="2016-04-16T16:25:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Apr 16<span>th</span>, 2016</time>
         
       </p>
@@ -594,58 +642,6 @@
 
         </article>
       
-      
-        <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-          
-  <header class="page-header">
-    
-      <p class="meta text-muted text-uppercase">
-        
-
-
-
-
-
-
-
-
-
-
-
-
-<span class="glyphicon glyphicon-calendar"></span> <time datetime="2014-03-06T21:45:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Mar 6<span>th</span>, 2014</time>
-        
-      </p>
-    
-    
-      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2014/03/06/schwatcher-v0-dot-1-0-released/" itemprop="url">Schwatcher v0.1.0 Released</a></h1>
-    
-  </header>
-
-
-  <div class="entry-content clearfix" itemprop="articleBody description"><p>Version 0.1.0 of Schwatcher has been released.</p>
-
-<p>Changes:</p>
-
-<ul>
-<li>Thanks to <a href="https://github.com/lloydmeta/schwatcher/pull/31">this pull request</a> from <a href="https://github.com/georgeOsdDev">georgeOsdDev</a>, modifiers can be used when registering callbacks</li>
-<li>Upgrade to 2.3.0 of Akka</li>
-</ul>
-
-
-<p>Relevent info:</p>
-
-<ul>
-<li><a href="https://github.com/lloydmeta/schwatcher">Schwatcher Github repo</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-        </article>
-      
     </div>
 
     <ul class="pager">
@@ -669,6 +665,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">Rust HLists (Heterogenous List)</a>
+    
     <a class="list-group-item " href="/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe/">Enumeratum 1.4: ValueEnums + Circe</a>
     
     <a class="list-group-item " href="/blog/2016/03/14/scala-and-opencv-ep-2-akka-face-detector/">Scala and OpenCV Ep 2: Akka Face Detector</a>
@@ -676,8 +674,6 @@
     <a class="list-group-item " href="/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/">Scala and OpenCV Ep 1: Akka Webcam</a>
     
     <a class="list-group-item " href="/blog/2016/03/05/opencv-sbt-plugin/">OpenCV SBT Plugin</a>
-    
-    <a class="list-group-item " href="/blog/2015/07/25/slim-play-app/">Slim Play App</a>
     
   </div>
 </section>
