@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Rust | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/rust/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-10-24T00:10:26+09:00</updated>
+  <updated>2016-10-24T10:57:50+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -179,7 +179,7 @@ let person = v.into_result()</p>
 
 <p>Oh, in case isn't obvious, the <code>hlist</code> passed into the lambda in map is <strong>statically typed</strong> in the order that your <code>Result</code>s were added into the <code>Validated</code> context, so your code is completely type safe.</p>
 
-<p>Having said that, perhaps in the success case, not much has really changed with respect to using naked <code>Result</code>s in that you could have gotten here simply by chaining with <code>map</code> and/or <code>and_then</code>. But take a look at what happens when one or more of these fail:</p>
+<p>Having said that, perhaps in the success case, not much has really changed in comparison to using naked <code>Result</code>s. That is, you could have gotten here simply by chaining with <code>map</code> and/or <code>and_then</code>. But take a look at what happens when one or more of these fail:</p>
 
 <p>```rust
 let v = get_name(YahNah::Nah).into_validated() +  // get_name will fail</p>
@@ -200,7 +200,7 @@ let v = get_name(YahNah::Nah).into_validated() +  // get_name will fail</p>
 
 <p>```</p>
 
-<p>As you can see, the error case is interesting to because <code>Validated</code> gives us the ability to accumulate all errors cleanly. For operations like parsing user input or checking parameters passed into our API, this non-early-abort behaviour is highly desirable compared with telling the user what went wrong One. Thing. At. At. Time.</p>
+<p>As you can see, the error case is more interesting because <code>Validated</code> gives us the ability to accumulate <em>all</em> errors cleanly. For operations like parsing user input or checking parameters passed into our API, this non-early-abort behaviour is highly desirable compared with telling the user what went wrong One. Thing. At. At. Time.</p>
 
 <p>Oh, <code>Validated</code>s can also be appended to each other:</p>
 
