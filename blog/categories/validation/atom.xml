@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Validation | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/validation/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-10-24T10:57:50+09:00</updated>
+  <updated>2016-10-24T10:59:29+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -200,7 +200,7 @@ let v = get_name(YahNah::Nah).into_validated() +  // get_name will fail</p>
 
 <p>```</p>
 
-<p>As you can see, the error case is more interesting because <code>Validated</code> gives us the ability to accumulate <em>all</em> errors cleanly. For operations like parsing user input or checking parameters passed into our API, this non-early-abort behaviour is highly desirable compared with telling the user what went wrong One. Thing. At. At. Time.</p>
+<p>As you can see, the failure case is more interesting because <code>Validated</code> gives us the ability to accumulate <em>all</em> errors cleanly. For operations like parsing user input or checking parameters passed into our API, this non-early-abort behaviour is highly desirable compared with telling the user what went wrong One. Thing. At. At. Time.</p>
 
 <p>Oh, <code>Validated</code>s can also be appended to each other:</p>
 
