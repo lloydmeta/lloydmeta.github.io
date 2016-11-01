@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Rust | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/rust/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-10-24T10:59:29+09:00</updated>
+  <updated>2016-11-01T11:59:22+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -154,14 +154,14 @@ let v = get_name(YahNah::Yah).into_validated() +</p>
 <p>// Turn it into a result and then map, passing a lambda that takes the HList contained inside
 let person = v.into_result()</p>
 
-<pre><code>                    .map(|hlist| {
-                        let (name, (age, email)) = hlist.into_tuple2();
-                        Person {
-                            name: name,
-                            age: age,
-                            email: email,
-                        }
-                    });
+<pre><code>          .map(|hlist| {
+              let (name, (age, email)) = hlist.into_tuple2();
+              Person {
+                  name: name,
+                  age: age,
+                  email: email,
+              }
+          });
 </code></pre>
 
 <p>assert_eq!(person.unwrap(),</p>
