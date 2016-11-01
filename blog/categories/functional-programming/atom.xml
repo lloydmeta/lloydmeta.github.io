@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Functional Programming | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/functional-programming/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-11-01T12:13:43+09:00</updated>
+  <updated>2016-11-01T12:15:37+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -177,7 +177,7 @@ let person = v.into_result()</p>
 
 <p>As you can see, all we need to do is call <code>into_validated()</code> on a given <code>Result</code> to kick off the validation context, and use <code>+</code> to add subsequent <code>Result</code>s into it. At the end, you call <code>into_result()</code> on the <code>Validated</code> to turn it back into a <code>Result</code> and map on the <code>HList</code> that is contained inside.  Inside the lambda, we turn the <code>HList</code> into a Tuple2 pair to get access to easy destructuring, and then instantiate our <code>Person</code>.</p>
 
-<p>Oh, in case it isn't obvious, the <code>hlist</code> passed to the lambda when we map is <strong>statically typed</strong> in the order that your <code>Result</code>s were added into the <code>Validated</code> context, so your code is completely type safe.</p>
+<p>Oh, in case it isn't obvious, the <code>hlist</code> passed to the lambda when we map is <strong>statically typed</strong> in the order that your <code>Result</code>s were added into the <code>Validated</code> context, so your code is completely type safe. If you want to learn more about HLists in Frunk, check out <a href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">this blog post</a>.</p>
 
 <p>Having said that, perhaps in the success case, not much has really changed in comparison to using naked <code>Result</code>s. That is, you could have gotten here simply by chaining with <code>map</code> and/or <code>and_then</code>. But take a look at what happens when one or more of these fail:</p>
 
