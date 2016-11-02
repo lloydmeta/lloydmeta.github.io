@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Performance Testing | BeachApe.]]></title>
+  <link href="https://beachape.com/blog/categories/performance-testing/atom.xml" rel="self"/>
+  <link href="https://beachape.com/"/>
+  <updated>2016-11-02T21:12:52+09:00</updated>
+  <id>https://beachape.com/</id>
+  <author>
+    <name><![CDATA[Lloyd]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Rust Performance Testing on Travis CI]]></title>
+    <link href="https://beachape.com/blog/2016/11/02/rust-performance-testing-on-travis-ci/"/>
+    <updated>2016-11-02T15:39:00+09:00</updated>
+    <id>https://beachape.com/blog/2016/11/02/rust-performance-testing-on-travis-ci</id>
+    <content type="html"><![CDATA[<p><a href="https://www.rust-lang.org/en-US/">Rust</a>  describes itself as:</p>
+
+<blockquote><p> <em>a systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.</em></p>
+
+<h3>Featuring</h3>
+
+<ul>
+<li>zero-cost abstractions</li>
+<li>minimal runtime
+*efficient C bindings</li>
+</ul>
+</blockquote>
+
+<p>So, it's likely that developers who choose to program in Rust are focused on performance.  You can make sure your code is efficient by writing benchmarks, but in order to prevent performance regressions, you'll need to run benchmarks on your Pull Requests or patches and somehow compare before and after. Doing this can be tedious, especially as the changeset evolves over the course of code review or miscellaneous refactoring.</p>
+
+<p><img class="center" src="/images/super-high-performance.jpg" width="450" title="'Super. High. Performance.'" ></p>
+
+<p>Let's see how we can get automated benchmark comparisons across commits on <a href="https://travis-ci.org">Travis CI</a>.</p>
+
+<!-- more -->
+
+
+<h3>Putting benchmarks in your project</h3>
+
+<p>First off, you'll need to have benchmarks in your codebase. There are a few ways to do this:</p>
+
+<ul>
+<li>The standard way <a href="https://doc.rust-lang.org/stable/book/benchmark-tests.html">documented in the Rust Book</a></li>
+<li>Making a <code>benches</code> directory in your project root, putting your benchmarks there, and running <code>cargo bench</code> (this is how I've done it in <a href="https://github.com/lloydmeta/frunk/tree/master/benches">Frunk</a>)</li>
+</ul>
+
+
+<h3>Running benchmarks on Travis</h3>
+
+<p>Next, in order to run benchmarks on Travis, we'll need to make sure that your <code>.travis.yml</code> file has <code>nightly</code> listed as one of the Rust versions that your project is built with:</p>
+
+<p><code>yaml
+rust:
+  - stable
+  - nightly # so we can run benchmarks (required as of writing)
+</code></p>
+
+<p>Then, in <code>after_success</code>, we'll want the following in order to have benchmarks run when we are on a build that uses Rust <code>nightly</code>:</p>
+
+<p>```yaml
+after_success:
+  - if [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then</p>
+
+<pre><code>    cargo bench;
+fi
+</code></pre>
+
+<p>```</p>
+
+<p>Some readers might be wondering why I'm not using <a href="https://github.com/huonw/travis-cargo"><code>travis-cargo</code></a> here. The reason is because <code>travis-cargo</code> doesn't support arbitrary cargo libraries/commands, which is needed in the next section ;)</p>
+
+<h3>Getting benchmark comparisons in Pull Requests</h3>
+
+<p>So we have benchmarks running automatically on Travis, but what about the before-after comparisons that we talked about earlier? This is where the <a href="https://github.com/BurntSushi/cargo-benchcmp"><code>cargo-benchcmp</code></a> library comes into play. <code>benchcmp</code> is:</p>
+
+<blockquote><p>A small utility for comparing micro-benchmarks produced by cargo bench. The utility takes as input two sets of micro-benchmarks (one "old" and the other "new") and shows as output a comparison between each benchmark.</p></blockquote>
+
+<p>What we'll want to do next is add a condition to only run these benchmarks when we're building a Pull Request (henceforth PR), install the <code>benchcmp</code> tool, and use it:</p>
+
+<p>```yaml
+after_success:
+  - if [ "${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}" != "master" ] &amp;&amp; [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then</p>
+
+<pre><code>    cargo install cargo-benchcmp --force; # not using --force will fail if it's already on the system
+    cargo bench &gt; benches-variable;
+    git fetch;
+    git checkout master;
+    cargo bench &gt; benches-control;
+    cargo benchcmp benches-control benches-variable;
+fi
+</code></pre>
+
+<p>```</p>
+
+<p>The first conditional is simply to check that the current branch being built is not master. It's a bit verbose because <code>$TRAVIS_BRANCH</code> <a href="https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/">does not always provide the current branch name</a>. So instead, we use <code>${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}</code>, which consists of <code>$TRAVIS_PULL_REQUEST_BRANCH</code> because it gives us the current branch if the build was triggered by a PR, and a default of <code>$TRAVIS_BRANCH</code>, which gives us the branch name of non-PR builds.</p>
+
+<p>The second conditional checks that the current Travis build is using <code>nightly</code>, which is a requirement for running benchmarks (as of writing).</p>
+
+<p>Inside the if statements body, we install <code>cargo-benchcmp</code> and run <code>cargo bench</code>, sending its output to a file called <code>benches-variable</code>, which we will use later.  Afterwards, we checkout the <code>master</code> branch, and run <code>cargo bench</code> again, sending the output to <code>benches-control</code>.</p>
+
+<p>Lastly, we run <code>cargo benchcmp</code>, passing the path of the control and variable benchmark result files as arguments, letting <a href="https://github.com/BurntSushi/cargo-benchcmp"><code>cargo-benchcmp</code></a> do its job. Here is some sample output from my Rust functional programming library, <a href="https://github.com/lloydmeta/frunk/">Frunk</a>.</p>
+
+<p><img class="center" src="/images/rust-travis-perf-testing.png" title="'PR benchmark comparisons on my project, Frunk.'" ></p>
+
+<p>The benchmark comparisons show up in <a href="https://travis-ci.org/lloydmeta/frunk/jobs/172486500#L398">the build log</a>.</p>
+
+<h3>Conclusion</h3>
+
+<p>That's it. Now, you can go to the Travis build log of your PRs and see how performance has been affected. Please give it a try, and send any questions or feedback. Oh, if you're interested in a library that does this for you or if you want to turn this into some kind of a service, do let me know ;-)</p>
+]]></content>
+  </entry>
+  
+</feed>

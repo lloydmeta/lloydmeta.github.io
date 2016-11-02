@@ -149,6 +149,52 @@
 
 
 
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2014-05-03T17:44:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">May 3<span>rd</span>, 2014</time>
+        
+      </p>
+    
+    
+      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2014/05/03/rxscala-and-schwatcher/" itemprop="url">RxScala and Schwatcher</a></h1>
+    
+  </header>
+
+
+  <div class="entry-content clearfix" itemprop="articleBody description"><p>A couple days ago, I released v0.1.3 of <a href="https://github.com/lloydmeta/schwatcher">Schwatcher</a>, which introduces the ability to monitor events on file paths using a composable <a href="https://rx.codeplex.com/">Rx Observable</a> interface. &#8220;What does that even mean and why should you care?&#8221; is what this blog post tries to answer.</p>
+
+<p>The original version of Schwatcher allowed you to tell a <code>MonitorActor</code> what callback you want to fire when a <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/file/StandardWatchEventKinds.html">certain type of event</a> happened on a file path. This is fine and there are people out there using it in production as is. The limitation to this approach is that (at least by default), the events are difficult to treat as data and thus difficult to compose.</p>
+
+<p>With <a href="https://rx.codeplex.com/">Rx</a>, we turn file path events into an asynchronous stream/channel. Essentially, you tell a <code>RxMonitor</code> object what path and event type you want to monitor and when an event happens, it will get pushed into its <code>observable</code> (the stream). You can then choose to filter, map, or fold over this data stream, creating new data streams. If you wish to cause side-effects, you can add one or more <code>observer</code>s to these data streams.</p>
+
+</div>
+  
+  
+    <footer>
+      <a class="btn btn-default" href="/blog/2014/05/03/rxscala-and-schwatcher/">Read on &rarr;</a>
+    </footer>
+  
+
+
+        </article>
+      
+      
+        <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+          
+  <header class="page-header">
+    
+      <p class="meta text-muted text-uppercase">
+        
+
+
+
+
+
+
+
+
+
+
+
+
 <span class="glyphicon glyphicon-calendar"></span> <time datetime="2014-05-02T00:10:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">May 2<span>nd</span>, 2014</time>
         
       </p>
@@ -652,50 +698,6 @@
 
         </article>
       
-      
-        <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-          
-  <header class="page-header">
-    
-      <p class="meta text-muted text-uppercase">
-        
-
-
-
-
-
-
-
-
-
-
-
-
-<span class="glyphicon glyphicon-calendar"></span> <time datetime="2013-09-05T10:26:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Sep 5<span>th</span>, 2013</time>
-        
-      </p>
-    
-    
-      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata/" itemprop="url">Introducing Metascraper - a Scala Library for Scraping Page Metadata</a></h1>
-    
-  </header>
-
-
-  <div class="entry-content clearfix" itemprop="articleBody description"><p>Scraping metadata (e.g. <code>title</code>, <code>description</code>, <code>url</code>, etc.) from a URL is something that <a href="https://www.facebook.com/">Facebook</a> currently does for you when you paste a URL into the &#8220;Update Status&#8221; box. For a service that I&#8217;m currently building out, we wanted to do this as well for our users. Thus <a href="https://github.com/lloydmeta/metascraper">Metascraper</a> was born.</p>
-
-<p>There was already a Ruby solution called <a href="https://github.com/gottfrois/link_thumbnailer">link_thumbnailer</a>, but since this is a I/O heavy operation, I knew I wanted to build a solution using tools that supported non-blocking I/O and could be used without getting caught in callback spaghetti. Scala, Akka, and the Play framework immediately came to mind.</p>
-
-</div>
-  
-  
-    <footer>
-      <a class="btn btn-default" href="/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata/">Read on &rarr;</a>
-    </footer>
-  
-
-
-        </article>
-      
     </div>
 
     <ul class="pager">
@@ -719,6 +721,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/">Rust Performance Testing on Travis CI</a>
+    
     <a class="list-group-item " href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Accumulating Results in Rust With Validated</a>
     
     <a class="list-group-item " href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">Rust HLists (Heterogenous List)</a>
@@ -726,8 +730,6 @@
     <a class="list-group-item " href="/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe/">Enumeratum 1.4: ValueEnums + Circe</a>
     
     <a class="list-group-item " href="/blog/2016/03/14/scala-and-opencv-ep-2-akka-face-detector/">Scala and OpenCV Ep 2: Akka Face Detector</a>
-    
-    <a class="list-group-item " href="/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/">Scala and OpenCV Ep 1: Akka Webcam</a>
     
   </div>
 </section>

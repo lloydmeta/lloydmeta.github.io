@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-11-02T21:11:59+09:00</updated>
+  <updated>2016-11-02T21:12:52+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -12,6 +12,118 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Rust Performance Testing on Travis CI]]></title>
+    <link href="https://beachape.com/blog/2016/11/02/rust-performance-testing-on-travis-ci/"/>
+    <updated>2016-11-02T15:39:00+09:00</updated>
+    <id>https://beachape.com/blog/2016/11/02/rust-performance-testing-on-travis-ci</id>
+    <content type="html"><![CDATA[<p><a href="https://www.rust-lang.org/en-US/">Rust</a>  describes itself as:</p>
+
+<blockquote><p> <em>a systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.</em></p>
+
+<h3>Featuring</h3>
+
+<ul>
+<li>zero-cost abstractions</li>
+<li>minimal runtime
+*efficient C bindings</li>
+</ul>
+</blockquote>
+
+<p>So, it&#8217;s likely that developers who choose to program in Rust are focused on performance.  You can make sure your code is efficient by writing benchmarks, but in order to prevent performance regressions, you&#8217;ll need to run benchmarks on your Pull Requests or patches and somehow compare before and after. Doing this can be tedious, especially as the changeset evolves over the course of code review or miscellaneous refactoring.</p>
+
+<p><img class="center" src="https://beachape.com/images/super-high-performance.jpg" width="450" title="'Super. High. Performance.'" ></p>
+
+<p>Let&#8217;s see how we can get automated benchmark comparisons across commits on <a href="https://travis-ci.org">Travis CI</a>.</p>
+
+<!-- more -->
+
+
+<h3>Putting benchmarks in your project</h3>
+
+<p>First off, you&#8217;ll need to have benchmarks in your codebase. There are a few ways to do this:</p>
+
+<ul>
+<li>The standard way <a href="https://doc.rust-lang.org/stable/book/benchmark-tests.html">documented in the Rust Book</a></li>
+<li>Making a <code>benches</code> directory in your project root, putting your benchmarks there, and running <code>cargo bench</code> (this is how I&#8217;ve done it in <a href="https://github.com/lloydmeta/frunk/tree/master/benches">Frunk</a>)</li>
+</ul>
+
+
+<h3>Running benchmarks on Travis</h3>
+
+<p>Next, in order to run benchmarks on Travis, we&#8217;ll need to make sure that your <code>.travis.yml</code> file has <code>nightly</code> listed as one of the Rust versions that your project is built with:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">rust</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">stable</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">nightly</span> <span class="c1"># so we can run benchmarks (required as of writing)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then, in <code>after_success</code>, we&#8217;ll want the following in order to have benchmarks run when we are on a build that uses Rust <code>nightly</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">after_success</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">if [ &quot;$TRAVIS_RUST_VERSION&quot; == &quot;nightly&quot; ]; then</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">cargo bench;</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Some readers might be wondering why I&#8217;m not using <a href="https://github.com/huonw/travis-cargo"><code>travis-cargo</code></a> here. The reason is because <code>travis-cargo</code> doesn&#8217;t support arbitrary cargo libraries/commands, which is needed in the next section ;)</p>
+
+<h3>Getting benchmark comparisons in Pull Requests</h3>
+
+<p>So we have benchmarks running automatically on Travis, but what about the before-after comparisons that we talked about earlier? This is where the <a href="https://github.com/BurntSushi/cargo-benchcmp"><code>cargo-benchcmp</code></a> library comes into play. <code>benchcmp</code> is:</p>
+
+<blockquote><p>A small utility for comparing micro-benchmarks produced by cargo bench. The utility takes as input two sets of micro-benchmarks (one &#8220;old&#8221; and the other &#8220;new&#8221;) and shows as output a comparison between each benchmark.</p></blockquote>
+
+<p>What we&#8217;ll want to do next is add a condition to only run these benchmarks when we&#8217;re building a Pull Request (henceforth PR), install the <code>benchcmp</code> tool, and use it:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">after_success</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">if [ &quot;${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}&quot; != &quot;master&quot; ] &amp;&amp; [ &quot;$TRAVIS_RUST_VERSION&quot; == &quot;nightly&quot; ]; then</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">cargo install cargo-benchcmp --force;</span> <span class="c1"># not using --force will fail if it&#39;s already on the system</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">cargo bench &gt; benches-variable;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">git fetch;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">git checkout master;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">cargo bench &gt; benches-control;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">cargo benchcmp benches-control benches-variable;</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The first conditional is simply to check that the current branch being built is not master. It&#8217;s a bit verbose because <code>$TRAVIS_BRANCH</code> <a href="https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/">does not always provide the current branch name</a>. So instead, we use <code>${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}</code>, which consists of <code>$TRAVIS_PULL_REQUEST_BRANCH</code> because it gives us the current branch if the build was triggered by a PR, and a default of <code>$TRAVIS_BRANCH</code>, which gives us the branch name of non-PR builds.</p>
+
+<p>The second conditional checks that the current Travis build is using <code>nightly</code>, which is a requirement for running benchmarks (as of writing).</p>
+
+<p>Inside the if statements body, we install <code>cargo-benchcmp</code> and run <code>cargo bench</code>, sending its output to a file called <code>benches-variable</code>, which we will use later.  Afterwards, we checkout the <code>master</code> branch, and run <code>cargo bench</code> again, sending the output to <code>benches-control</code>.</p>
+
+<p>Lastly, we run <code>cargo benchcmp</code>, passing the path of the control and variable benchmark result files as arguments, letting <a href="https://github.com/BurntSushi/cargo-benchcmp"><code>cargo-benchcmp</code></a> do its job. Here is some sample output from my Rust functional programming library, <a href="https://github.com/lloydmeta/frunk/">Frunk</a>.</p>
+
+<p><img class="center" src="https://beachape.com/images/rust-travis-perf-testing.png" title="'PR benchmark comparisons on my project, Frunk.'" ></p>
+
+<p>The benchmark comparisons show up in <a href="https://travis-ci.org/lloydmeta/frunk/jobs/172486500#L398">the build log</a>.</p>
+
+<h3>Conclusion</h3>
+
+<p>That&#8217;s it. Now, you can go to the Travis build log of your PRs and see how performance has been affected. Please give it a try, and send any questions or feedback. Oh, if you&#8217;re interested in a library that does this for you or if you want to turn this into some kind of a service, do let me know ;-)</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Accumulating Results in Rust With Validated]]></title>
@@ -2929,146 +3041,6 @@ contains our simple router)</li>
 <li>Add<code>libraryDependencies += "com.beachape.metascraper" %% "metascraper" % "0.1.1"</code> into <code>build.sbt</code> to install</li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Introducing Metascraper - a Scala Library for Scraping Page Metadata]]></title>
-    <link href="https://beachape.com/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata/"/>
-    <updated>2013-09-05T10:26:00+09:00</updated>
-    <id>https://beachape.com/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata</id>
-    <content type="html"><![CDATA[<p>Scraping metadata (e.g. <code>title</code>, <code>description</code>, <code>url</code>, etc.) from a URL is something that <a href="https://www.facebook.com/">Facebook</a> currently does for you when you paste a URL into the &#8220;Update Status&#8221; box. For a service that I&#8217;m currently building out, we wanted to do this as well for our users. Thus <a href="https://github.com/lloydmeta/metascraper">Metascraper</a> was born.</p>
-
-<p>There was already a Ruby solution called <a href="https://github.com/gottfrois/link_thumbnailer">link_thumbnailer</a>, but since this is a I/O heavy operation, I knew I wanted to build a solution using tools that supported non-blocking I/O and could be used without getting caught in callback spaghetti. Scala, Akka, and the Play framework immediately came to mind.</p>
-
-<!-- more -->
-
-
-<h2>Existing solutions</h2>
-
-<p>Before I started building my own solution, I did some research and found that there were already some web-scraping solutions written in Scala or Java, such as <a href="https://github.com/ofrasergreen/chafed">chafed</a>, and some more listed in <a href="http://stackoverflow.com/questions/14745634/web-scraping-with-scala">this StackOverflow question</a>.</p>
-
-<p>I wanted something more focused, something that would &#8220;intelligently&#8221; return a page&#8217;s title, description, urls, and images back. I also wanted to make sure that if the page implemented the <a href="http://ogp.me/">Open Graph Protocol</a>, the information from those tags got prioritised. Since these requirements were not being fulfilled by existing Scala libraries, I set about creating my own Scala library.</p>
-
-<h2>Metascraper Components</h2>
-
-<p>The main components of the Metascraper library include:</p>
-
-<ol>
-<li><a href="http://akka.io/">Akka actors</a></li>
-<li><a href="http://jsoup.org/">jsoup</a>: While there were Scala web scrapers, the Java solution, jsoup, was very mature and easy to use.</li>
-</ol>
-
-
-<h2>Basic workflow (a.k.a. how to use)</h2>
-
-<p>This post won&#8217;t go over in too much detail how to use the library because that stuff is available from the <a href="https://github.com/lloydmeta/metascraper">Metascraper Github page</a> and will probably change over time, but this is the basic workflow:</p>
-
-<ol>
-<li>Instantiate a <code>ScraperActor</code></li>
-<li>Send a message to the scraper with <code>ScrapeUrl(url: String)</code></li>
-<li>When scraping is done, the actor will reply with a <code>Either[FailedToScrapeUrl,ScrapedData]</code></li>
-</ol>
-
-
-<p>The project is Mavenised and is availale from the Central Repository, so simply add the <code>libraryDependency</code> in your <code>build.sbt</code> (when you read this the versioning might be different so refer to the project&#8217;s Github page):</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;com.beachape.metascraper&quot;</span> <span class="o">%%</span> <span class="s">&quot;metascraper&quot;</span> <span class="o">%</span> <span class="s">&quot;0.0.2&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And to use it,</p>
-
-<figure class='code'><figcaption><span>Metascraper example code (metascraper_example.scala)</span> <a href='https://beachape.com/downloads/code/scala/metascraper_example.scala'>download</a></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
-</span><span class='line'><span class="k">import</span> <span class="nn">com.beachape.metascraper.Messages._</span>
-</span><span class='line'><span class="k">import</span> <span class="nn">com.beachape.metascraper.ScraperActor</span>
-</span><span class='line'><span class="k">import</span> <span class="nn">scala.concurrent.Await</span>
-</span><span class='line'><span class="k">import</span> <span class="nn">akka.pattern.ask</span>
-</span><span class='line'><span class="k">import</span> <span class="nn">akka.util.Timeout</span>
-</span><span class='line'><span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">implicit</span> <span class="k">val</span> <span class="n">timeout</span> <span class="k">=</span> <span class="nc">Timeout</span><span class="o">(</span><span class="mi">30</span> <span class="n">seconds</span><span class="o">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">implicit</span> <span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">&quot;actorSystem&quot;</span><span class="o">)</span>
-</span><span class='line'><span class="k">implicit</span> <span class="k">val</span> <span class="n">dispatcher</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">dispatcher</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">val</span> <span class="n">scraperActor</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">ScraperActor</span><span class="o">())</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">for</span> <span class="o">{</span>
-</span><span class='line'>  <span class="n">future</span> <span class="k">&lt;-</span> <span class="n">ask</span><span class="o">(</span><span class="n">scraperActor</span><span class="o">,</span> <span class="nc">ScrapeUrl</span><span class="o">(</span><span class="s">&quot;https://bbc.co.uk&quot;</span><span class="o">)).</span><span class="n">mapTo</span><span class="o">[</span><span class="kt">Either</span><span class="o">[</span><span class="kt">FailedToScrapeUrl</span>,<span class="kt">ScrapedData</span><span class="o">]]</span>
-</span><span class='line'><span class="o">}</span> <span class="o">{</span>
-</span><span class='line'>  <span class="n">future</span> <span class="k">match</span> <span class="o">{</span>
-</span><span class='line'>    <span class="k">case</span> <span class="nc">Left</span><span class="o">(</span><span class="n">failed</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span>
-</span><span class='line'>      <span class="n">println</span><span class="o">(</span><span class="s">&quot;Failed: &quot;</span><span class="o">)</span>
-</span><span class='line'>      <span class="n">println</span><span class="o">(</span><span class="n">failed</span><span class="o">.</span><span class="n">message</span><span class="o">)</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>    <span class="k">case</span> <span class="nc">Right</span><span class="o">(</span><span class="n">data</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span>
-</span><span class='line'>      <span class="n">println</span><span class="o">(</span><span class="s">&quot;Image urls&quot;</span><span class="o">)</span>
-</span><span class='line'>      <span class="n">data</span><span class="o">.</span><span class="n">imageUrls</span><span class="o">.</span><span class="n">foreach</span><span class="o">(</span><span class="n">println</span><span class="o">)</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="cm">/*</span>
-</span><span class='line'><span class="cm"> #=&gt;</span>
-</span><span class='line'><span class="cm">  Image URLs:</span>
-</span><span class='line'><span class="cm">  http://www.bbc.co.uk/img/iphone.png</span>
-</span><span class='line'><span class="cm">  http://sa.bbc.co.uk/bbc/bbc/s?name=SET-COUNTER&amp;pal_route=index&amp;ml_name=barlesque&amp;app_type=web&amp;language=en-GB&amp;ml_version=0.16.1&amp;pal_webapp=wwhp&amp;blq_s=3.5&amp;blq_r=3.5&amp;blq_v=default-worldwide</span>
-</span><span class='line'><span class="cm">  http://static.bbci.co.uk/frameworks/barlesque/2.51.2/desktop/3.5/img/blq-blocks_grey_alpha.png</span>
-</span><span class='line'><span class="cm">  http://static.bbci.co.uk/frameworks/barlesque/2.51.2/desktop/3.5/img/blq-search_grey_alpha.png</span>
-</span><span class='line'><span class="cm">  http://news.bbcimg.co.uk/media/images/69612000/jpg/_69612953_69612952.jpg</span>
-</span><span class='line'><span class="cm">*/</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Example application</h2>
-
-<p>I&#8217;ve created an example Play2 application that integrates this library, called <a href="https://github.com/lloydmeta/metascraper-service">metascraper-service</a>. Feel free to take a look !</p>
-
-<h2>Conclusion</h2>
-
-<p>Please give <a href="https://github.com/lloydmeta/metascraper">Metascraper</a> a test drive and submit issues and pull requests !</p>
 ]]></content>
   </entry>
   
