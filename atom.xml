@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-11-12T02:57:48+09:00</updated>
+  <updated>2016-11-12T03:21:23+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -308,7 +308,7 @@
 </span><span class='line'><span class="c1">// Turn it into a result and then map, passing a lambda that takes the HList contained inside</span>
 </span><span class='line'><span class="k">let</span> <span class="n">person</span> <span class="o">=</span> <span class="n">v</span><span class="p">.</span><span class="n">into_result</span><span class="p">()</span>
 </span><span class='line'>              <span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">hlist</span><span class="o">|</span> <span class="p">{</span>
-</span><span class='line'>                  <span class="k">let</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">age</span><span class="p">,</span> <span class="n">email</span><span class="p">))</span> <span class="o">=</span> <span class="n">hlist</span><span class="p">.</span><span class="n">into_tuple2</span><span class="p">();</span>
+</span><span class='line'>                  <span class="k">let</span> <span class="n">hlist_pat</span><span class="o">!</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">email</span><span class="p">)</span> <span class="o">=</span> <span class="n">hlist</span><span class="p">;</span>
 </span><span class='line'>                  <span class="n">Person</span> <span class="p">{</span>
 </span><span class='line'>                      <span class="n">name</span><span class="o">:</span> <span class="n">name</span><span class="p">,</span>
 </span><span class='line'>                      <span class="n">age</span><span class="o">:</span> <span class="n">age</span><span class="p">,</span>
