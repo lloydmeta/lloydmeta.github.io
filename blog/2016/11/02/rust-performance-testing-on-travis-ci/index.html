@@ -237,12 +237,12 @@
 <span class='line-number'>9</span>
 </pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">after_success</span><span class="p-Indicator">:</span>
 </span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">if [ &quot;${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}&quot; != &quot;master&quot; ] &amp;&amp; [ &quot;$TRAVIS_RUST_VERSION&quot; == &quot;nightly&quot; ]; then</span>
-</span><span class='line'>        <span class="l-Scalar-Plain">cargo install cargo-benchcmp --force &amp;&amp;</span> <span class="c1"># not using --force will fail if it&#39;s already on the system</span>
-</span><span class='line'>        <span class="l-Scalar-Plain">cargo bench &gt; benches-variable &amp;&amp;</span>
-</span><span class='line'>        <span class="l-Scalar-Plain">git fetch &amp;&amp;</span>
-</span><span class='line'>        <span class="l-Scalar-Plain">git checkout master &amp;&amp;</span>
-</span><span class='line'>        <span class="l-Scalar-Plain">cargo bench &gt; benches-control &amp;&amp;</span>
-</span><span class='line'>        <span class="l-Scalar-Plain">cargo benchcmp benches-control benches-variable &amp;&amp;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">cargo install cargo-benchcmp --force;</span> <span class="c1"># not using --force will fail if it&#39;s already on the system</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">cargo bench &gt; benches-variable;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">git fetch;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">git checkout master;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">cargo bench &gt; benches-control;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">cargo benchcmp benches-control benches-variable;</span>
 </span><span class='line'>    <span class="l-Scalar-Plain">fi</span>
 </span></code></pre></td></tr></table></div></figure>
 

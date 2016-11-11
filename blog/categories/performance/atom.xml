@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Performance | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/performance/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-11-12T01:47:29+09:00</updated>
+  <updated>2016-11-12T02:57:48+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -86,12 +86,12 @@ fi
 after_success:
   - if [ "${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}" != "master" ] &amp;&amp; [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then</p>
 
-<pre><code>    cargo install cargo-benchcmp --force &amp;&amp; # not using --force will fail if it's already on the system
-    cargo bench &gt; benches-variable &amp;&amp;
-    git fetch &amp;&amp;
-    git checkout master &amp;&amp;
-    cargo bench &gt; benches-control &amp;&amp;
-    cargo benchcmp benches-control benches-variable &amp;&amp;
+<pre><code>    cargo install cargo-benchcmp --force; # not using --force will fail if it's already on the system
+    cargo bench &gt; benches-variable;
+    git fetch;
+    git checkout master;
+    cargo bench &gt; benches-control;
+    cargo benchcmp benches-control benches-variable;
 fi
 </code></pre>
 

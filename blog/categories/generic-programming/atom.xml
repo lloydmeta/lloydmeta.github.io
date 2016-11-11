@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Generic Programming | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/generic-programming/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-11-12T01:47:29+09:00</updated>
+  <updated>2016-11-12T02:57:48+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -290,13 +290,13 @@ let joe = h.head;
 
 <h3>Getting multiple elements from an HList</h3>
 
-<p>To retrieve multiple elements, it's highly recommended to use the <code>.to_tuple2()</code> method to turn your HList into a nested Tuple2 for easy destructuring:</p>
+<p>To retrieve multiple elements, it's highly recommended to use the <code>hlist_pat!</code> macro to deconstruct your <code>HList</code>.</p>
 
 <p>```rust
 let h = hlist!["Joe", "Blow", 30, true];
 // h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil>>>></p>
 
-<p>let (f_name, (l_name, (age, is_admin))) = h.into_tuple2();
+<p>let hlist_pat!(f_name, l_name, age, is_admin) = h;
 assert_eq!(f_name, "Joe");
 assert_eq!(l_name, "Blow");
 assert_eq!(age, 30);

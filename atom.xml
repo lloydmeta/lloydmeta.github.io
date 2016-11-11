@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-11-12T01:47:29+09:00</updated>
+  <updated>2016-11-12T02:57:48+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -97,12 +97,12 @@
 <span class='line-number'>9</span>
 </pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">after_success</span><span class="p-Indicator">:</span>
 </span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">if [ &quot;${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}&quot; != &quot;master&quot; ] &amp;&amp; [ &quot;$TRAVIS_RUST_VERSION&quot; == &quot;nightly&quot; ]; then</span>
-</span><span class='line'>        <span class="l-Scalar-Plain">cargo install cargo-benchcmp --force &amp;&amp;</span> <span class="c1"># not using --force will fail if it&#39;s already on the system</span>
-</span><span class='line'>        <span class="l-Scalar-Plain">cargo bench &gt; benches-variable &amp;&amp;</span>
-</span><span class='line'>        <span class="l-Scalar-Plain">git fetch &amp;&amp;</span>
-</span><span class='line'>        <span class="l-Scalar-Plain">git checkout master &amp;&amp;</span>
-</span><span class='line'>        <span class="l-Scalar-Plain">cargo bench &gt; benches-control &amp;&amp;</span>
-</span><span class='line'>        <span class="l-Scalar-Plain">cargo benchcmp benches-control benches-variable &amp;&amp;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">cargo install cargo-benchcmp --force;</span> <span class="c1"># not using --force will fail if it&#39;s already on the system</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">cargo bench &gt; benches-variable;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">git fetch;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">git checkout master;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">cargo bench &gt; benches-control;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">cargo benchcmp benches-control benches-variable;</span>
 </span><span class='line'>    <span class="l-Scalar-Plain">fi</span>
 </span></code></pre></td></tr></table></div></figure>
 
@@ -460,7 +460,7 @@
 
 <h3>Getting multiple elements from an HList</h3>
 
-<p>To retrieve multiple elements, it&#8217;s highly recommended to use the <code>.to_tuple2()</code> method to turn your HList into a nested Tuple2 for easy destructuring:</p>
+<p>To retrieve multiple elements, it&#8217;s highly recommended to use the <code>hlist_pat!</code> macro to deconstruct your <code>HList</code>.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -473,7 +473,7 @@
 </pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">,</span> <span class="k">true</span><span class="p">];</span>
 </span><span class='line'><span class="c1">// h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="p">(</span><span class="n">f_name</span><span class="p">,</span> <span class="p">(</span><span class="n">l_name</span><span class="p">,</span> <span class="p">(</span><span class="n">age</span><span class="p">,</span> <span class="n">is_admin</span><span class="p">)))</span> <span class="o">=</span> <span class="n">h</span><span class="p">.</span><span class="n">into_tuple2</span><span class="p">();</span>
+</span><span class='line'><span class="k">let</span> <span class="n">hlist_pat</span><span class="o">!</span><span class="p">(</span><span class="n">f_name</span><span class="p">,</span> <span class="n">l_name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">is_admin</span><span class="p">)</span> <span class="o">=</span> <span class="n">h</span><span class="p">;</span>
 </span><span class='line'><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">f_name</span><span class="p">,</span> <span class="s">&quot;Joe&quot;</span><span class="p">);</span>
 </span><span class='line'><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">l_name</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">);</span>
 </span><span class='line'><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">age</span><span class="p">,</span> <span class="m">30</span><span class="p">);</span>
