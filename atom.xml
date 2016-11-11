@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-11-12T03:21:23+09:00</updated>
+  <updated>2016-11-12T03:22:04+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -325,7 +325,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>As you can see, all we need to do is call <code>into_validated()</code> on a given <code>Result</code> to kick off the validation context, and use <code>+</code> to add subsequent <code>Result</code>s into it. At the end, you call <code>into_result()</code> on the <code>Validated</code> to turn it back into a <code>Result</code> and map on the <code>HList</code> that is contained inside.  Inside the lambda, we turn the <code>HList</code> into a Tuple2 pair to get access to easy destructuring, and then instantiate our <code>Person</code>.</p>
+<p>As you can see, all we need to do is call <code>into_validated()</code> on a given <code>Result</code> to kick off the validation context, and use <code>+</code> to add subsequent <code>Result</code>s into it. At the end, you call <code>into_result()</code> on the <code>Validated</code> to turn it back into a <code>Result</code> and map on the <code>HList</code> that is contained inside.  Inside the lambda, we destructure the <code>HList</code> using the <code>hlist_pat!</code> macro, and then instantiate our <code>Person</code>.</p>
 
 <p>Oh, in case it isn&#8217;t obvious, the <code>hlist</code> passed to the lambda when we map is <strong>statically typed</strong> in the order that your <code>Result</code>s were added into the <code>Validated</code> context, so your code is completely type safe. If you want to learn more about HLists in Frunk, check out <a href="https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">this blog post</a>.</p>
 
