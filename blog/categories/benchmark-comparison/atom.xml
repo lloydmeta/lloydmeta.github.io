@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Benchmark Comparison | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/benchmark-comparison/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-11-12T03:24:23+09:00</updated>
+  <updated>2016-11-14T02:12:38+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -82,28 +82,61 @@ fi
 
 <p>What we'll want to do next is add a condition to only run these benchmarks when we're building a Pull Request (henceforth PR), install the <code>benchcmp</code> tool, and use it:</p>
 
-<p>```yaml
-after_success:
-  - if [ "${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}" != "master" ] &amp;&amp; [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then</p>
-
-<pre><code>    cargo install cargo-benchcmp --force; # not using --force will fail if it's already on the system
-    cargo bench &gt; benches-variable;
-    git fetch;
-    git checkout master;
-    cargo bench &gt; benches-control;
-    cargo benchcmp benches-control benches-variable;
-fi
-</code></pre>
-
-<p>```</p>
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Travis after_success bash script code (travis-after-success.sh)</span> <a href='/downloads/code/bash/travis-after-success.sh'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="c">#!/usr/bin/env bash</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}&quot;</span> !<span class="o">=</span> <span class="s2">&quot;master&quot;</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="o">[</span> <span class="s2">&quot;$TRAVIS_RUST_VERSION&quot;</span> <span class="o">==</span> <span class="s2">&quot;nightly&quot;</span> <span class="o">]</span>; <span class="k">then</span>
+</span><span class='line'><span class="k">    </span><span class="nv">REMOTE_URL</span><span class="o">=</span><span class="s2">&quot;$(git config --get remote.origin.url)&quot;</span>;
+</span><span class='line'>    <span class="c"># Clone the repository fresh..for some reason checking out master fails</span>
+</span><span class='line'>    <span class="c"># from a normal PR build&#39;s provided directory</span>
+</span><span class='line'>    <span class="nb">cd</span> .. <span class="o">&amp;&amp;</span> <span class="se">\</span>
+</span><span class='line'>    git clone <span class="k">${</span><span class="nv">REMOTE_URL</span><span class="k">}</span> <span class="s2">&quot;${TRAVIS_REPO_SLUG}-bench&quot;</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
+</span><span class='line'>    <span class="nb">cd</span>  <span class="s2">&quot;${TRAVIS_REPO_SLUG}-bench&quot;</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
+</span><span class='line'>    <span class="c"># Bench master</span>
+</span><span class='line'>    git checkout master <span class="o">&amp;&amp;</span> <span class="se">\</span>
+</span><span class='line'>    cargo bench &gt; benches-control <span class="o">&amp;&amp;</span> <span class="se">\</span>
+</span><span class='line'>    <span class="c"># Bench variable</span>
+</span><span class='line'>    git checkout <span class="k">${</span><span class="nv">TRAVIS_COMMIT</span><span class="k">}</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
+</span><span class='line'>    cargo bench &gt; benches-variable <span class="o">&amp;&amp;</span> <span class="se">\</span>
+</span><span class='line'>    cargo install cargo-benchcmp --force <span class="o">&amp;&amp;</span> <span class="se">\</span>
+</span><span class='line'>    cargo benchcmp benches-control benches-variable;
+</span><span class='line'><span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>The first conditional is simply to check that the current branch being built is not master. It's a bit verbose because <code>$TRAVIS_BRANCH</code> <a href="https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/">does not always provide the current branch name</a>. So instead, we use <code>${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}</code>, which consists of <code>$TRAVIS_PULL_REQUEST_BRANCH</code> because it gives us the current branch if the build was triggered by a PR, and a default of <code>$TRAVIS_BRANCH</code>, which gives us the branch name of non-PR builds.</p>
 
 <p>The second conditional checks that the current Travis build is using <code>nightly</code>, which is a requirement for running benchmarks (as of writing).</p>
 
-<p>Inside the if statements body, we install <code>cargo-benchcmp</code> and run <code>cargo bench</code>, sending its output to a file called <code>benches-variable</code>, which we will use later.  Afterwards, we checkout the <code>master</code> branch, and run <code>cargo bench</code> again, sending the output to <code>benches-control</code>.</p>
+<p>Inside the if statements body, we first <code>cd</code> out of our provided directory and clone our project anew. I'm not entirely sure why, but in my testing, I was unable to checkout another branch (e.g. master) otherwise.  Next, we run <code>cargo bench</code> on the master branch, sending the output to <code>benches-control</code>.  Afterwards, we checkout the commit for the current build by using <code>TRAVIS_COMMIT</code>, and run <code>cargo bench</code> again, sending the output to <code>benches-variable</code>.</p>
 
-<p>Lastly, we run <code>cargo benchcmp</code>, passing the path of the control and variable benchmark result files as arguments, letting <a href="https://github.com/BurntSushi/cargo-benchcmp"><code>cargo-benchcmp</code></a> do its job. Here is some sample output from my Rust functional programming library, <a href="https://github.com/lloydmeta/frunk/">Frunk</a>.</p>
+<p>Lastly, we install and run <code>cargo benchcmp</code>, passing the path of the control and variable benchmark result files as arguments, letting <a href="https://github.com/BurntSushi/cargo-benchcmp"><code>cargo-benchcmp</code></a> do its job.</p>
+
+<p>Oh, we shouldn't forget to add our script to the <code>after_success</code> block in our Travis file.</p>
+
+<p><code>yaml
+after_success:
+  - ./travis-after-success.sh
+</code></p>
+
+<p>Here is some sample output from my Rust functional programming library, <a href="https://github.com/lloydmeta/frunk/">Frunk</a>.</p>
 
 <p><img class="center" src="/images/rust-travis-perf-testing.png" title="'PR benchmark comparisons on my project, Frunk.'" ></p>
 
