@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Arity | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/arity/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-11-14T18:25:36+09:00</updated>
+  <updated>2016-11-15T01:55:51+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -62,6 +62,17 @@ let h = hlist!["Joe", "Blow", 30, true];</p>
 <p>// You can choose to explicitly annotate the type of HList
 let h2: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil>>>> = hlist!["Joe", "Blow", 30, true];
 ```</p>
+
+<h3>Writing the type of an HList</h3>
+
+<p>Since HLists are a bunch of nested <code>HCons</code>s, you may think that writing the type annotation for one would be a PITA. Well, it might have been if not for the type-level macros introduced in Rust 1.13.</p>
+
+<p><code>rust
+let h: Hlist!(&amp;str, &amp;str, i32, bool) = hlist!["Joe", "Blow", 30, true];
+// We use the Hlist! type macro to make it easier to write
+// a type signature for HLists, which is a series of nested HCons
+// h has an expanded static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;i32, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;
+</code></p>
 
 <h3>Getting the head of an HList</h3>
 

@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-11-14T18:25:36+09:00</updated>
+  <updated>2016-11-15T01:55:51+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -474,6 +474,21 @@
 </span><span class='line'>
 </span><span class='line'><span class="c1">// You can choose to explicitly annotate the type of HList</span>
 </span><span class='line'><span class="k">let</span> <span class="n">h2</span><span class="o">:</span> <span class="n">HCons</span><span class="o">&lt;&amp;</span><span class="n">str</span><span class="p">,</span> <span class="n">HCons</span><span class="o">&lt;&amp;</span><span class="n">str</span><span class="p">,</span> <span class="n">HCons</span><span class="o">&lt;</span><span class="p">{</span><span class="n">integer</span><span class="p">},</span> <span class="n">HCons</span><span class="o">&lt;</span><span class="n">bool</span><span class="p">,</span> <span class="n">HNil</span><span class="o">&gt;&gt;&gt;&gt;</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">,</span> <span class="k">true</span><span class="p">];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Writing the type of an HList</h3>
+
+<p>Since HLists are a bunch of nested <code>HCons</code>s, you may think that writing the type annotation for one would be a PITA. Well, it might have been if not for the type-level macros introduced in Rust 1.13.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">h</span><span class="o">:</span> <span class="n">Hlist</span><span class="o">!</span><span class="p">(</span><span class="o">&amp;</span><span class="n">str</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">str</span><span class="p">,</span> <span class="k">i32</span><span class="p">,</span> <span class="n">bool</span><span class="p">)</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">,</span> <span class="k">true</span><span class="p">];</span>
+</span><span class='line'><span class="c1">// We use the Hlist! type macro to make it easier to write</span>
+</span><span class='line'><span class="c1">// a type signature for HLists, which is a series of nested HCons</span>
+</span><span class='line'><span class="c1">// h has an expanded static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;i32, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
