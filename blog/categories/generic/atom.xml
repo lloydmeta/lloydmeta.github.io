@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Generic | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/generic/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-04T18:12:03+09:00</updated>
+  <updated>2017-02-04T21:06:07+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -76,7 +76,7 @@ assert_eq!(p,</p>
 
 <p>```</p>
 
-<p>This also works the other way too; just pass a struct to <code>to_generic</code> and get its generic representation.</p>
+<p>This also works the other way too; just pass a struct to <code>into_generic</code> and get its generic representation.</p>
 
 <h3>Converting between Structs</h3>
 
