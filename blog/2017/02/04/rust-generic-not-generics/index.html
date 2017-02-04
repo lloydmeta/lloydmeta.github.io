@@ -284,6 +284,8 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
+<p>Another case where this might be useful is if you want to use different types to represent the same data at different stages (see <a href="http://stackoverflow.com/questions/31949455/transform-one-case-class-into-another-when-the-argument-list-is-the-same">this post on StackOverflow</a>).</p>
+
 <h2>How it works (what is going on ? is it safe ?)</h2>
 
 <p>At a glance, <code>Generic</code> might look magical and dangerous, but really it is no more mysterious than the <code>From</code> trait in the standard lib; the only difference (for now) is that every <code>Generic</code> instance is bidirectional (can turn an <code>A</code> into a <code>Repr</code> and a <code>Repr</code> into an <code>A</code>). If you don&#8217;t believe me, just look at the type signatures.</p>

@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-04T21:15:11+09:00</updated>
+  <updated>2017-02-05T02:49:53+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -143,6 +143,8 @@
 </span><span class='line'><span class="k">let</span> <span class="n">d_person</span><span class="o">:</span> <span class="n">DomainPersion</span> <span class="o">=</span> <span class="n">convert_from</span><span class="p">(</span><span class="n">a_person</span><span class="p">);</span> <span class="c1">// done</span>
 </span></code></pre></td></tr></table></div></figure>
 
+
+<p>Another case where this might be useful is if you want to use different types to represent the same data at different stages (see <a href="http://stackoverflow.com/questions/31949455/transform-one-case-class-into-another-when-the-argument-list-is-the-same">this post on StackOverflow</a>).</p>
 
 <h2>How it works (what is going on ? is it safe ?)</h2>
 
