@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Macro | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/macro/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-04T21:06:07+09:00</updated>
+  <updated>2017-02-04T21:15:11+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -27,7 +27,7 @@
 
 <p><code>Generic</code> is a way of representing a type in ... a generic way. By coding around <code>Generic</code>, you can to write functions that abstract over types and arity, but still have the ability to recover your original type afterwards. This can be a fairly powerful thing.</p>
 
-<p>Thanks to the new Macros 1.1 infrastructure added in Rust 1.1.5, Frunk comes out of the box with a custom <code>Generic</code> derivation so that boilerplate is kept to a minimum. Without further ado, let's dive in to see what Generic can do for us.</p>
+<p>Thanks to the new Macros 1.1 infrastructure added in Rust 1.15, Frunk comes out of the box with a custom <code>Generic</code> derivation so that boilerplate is kept to a minimum. Without further ado, let's dive in to see what Generic can do for us.</p>
 
 <h2>Add Frunk to your project</h2>
 
