@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Scala | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/scala/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-11-15T01:55:51+09:00</updated>
+  <updated>2017-02-04T16:51:15+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -1312,7 +1312,7 @@ javaCppPlatform := "android-arm"
 
 <p>After looking around  I began suspecting that Play comes with the ability to be slimmed down. By combining the <a href="https://www.playframework.com/documentation/2.4.x/ScalaSirdRouter">String Interpolating Routing DSL</a> and <a href="https://www.playframework.com/documentation/2.4.x/ScalaCompileTimeDependencyInjection">Compile-time dependency injection</a> of Play 2.4, I was able to build a Scala app that would give Sinatra a run for its money in terms of the whole brevity thing.</p>
 
-<p><img class="center" src="/images/duderino.jpeg" width="350" height="350" title="'The Due is focused on the whole brevity thing'" ></p>
+<p><img class="center" src="/images/duderino.jpeg" width="350" height="350" title="'The Dude is focused on the whole brevity thing'" ></p>
 
 <!-- more -->
 

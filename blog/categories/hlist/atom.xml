@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: HList | BeachApe.]]></title>
+  <title><![CDATA[Category: Hlist | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/hlist/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2016-11-15T01:55:51+09:00</updated>
+  <updated>2017-02-04T16:51:15+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -14,210 +14,186 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Accumulating Results in Rust With Validated]]></title>
-    <link href="https://beachape.com/blog/2016/10/24/accumulating-results-in-rust-with-validated/"/>
-    <updated>2016-10-24T15:00:00+09:00</updated>
-    <id>https://beachape.com/blog/2016/10/24/accumulating-results-in-rust-with-validated</id>
-    <content type="html"><![CDATA[<p>Rust comes out of the box with a <code>Result&lt;T, E&gt;</code> type in its standard library. For those not familiar with it, it is a union-like enum type where <code>T</code> is a type parameter denoting the kind object held in a <code>Result</code> in the success case (<code>Result::Ok&lt;T&gt;</code>), and <code>E</code> is a type paramter denoting the kind of error object held in the failure case (<code>Result::Err&lt;E&gt;</code>).  In Scala, this is represented in the standard library as <code>Either[+A, +B]</code>, where the the success and error type params are swapped (traditionally, the one on the left stands for error and the one on the right is...well, right).</p>
+    <title type="html"><![CDATA[Rust Generic (Not Generics)]]></title>
+    <link href="https://beachape.com/blog/2017/02/04/rust-generic-not-generics/"/>
+    <updated>2017-02-04T02:14:00+09:00</updated>
+    <id>https://beachape.com/blog/2017/02/04/rust-generic-not-generics</id>
+    <content type="html"><![CDATA[<p>Have you ever wanted to convert <code>Hlist</code>s into your custom Struct type or to reuse logic across different types that are structurally identical or very similar (e.g. same data across different domains)? <code>Generic</code> can help you do that with minimal boilerplate.</p>
 
-<p>By default, <code>Result</code> comes with really good support for what I call "early return on error". That is, you can use <code>map</code>, <code>and_then</code> (flatMap in some other languages) to transform them, and if there's an error at an intermediate step, the chain returns early with a <code>Result::Err&lt;E&gt;</code> :</p>
-
-<p>```rust
-fn double_arg(mut argv: env::Args) -> Result&lt;i32, String> {</p>
-
-<pre><code>argv.nth(1)
-    .ok_or("Please give at least one argument".to_owned())
-    .and_then(|arg| arg.parse::&lt;i32&gt;().map_err(|err| err.to_string()))
-    .map(|n| 2 * n)
-</code></pre>
-
-<p>}
-```</p>
-
-<p>But .. what happens when you have multiple <code>Result</code>s that are independent of each other, and you want to accumulate not only their collective success case, but also <em>all</em> their collective errors in the failure case?</p>
-
-<p><img class="center" src="/images/oh-shit-cat.jpg" title="'wait, we have to accumulate errors? oh ... shiz'" ></p>
-
-<p>Let's have a look at <a href="https://beachape.com/frunk/frunk/validated">Validated</a> in <a href="https://crates.io/crates/frunk">Frunk</a> (which is itself inspired by <a href="http://typelevel.org/cats/datatypes/validated.html"><code>Validated</code> in Cats</a>)</p>
+<p><img class="center" src="/images/generic_example.png" width="350" height="350" title="'From Hlist to Struct, no boilerplate'" ></p>
 
 <!-- more -->
 
+
+<p><code>Generic</code> is a way of representing a type in ... a generic way. By coding around <code>Generic</code>, you can to write functions that abstract over types and arity, but still have the ability to recover your original type afterwards. This can be a fairly powerful thing.</p>
+
+<p>Thanks to the new Macros 1.1 infrastructure added in Rust 1.1.5, Frunk comes out of the box with a custom <code>Generic</code> derivation so that boilerplate is kept to a minimum. Without further ado, let's dive in to see what Generic can do for us.</p>
+
+<h2>Add Frunk to your project</h2>
 
 <p><a href="https://crates.io/crates/frunk">Frunk</a> is published to <a href="crates.io/crates/frust">Crates.io</a>, so to begin, add the crate to your list of dependencies:</p>
 
 <p><code>rust
 [dependencies]
-frunk = "0.1.4"
+frunk = "0.1.8"
 </code></p>
 
-<p>By the way, to take a dive into the deep end, jump <a href="https://beachape.com/frunk/frunk/validated/index.html" target="_blank">straight to Validated's Rustdocs</a>.</p>
+<h2>Examples</h2>
 
-<h3>Imports</h3>
+<h3>Turning any HList into your Struct</h3>
 
-<p>Next, let's add a few imports.</p>
+<p>For anyone using <code>Validated</code> (introduced in <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">a previous post</a>), <code>Generic</code> makes mapping from an <code>HList</code> to your final type easier than ever.</p>
 
-<p><code>rust
-use frunk::hlist::*; // brings the .to_tuple2() method in scope so we can destructure our HList easily
-use frunk::validated::*;
-</code></p>
+<p>```rust
+extern crate frunk;</p>
 
-<h3>Scenario</h3>
+<h1>[macro_use] // for the hlist macro</h1>
 
-<p>Suppose we have a <code>Person</code> struct defined as follows:</p>
+<p>extern crate frunk_core;
+use frunk::*; // for the Generic trait and HList</p>
+
+<h1>[derive(Generic, Debug, PartialEq)]</h1>
+
+<p>struct Person&lt;'a> {</p>
+
+<pre><code>first_name: &amp;'a str,
+last_name: &amp;'a str,
+age: usize,
+</code></pre>
+
+<p>}</p>
+
+<p>let h = hlist!("Joe", "Blow", 30);
+let p: Person = from_generic(h);
+assert_eq!(p,</p>
+
+<pre><code>       Person {
+           first_name: "Joe",
+           last_name: "Blow",
+           age: 30,
+       });
+</code></pre>
+
+<p>```</p>
+
+<p>This also works the other way too; just pass a struct to <code>to_generic</code> and get its generic representation.</p>
+
+<h3>Converting between Structs</h3>
+
+<p>Sometimes you might have 2 or more types that are structurally the same (e.g. different domains but the same data) and you'd like to convert between them. An example of this might be when you have a model for deserialising from an external API and another one for internal application business logic, and yet another for persistence.</p>
+
+<p>Generic comes with a handy <code>convert_from</code> method that helps here:</p>
+
+<p>```rust
+// Assume we have all the imports needed</p>
+
+<h1>[derive(Generic)]</h1>
+
+<p>struct ApiPerson&lt;'a> {</p>
+
+<pre><code>FirstName: &amp;'a str,
+LastName: &amp;'a str,
+Age: usize,
+</code></pre>
+
+<p>}</p>
+
+<h1>[derive(Generic)]</h1>
+
+<p>struct DomainPerson&lt;'a> {</p>
+
+<pre><code>first_name: &amp;'a str,
+last_name: &amp;'a str,
+age: usize,
+</code></pre>
+
+<p>}</p>
+
+<p>let a_person = ApiPersion {</p>
+
+<pre><code>               first_name: "Joe",
+               last_name: "Blow",
+               age: 30,
+</code></pre>
+
+<p>};
+let d_person: DomainPersion = convert_from(a_person); // done
+```</p>
+
+<h2>How it works (what is going on ? is it safe ?)</h2>
+
+<p>At a glance, <code>Generic</code> might look magical and dangerous, but really it is no more mysterious than the <code>From</code> trait in the standard lib; the only difference (for now) is that every <code>Generic</code> instance is bidirectional (can turn an <code>A</code> into a <code>Repr</code> and a <code>Repr</code> into an <code>A</code>). If you don't believe me, just look at the type signatures.</p>
+
+<p>```rust
+pub trait Generic<Repr> {</p>
+
+<pre><code>/// Go from something to Repr
+fn into(self) -&gt; Repr;
+
+/// Go from Repr to something
+fn from(r: Repr) -&gt; Self;
+</code></pre>
+
+<p>}</p>
+
+<p>/// Given a generic Representation of an A, returns A
+pub fn from_generic&lt;A, Repr>(gen: Repr) -> A where A: Generic<Repr></p>
+
+<p>/// Given an A, returns its generic Representation
+pub fn into_generic&lt;A, Repr>(a: A) -> Repr where A: Generic<Repr></p>
+
+<p>/// Converts one type into another assuming they have the same generic Representation
+pub fn convert_from&lt;A, B, Repr>(a: A) -> B
+  where</p>
+
+<pre><code>A: Generic&lt;Repr&gt;,
+B: Generic&lt;Repr&gt;
+</code></pre>
+
+<p>```</p>
+
+<p>Most of the magic resides in how the custom derive of Generic, made possible by the 1.15 release of Rust, is implemented. If you want to find out more, take a look at the <code>derives</code> directory of Frunk <a href="https://github.com/lloydmeta/frunk/tree/master/derives/src">on Github</a>. In regards to the end-result though, the following:</p>
 
 <p>```rust</p>
 
-<h1>[derive(PartialEq, Eq, Debug)]</h1>
+<h1>[derive(Generic)]</h1>
 
-<p>struct Person {</p>
+<p>struct Person&lt;'a> {</p>
 
-<pre><code>age: i32,
-name: String,
-email: String,
+<pre><code>first_name: &amp;'a str,
+last_name: &amp;'a str,
+age: usize,
 </code></pre>
 
 <p>}
 ```</p>
 
-<p>And, we have 3 methods that produce age, name and email for us, but all could potentially fail with a <code>Nope</code> error.</p>
+<p>Gets expanded at compile-time to something resembling:</p>
 
 <p>```rust
-/// For demonstrations purposes only</p>
+impl&lt;'a> Generic&lt;Hlist!(&amp;'a str, &amp;'a str, usize)> for Person&lt;'a> {</p>
 
-<h1>[derive(PartialEq, Eq, Debug)]</h1>
-
-<p>pub enum YahNah {</p>
-
-<pre><code>Yah,
-Nah,
-</code></pre>
-
-<p>}</p>
-
-<p>/// Our Errors</p>
-
-<h1>[derive(PartialEq, Eq, Debug)]</h1>
-
-<p>pub enum Nope {</p>
-
-<pre><code>NameNope,
-AgeNope,
-EmailNope,
-</code></pre>
-
-<p>}</p>
-
-<p>fn get_name(yah_nah: YahNah) -> Result&lt;String, Nope> {</p>
-
-<pre><code>match yah_nah {
-    YahNah::Yah =&gt; Result::Ok("James".to_owned()),
-    _ =&gt; Result::Err(Nope::NameNope),
+<pre><code>fn into(self) -&gt; Hlist!(&amp;'a str, &amp;'a str, usize) {
+    let Person { first_name, last_name, age } = self;
+    hlist! [ first_name, last_name, age ]
 }
-</code></pre>
 
-<p>}</p>
-
-<p>fn get_age(yah_nah: YahNah) -> Result&lt;i32, Nope> {</p>
-
-<pre><code>match yah_nah {
-    YahNah::Yah =&gt; Result::Ok(32),
-    _ =&gt; Result::Err(Nope::AgeNope),
-}
-</code></pre>
-
-<p>}</p>
-
-<p>fn get_email(yah_nah: YahNah) -> Result&lt;String, Nope> {</p>
-
-<pre><code>match yah_nah {
-    YahNah::Yah =&gt; Result::Ok("hello@world.com".to_owned()),
-    _ =&gt; Result::Err(Nope::EmailNope),
+fn from(r: Hlist!(&amp;'a str, &amp;'a str, usize)) -&gt; Self {
+    let hlist_pat! [ first_name, last_name, age ] = r;
+    Person { first_name: first_name, last_name: last_name, age: age }
 }
 </code></pre>
 
 <p>}
 ```</p>
 
-<p>In real life, these methods would probably be taking an HTML form as an argument and doing some kind of parsing/validation or making calls to a service somewhere, but for simplicity, in our example, each of them takes a single argument that will let us toggle between the success and error cases.</p>
+<p>To be clear, the actual expanded coded is much gnarlier because we use fully qualified names for the sake of hygiene and I've sugared some things up with their macro-powered equivalents to cut down on noise (namely the HList type signature, pattern matching, and construction).</p>
 
-<h3>Using Validated</h3>
-
-<p>Having set all that up, actually using <code>Validated</code> to accumulate our <code>Results</code> is actually very simple:</p>
-
-<p>```rust
-let v = get_name(YahNah::Yah).into_validated() +</p>
-
-<pre><code>       get_age(YahNah::Yah) +
-       get_email(YahNah::Yah);
-</code></pre>
-
-<p>// Turn it into a result and then map, passing a lambda that takes the HList contained inside
-let person = v.into_result()</p>
-
-<pre><code>          .map(|hlist| {
-              let hlist_pat!(name, age, email) = hlist;
-              Person {
-                  name: name,
-                  age: age,
-                  email: email,
-              }
-          });
-</code></pre>
-
-<p>assert_eq!(person.unwrap(),</p>
-
-<pre><code>               Person {
-                   name: "James".to_owned(),
-                   age: 32,
-                   email: "hello@world.com".to_owned(),
-               });
-</code></pre>
-
-<p>```</p>
-
-<p>As you can see, all we need to do is call <code>into_validated()</code> on a given <code>Result</code> to kick off the validation context, and use <code>+</code> to add subsequent <code>Result</code>s into it. At the end, you call <code>into_result()</code> on the <code>Validated</code> to turn it back into a <code>Result</code> and map on the <code>HList</code> that is contained inside.  Inside the lambda, we destructure the <code>HList</code> using the <code>hlist_pat!</code> macro, and then instantiate our <code>Person</code>.</p>
-
-<p>Oh, in case it isn't obvious, the <code>hlist</code> passed to the lambda when we map is <strong>statically typed</strong> in the order that your <code>Result</code>s were added into the <code>Validated</code> context, so your code is completely type safe. If you want to learn more about HLists in Frunk, check out <a href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">this blog post</a>.</p>
-
-<p>Having said that, perhaps in the success case, not much has really changed in comparison to using naked <code>Result</code>s. That is, you could have gotten here simply by chaining with <code>map</code> and/or <code>and_then</code>. But take a look at what happens when one or more of these fail:</p>
-
-<p>```rust
-let v = get_name(YahNah::Nah).into_validated() +  // get_name will fail</p>
-
-<pre><code>       get_age(YahNah::Yah) +  // get_age will succeed
-       get_email(YahNah::Nah); // get_email will fail
-</code></pre>
-
-<p>let person = v.into_result()</p>
-
-<pre><code>          .map(|_| unimplemented!()); // won't get here anyways
-</code></pre>
-
-<p>assert_eq!(person.unwrap_err(),</p>
-
-<pre><code>       vec![Nope::NameNope, Nope::EmailNope]);
-</code></pre>
-
-<p>```</p>
-
-<p>As you can see, the failure case is more interesting because <code>Validated</code> gives us the ability to accumulate <em>all</em> errors cleanly. For operations like parsing user input or checking parameters passed into our API, this non-early-abort behaviour is highly desirable compared with telling the user what went wrong One. Thing. At. At. Time.</p>
-
-<p>Oh, <code>Validated</code>s can also be appended to each other:</p>
-
-<p><code>rust
-let r1: Result&lt;String, String&gt; = Result::Ok(String::from("hello"));
-let r2: Result&lt;i32, String&gt; = Result::Ok(1);
-let r3: Result&lt;i32, String&gt; = Result::Ok(3);
-let v1 = r1.into_validated();
-let v2 = r2.into_validated();
-let v3 = r3.into_validated();
-let comb = v1 + v2 + v3;
-assert_eq!(comb, Validated::Ok(hlist!(String::from("hello"), 1, 3)))
-</code></p>
+<p>I hope you're now convinced that there is no dirty casting / unsafe stuff going on, so you can rest easy knowing your code is still as type-safe as it would have been if you had gone with something like <code>From</code> instead.</p>
 
 <h2>Conclusion</h2>
 
-<p>Please take <code>Validated</code> out for a spin and send suggestions, comments, PRs !  I've found this abstraction to be helpful in the Scala world so I'm eager to hear impressions from Rustaceans.</p>
+<p>There are probably many other ways that <code>Generic</code> can be used to make code nicer (more reusable, DRYer, less noisy), so go ahead and see what you can cook up. As always, please don't hesitate to get in touch via comments, on Github or on Gitter with suggestions, issues, questions, or PRs.</p>
 
 <h2>Links</h2>
 
@@ -226,140 +202,11 @@ assert_eq!(comb, Validated::Ok(hlist!(String::from("hello"), 1, 3)))
 <li><a href="https://crates.io/crates/frunk">Frunk on Crates.io</a></li>
 </ol>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Rust HLists (Heterogenous List)]]></title>
-    <link href="https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list/"/>
-    <updated>2016-10-23T13:05:00+09:00</updated>
-    <id>https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list</id>
-    <content type="html"><![CDATA[<p>A heterogeneous list (henceforth "HList") is a useful abstraction that is implemented in many statically-typed functional programming languages. Unlike normal list-like structures (e.g. <code>Vec</code>, <code>Slice</code>, <code>Array</code>), a heterogenous list is able to hold elements of different types (hence heterogenous) and expose those types in its own type signature.</p>
 
-<p><code>rust
-let h = hlist!["Joe", "Blow", 30, true];
-// h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;
-</code></p>
-
-<p>Now, you might be thinking "Isn't that just a tuple?". The answer is: in a way. Indeed, in terms of data structure, a given implementation of HList is usually really nothing more than deeply nested pairs (tuple of 2 elements) that each hold an element of arbitrary type in its 1st element and knows that its 2nd element is itself an HList-like thing. While it may seem convoluted, HList buys us the ability to abstract over arity, which turns out to be extremely useful, as you can see from <a href="http://stackoverflow.com/questions/11825129/are-hlists-nothing-more-than-a-convoluted-way-of-writing-tuples">this Stackoverflow answer</a> by Miles Sabin, the creater of the <a href="https://github.com/milessabin/shapeless">Shapeless</a> library, which provides an HList implementation in Scala.</p>
-
-<p>Given that description and justification for the existence of HLists, let's take a look at how to use <a href="https://github.com/lloydmeta/frunk">Frunk</a>'s implementation of HList in Rust.</p>
-
-<!-- more -->
-
-
-<p><a href="https://crates.io/crates/frunk">Frunk</a> is published to <a href="crates.io/crates/frust">Crates.io</a>, so to begin, add the crate to your list of dependencies:</p>
-
-<p><code>rust
-[dependencies]
-frunk = "0.1.4"
-</code></p>
-
-<p>By the way, to take a dive into the deep end, jump <a href="https://beachape.com/frunk/frunk/hlist/index.html" target="_blank">straight to HList's Rustdocs</a>.</p>
-
-<h3>Imports</h3>
-
-<p>Next, let's add a few imports. In particular, note that we have a <code>#[macro_use]</code> directive in order to enable the <code>hlist!</code> macro, which makes declaring <code>HList</code>s nicer by saving you the trouble of writing deeply nested <code>HCon</code>s.</p>
-
-<p>```rust</p>
-
-<h1>[macro_use] extern crate frunk;</h1>
-
-<p>use frunk::hlist::*;
-```</p>
-
-<h3>Creating an HList</h3>
-
-<p>Making an HList is easy if you use the <code>hlist!</code> macro:</p>
-
-<p>```rust
-let h = hlist!["Joe", "Blow", 30, true];</p>
-
-<p>// You can choose to explicitly annotate the type of HList
-let h2: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil>>>> = hlist!["Joe", "Blow", 30, true];
-```</p>
-
-<h3>Writing the type of an HList</h3>
-
-<p>Since HLists are a bunch of nested <code>HCons</code>s, you may think that writing the type annotation for one would be a PITA. Well, it might have been if not for the type-level macros introduced in Rust 1.13.</p>
-
-<p><code>rust
-let h: Hlist!(&amp;str, &amp;str, i32, bool) = hlist!["Joe", "Blow", 30, true];
-// We use the Hlist! type macro to make it easier to write
-// a type signature for HLists, which is a series of nested HCons
-// h has an expanded static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;i32, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;
-</code></p>
-
-<h3>Getting the head of an HList</h3>
-
-<p>To retrieve the head element of an HList, use the <code>.head</code> accessor</p>
-
-<p><code>rust
-let h = hList![ "Joe" ];
-let joe = h.head;
-</code></p>
-
-<h3>Getting multiple elements from an HList</h3>
-
-<p>To retrieve multiple elements, it's highly recommended to use the <code>hlist_pat!</code> macro to deconstruct your <code>HList</code>.</p>
-
-<p>```rust
-let h = hlist!["Joe", "Blow", 30, true];
-// h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil>>>></p>
-
-<p>let hlist_pat!(f_name, l_name, age, is_admin) = h;
-assert_eq!(f_name, "Joe");
-assert_eq!(l_name, "Blow");
-assert_eq!(age, 30);
-assert_eq!(is_admin, true);
-```</p>
-
-<h3>Appending HLists</h3>
-
-<p>The <code>Add&lt;RHS&gt;</code> trait is implemented for <code>HList</code> so that you can simply call <code>+</code> to append to an existing HList</p>
-
-<p>```rust
-let joe = hlist!["Joe", "Blow", 30];
-let is_admin = hlist![true];</p>
-
-<p>let joe_is_admin = joe + is_admin;
-```</p>
-
-<h3>Length</h3>
-
-<p>To get the length of an HList, simply call its <code>length()</code> method</p>
-
-<p><code>rust
-let joe = hlist!["Joe", "Blow", 30];
-assert_eq!(joe.length(), 3);
-</code></p>
-
-<h2>Have fun !</h2>
-
-<p>It will be interesting to see what you can cook up with HList. As mentioned before, abstracting over arity allows you to do some really cool stuff, for example <a href="https://crates.io/crates/frunk">Frunk</a> already uses HList to define a <a href="https://beachape.com/frunk/frunk/validated/"><code>Validated</code> abstraction</a> to help accumulate errors over many different <code>Result&lt;T, E&gt;</code> (we'll go through this in <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">another post</a>):</p>
-
-<p>```rust
-pub enum Validated&lt;T, E></p>
-
-<pre><code>where T: HList
-</code></pre>
-
-<p>{</p>
-
-<pre><code>Ok(T),
-Err(Vec&lt;E&gt;),
-</code></pre>
-
-<p>}
-```</p>
-
-<p>So please check it out, take it for a spin, and come back with any ideas, criticisms, and PRs!</p>
-
-<h2>Links</h2>
+<h2>Credit</h2>
 
 <ol>
-<li><a href="https://github.com/lloydmeta/frunk">Frunk on Github</a></li>
-<li><a href="https://crates.io/crates/frunk">Frunk on Crates.io</a></li>
+<li><a href="https://github.com/milessabin/shapeless">Shapeless</a></li>
 </ol>
 
 ]]></content>

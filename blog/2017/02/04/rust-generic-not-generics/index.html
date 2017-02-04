@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Rust Generic (Not Generics) - BeachApe.</title>
+  <meta name="author" content="Lloyd">
+
+  <meta name="description" content="A simple, boilerplate-free Generic implementation in Rust, inspired by Shapeless">
+  
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:widgets:csp" content="on">
+
+  
+  <link rel="canonical" href="https://beachape.com/blog/2017/02/04/rust-generic-not-generics">
+  <link href="/favicon.png" type="image/png" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="BeachApe." type="application/atom+xml">
+
+  <script src="/javascripts/libs/jquery/jquery-2.0.3.min.js"></script>
+
+<link href="/assets/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<link href="/stylesheets/theme.min.css" rel="stylesheet" type="text/css">
+
+
+  
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+  
+   <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-24087840-1', 'auto');
+    ga('send', 'pageview');
+
+  </script>
+
+
+
+  <!-- Social media content metadata -->
+  
+  <meta property="fb:app_id" content="1078686448895325" />
+  <meta property="og:title" content="Rust Generic (not generics)" />
+  <meta property="og:site_name" content="BeachApe." />
+  <meta property="og:url" content="https://beachape.com/blog/2017/02/04/rust-generic-not-generics/" />
+
+  <meta property="og:description" content="A simple, boilerplate-free Generic implementation in Rust, inspired by Shapeless" />
+  
+  <meta property="og:author" content="https://www.facebook.com/BEACHAPE-221821961171501/" />
+  <meta property="og:image" content="https://beachape.com/images/okinawa-hacker.jpg" />
+  
+  
+  
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:site" content="meta_lloyd" />
+  <meta property="twitter:url" content="https://beachape.com/blog/2017/02/04/rust-generic-not-generics" />
+  <meta property="twitter:title" content="Rust Generic (not generics)" />
+  <meta property="twitter:description" content="A simple, boilerplate-free Generic implementation in Rust, inspired by Shapeless" />
+  
+  <meta property="twitter:creator" content="meta_lloyd" />
+  <meta property="twitter:image:src" content="https://beachape.com/images/okinawa-hacker.jpg" />
+  
+  
+
+</head>
+
+  <body   >
+    <div id="wrap">
+      <header role="banner">
+        <nav class="navbar navbar-default" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">BeachApe.</a>
+        </div>
+
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="active">
+                    <a rel="index" href="/">Blog</a>
+                </li>
+                <li >
+                    <a href="/blog/archives">Archives</a>
+                </li>
+                <li >
+                    <a href="/about">About</a>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a class="subscribe-rss" href="/atom.xml" title="subscribe via RSS">
+                        <span class="visible-xs">RSS</span>
+                        <img class="hidden-xs" src="/images/rss.png" alt="RSS">
+                    </a>
+                </li>
+                
+            </ul>
+            
+                <form class="search navbar-form navbar-right" action="https://google.com/search" method="GET">
+                    <!--<input type="hidden" name="q" value="site:beachape.com">-->
+                    <input type="hidden" name="sitesearch" value="beachape.com" />
+                    <div class="form-group">
+                        <input class="form-control" type="text" name="q" placeholder="Search">
+                    </div>
+                </form>
+            
+        </div>
+    </div>
+</nav>
+
+
+      </header>
+      <div id="main" class="container">
+        <div id="content">
+          <div class="row">
+  <div class="page-content col-md-9" itemscope itemtype="http://schema.org/Blog">
+    <meta itemprop="name" content="BeachApe." />
+    <meta itemprop="description" content="A collection of findings, snippets and thoughts. My name is Lloyd, a software engineer. In another life, I was a biomedical engineer." />
+    <meta itemprop="url" content="https://beachape.com" />
+    <article class="hentry" role="article" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+      
+  <header class="page-header">
+    
+      <p class="meta text-muted text-uppercase">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2017-02-04T02:14:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Feb 4<span>th</span>, 2017</time>
+        
+      </p>
+    
+    
+    <h1 class="entry-title" itemprop="name headline">
+        Rust Generic (Not Generics)
+        
+    </h1>
+    
+  </header>
+
+
+<div class="entry-content clearfix" itemprop="articleBody"><p>Have you ever wanted to convert <code>Hlist</code>s into your custom Struct type or to reuse logic across different types that are structurally identical or very similar (e.g. same data across different domains)? <code>Generic</code> can help you do that with minimal boilerplate.</p>
+
+<p><img class="center" src="/images/generic_example.png" width="350" height="350" title="'From Hlist to Struct, no boilerplate'" ></p>
+
+<!-- more -->
+
+
+<p><code>Generic</code> is a way of representing a type in &#8230; a generic way. By coding around <code>Generic</code>, you can to write functions that abstract over types and arity, but still have the ability to recover your original type afterwards. This can be a fairly powerful thing.</p>
+
+<p>Thanks to the new Macros 1.1 infrastructure added in Rust 1.1.5, Frunk comes out of the box with a custom <code>Generic</code> derivation so that boilerplate is kept to a minimum. Without further ado, let&#8217;s dive in to see what Generic can do for us.</p>
+
+<h2>Add Frunk to your project</h2>
+
+<p><a href="https://crates.io/crates/frunk">Frunk</a> is published to <a href="crates.io/crates/frust">Crates.io</a>, so to begin, add the crate to your list of dependencies:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="p">[</span><span class="n">dependencies</span><span class="p">]</span>
+</span><span class='line'><span class="n">frunk</span> <span class="o">=</span> <span class="s">&quot;0.1.8&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Examples</h2>
+
+<h3>Turning any HList into your Struct</h3>
+
+<p>For anyone using <code>Validated</code> (introduced in <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">a previous post</a>), <code>Generic</code> makes mapping from an <code>HList</code> to your final type easier than ever.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">frunk</span><span class="p">;</span>
+</span><span class='line'><span class="cp">#[macro_use]</span> <span class="c1">// for the hlist macro</span>
+</span><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">frunk_core</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">frunk</span><span class="o">::*</span><span class="p">;</span> <span class="c1">// for the Generic trait and HList</span>
+</span><span class='line'>
+</span><span class='line'><span class="cp">#[derive(Generic, Debug, PartialEq)]</span>
+</span><span class='line'><span class="n">struct</span> <span class="n">Person</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">first_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">last_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">age</span><span class="o">:</span> <span class="n">usize</span><span class="p">,</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">let</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">);</span>
+</span><span class='line'><span class="k">let</span> <span class="n">p</span><span class="o">:</span> <span class="n">Person</span> <span class="o">=</span> <span class="n">from_generic</span><span class="p">(</span><span class="n">h</span><span class="p">);</span>
+</span><span class='line'><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">p</span><span class="p">,</span>
+</span><span class='line'>           <span class="n">Person</span> <span class="p">{</span>
+</span><span class='line'>               <span class="n">first_name</span><span class="o">:</span> <span class="s">&quot;Joe&quot;</span><span class="p">,</span>
+</span><span class='line'>               <span class="n">last_name</span><span class="o">:</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span>
+</span><span class='line'>               <span class="n">age</span><span class="o">:</span> <span class="m">30</span><span class="p">,</span>
+</span><span class='line'>           <span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This also works the other way too; just pass a struct to <code>to_generic</code> and get its generic representation.</p>
+
+<h3>Converting between Structs</h3>
+
+<p>Sometimes you might have 2 or more types that are structurally the same (e.g. different domains but the same data) and you&#8217;d like to convert between them. An example of this might be when you have a model for deserialising from an external API and another one for internal application business logic, and yet another for persistence.</p>
+
+<p>Generic comes with a handy <code>convert_from</code> method that helps here:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="c1">// Assume we have all the imports needed</span>
+</span><span class='line'>
+</span><span class='line'><span class="cp">#[derive(Generic)]</span>
+</span><span class='line'><span class="n">struct</span> <span class="n">ApiPerson</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">FirstName</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">LastName</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">Age</span><span class="o">:</span> <span class="n">usize</span><span class="p">,</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="cp">#[derive(Generic)]</span>
+</span><span class='line'><span class="n">struct</span> <span class="n">DomainPerson</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">first_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">last_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">age</span><span class="o">:</span> <span class="n">usize</span><span class="p">,</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">let</span> <span class="n">a_person</span> <span class="o">=</span> <span class="n">ApiPersion</span> <span class="p">{</span>
+</span><span class='line'>                   <span class="n">first_name</span><span class="o">:</span> <span class="s">&quot;Joe&quot;</span><span class="p">,</span>
+</span><span class='line'>                   <span class="n">last_name</span><span class="o">:</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span>
+</span><span class='line'>                   <span class="n">age</span><span class="o">:</span> <span class="m">30</span><span class="p">,</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="k">let</span> <span class="n">d_person</span><span class="o">:</span> <span class="n">DomainPersion</span> <span class="o">=</span> <span class="n">convert_from</span><span class="p">(</span><span class="n">a_person</span><span class="p">);</span> <span class="c1">// done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>How it works (what is going on ? is it safe ?)</h2>
+
+<p>At a glance, <code>Generic</code> might look magical and dangerous, but really it is no more mysterious than the <code>From</code> trait in the standard lib; the only difference (for now) is that every <code>Generic</code> instance is bidirectional (can turn an <code>A</code> into a <code>Repr</code> and a <code>Repr</code> into an <code>A</code>). If you don&#8217;t believe me, just look at the type signatures.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">pub</span> <span class="n">trait</span> <span class="n">Generic</span><span class="o">&lt;</span><span class="n">Repr</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">/// Go from something to Repr</span>
+</span><span class='line'>    <span class="k">fn</span> <span class="n">into</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Repr</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">/// Go from Repr to something</span>
+</span><span class='line'>    <span class="k">fn</span> <span class="n">from</span><span class="p">(</span><span class="n">r</span><span class="o">:</span> <span class="n">Repr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">/// Given a generic Representation of an A, returns A</span>
+</span><span class='line'><span class="n">pub</span> <span class="k">fn</span> <span class="n">from_generic</span><span class="o">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">Repr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">gen</span><span class="o">:</span> <span class="n">Repr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">A</span> <span class="n">where</span> <span class="n">A</span><span class="o">:</span> <span class="n">Generic</span><span class="o">&lt;</span><span class="n">Repr</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">/// Given an A, returns its generic Representation</span>
+</span><span class='line'><span class="n">pub</span> <span class="k">fn</span> <span class="n">into_generic</span><span class="o">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">Repr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">a</span><span class="o">:</span> <span class="n">A</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Repr</span> <span class="n">where</span> <span class="n">A</span><span class="o">:</span> <span class="n">Generic</span><span class="o">&lt;</span><span class="n">Repr</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">/// Converts one type into another assuming they have the same generic Representation</span>
+</span><span class='line'><span class="n">pub</span> <span class="k">fn</span> <span class="n">convert_from</span><span class="o">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Repr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">a</span><span class="o">:</span> <span class="n">A</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">B</span>
+</span><span class='line'>  <span class="n">where</span>
+</span><span class='line'>    <span class="n">A</span><span class="o">:</span> <span class="n">Generic</span><span class="o">&lt;</span><span class="n">Repr</span><span class="o">&gt;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">B</span><span class="o">:</span> <span class="n">Generic</span><span class="o">&lt;</span><span class="n">Repr</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Most of the magic resides in how the custom derive of Generic, made possible by the 1.15 release of Rust, is implemented. If you want to find out more, take a look at the <code>derives</code> directory of Frunk <a href="https://github.com/lloydmeta/frunk/tree/master/derives/src">on Github</a>. In regards to the end-result though, the following:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="cp">#[derive(Generic)]</span>
+</span><span class='line'><span class="n">struct</span> <span class="n">Person</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">first_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">last_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">age</span><span class="o">:</span> <span class="n">usize</span><span class="p">,</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Gets expanded at compile-time to something resembling:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">impl</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="o">&gt;</span> <span class="n">Generic</span><span class="o">&lt;</span><span class="n">Hlist</span><span class="o">!</span><span class="p">(</span><span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span> <span class="n">usize</span><span class="p">)</span><span class="o">&gt;</span> <span class="k">for</span> <span class="n">Person</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">fn</span> <span class="n">into</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Hlist</span><span class="o">!</span><span class="p">(</span><span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span> <span class="n">usize</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">let</span> <span class="n">Person</span> <span class="p">{</span> <span class="n">first_name</span><span class="p">,</span> <span class="n">last_name</span><span class="p">,</span> <span class="n">age</span> <span class="p">}</span> <span class="o">=</span> <span class="n">self</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">hlist</span><span class="o">!</span> <span class="p">[</span> <span class="n">first_name</span><span class="p">,</span> <span class="n">last_name</span><span class="p">,</span> <span class="n">age</span> <span class="p">]</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">fn</span> <span class="n">from</span><span class="p">(</span><span class="n">r</span><span class="o">:</span> <span class="n">Hlist</span><span class="o">!</span><span class="p">(</span><span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span> <span class="n">usize</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n">Self</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">let</span> <span class="n">hlist_pat</span><span class="o">!</span> <span class="p">[</span> <span class="n">first_name</span><span class="p">,</span> <span class="n">last_name</span><span class="p">,</span> <span class="n">age</span> <span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">Person</span> <span class="p">{</span> <span class="n">first_name</span><span class="o">:</span> <span class="n">first_name</span><span class="p">,</span> <span class="n">last_name</span><span class="o">:</span> <span class="n">last_name</span><span class="p">,</span> <span class="n">age</span><span class="o">:</span> <span class="n">age</span> <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To be clear, the actual expanded coded is much gnarlier because we use fully qualified names for the sake of hygiene and I&#8217;ve sugared some things up with their macro-powered equivalents to cut down on noise (namely the HList type signature, pattern matching, and construction).</p>
+
+<p>I hope you&#8217;re now convinced that there is no dirty casting / unsafe stuff going on, so you can rest easy knowing your code is still as type-safe as it would have been if you had gone with something like <code>From</code> instead.</p>
+
+<h2>Conclusion</h2>
+
+<p>There are probably many other ways that <code>Generic</code> can be used to make code nicer (more reusable, DRYer, less noisy), so go ahead and see what you can cook up. As always, please don&#8217;t hesitate to get in touch via comments, on Github or on Gitter with suggestions, issues, questions, or PRs.</p>
+
+<h2>Links</h2>
+
+<ol>
+<li><a href="https://github.com/lloydmeta/frunk">Frunk on Github</a></li>
+<li><a href="https://crates.io/crates/frunk">Frunk on Crates.io</a></li>
+</ol>
+
+
+<h2>Credit</h2>
+
+<ol>
+<li><a href="https://github.com/milessabin/shapeless">Shapeless</a></li>
+</ol>
+
+</div>
+
+
+      <footer>
+        <p class="meta text-muted">
+          
+  
+
+<span class="glyphicon glyphicon-user"></span> <span class="byline author vcard" itemprop="author" itemscope itemtype="http://schema.org/Person">Posted by <span class="fn" itemprop="name">Lloyd</span></span>
+
+          
+
+
+
+
+
+
+
+
+
+
+
+
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2017-02-04T02:14:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Feb 4<span>th</span>, 2017</time>
+          
+
+<span class="glyphicon glyphicon-tags"></span>&nbsp;
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/frunk/'>Frunk</a>, <a class='category' href='/blog/categories/rust/'>Rust</a>, <a class='category' href='/blog/categories/cargo/'>cargo</a>, <a class='category' href='/blog/categories/functional-programming/'>functional programming</a>, <a class='category' href='/blog/categories/generic/'>generic</a>, <a class='category' href='/blog/categories/generic-programming/'>generic programming</a>, <a class='category' href='/blog/categories/hlist/'>hlist</a>, <a class='category' href='/blog/categories/macro/'>macro</a>
+  
+</span>
+
+
+        </p>
+        
+          <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://beachape.com/blog/2017/02/04/rust-generic-not-generics/" data-via="meta_lloyd" data-counturl="https://beachape.com/blog/2017/02/04/rust-generic-not-generics/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="320" data-show-faces="false"></div>
+  
+</div>
+
+        
+        
+          <ul class="meta text-muted pager">
+            
+            <li class="previous"><a href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/" title="Previous Post: Rust performance testing on Travis CI">&laquo; Rust performance testing on Travis CI</a></li>
+            
+            
+          </ul>
+        
+      </footer>
+    </article>
+    
+      <section>
+        <h1>Comments</h1>
+        <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+      </section>
+    
+  </div>
+
+  
+  <aside class="sidebar col-md-3">
+    
+      <section class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Recent Posts</h3>
+  </div>
+  
+  <div id="recent_posts" class="list-group">
+    
+    <a class="list-group-item active" href="/blog/2017/02/04/rust-generic-not-generics/">Rust Generic (Not Generics)</a>
+    
+    <a class="list-group-item " href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/">Rust Performance Testing on Travis CI</a>
+    
+    <a class="list-group-item " href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Accumulating Results in Rust With Validated</a>
+    
+    <a class="list-group-item " href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">Rust HLists (Heterogenous List)</a>
+    
+    <a class="list-group-item " href="/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe/">Enumeratum 1.4: ValueEnums + Circe</a>
+    
+  </div>
+</section>
+
+<section class="panel panel-default clearfix">
+  <div class="panel-heading">
+      <h3 class="panel-title">GitHub Repos</h3>
+  </div>
+  <div class="list-group" id="gh_repos">
+    <p class="loading">Status updating...</p>
+  </div>
+  
+    <div class="gh-profile-link pull-right text-muted">
+      <a href="https://github.com/lloydmeta">@lloydmeta</a> on GitHub
+    </div>
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'lloydmeta',
+            count: 5,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+<section>
+    <h1>Twitter</h1>
+    <a class="twitter-timeline" href="https://twitter.com/meta_Lloyd" data-widget-id="423278387365302272">Tweets by @meta_Lloyd</a>
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
+    </script>
+</section>
+
+
+
+
+
+<section>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- beachape sidebar -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-1172936881778206"
+     data-ad-slot="7801157970"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+</section>
+
+    
+  </aside>
+  
+</div>
+
+        </div>
+      </div>
+    </div>
+    <footer role="contentinfo"><div class="container">
+    <p class="text-muted credits">
+  Copyright &copy; 2017 - Lloyd<br>
+  <small>
+      <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>,
+      <span class="credit">customized with <a href="https://github.com/kAworu/octostrap3">octostrap3</a></span>.
+  </small>
+</p>
+
+</div>
+</footer>
+    
+
+<script type="text/javascript">
+      var disqus_shortname = 'beachape';
+      
+        
+        var disqus_developer = 1;
+        var disqus_identifier = 'https://beachape.com/blog/2017/02/04/rust-generic-not-generics/';
+        var disqus_url = 'https://beachape.com/blog/2017/02/04/rust-generic-not-generics/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+<script src="/assets/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="/javascripts/modernizr-2.0.js"></script>
+
+
+  </body>
+</html>
