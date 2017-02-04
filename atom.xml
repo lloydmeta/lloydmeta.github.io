@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-04T18:11:37+09:00</updated>
+  <updated>2017-02-04T18:12:03+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -42,7 +42,7 @@
 
 <h2>Examples</h2>
 
-<h3>HList <-> Struct</h3>
+<h3>HList ⇄ Struct</h3>
 
 <p>For anyone using <code>Validated</code> (introduced in <a href="https://beachape.com/blog/2016/10/24/accumulating-results-in-rust-with-validated/">a previous post</a>), <code>Generic</code> makes mapping from an <code>HList</code> to your final type easier than ever.</p>
 
