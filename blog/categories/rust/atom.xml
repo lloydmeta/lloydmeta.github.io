@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Rust | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/rust/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-04T17:06:11+09:00</updated>
+  <updated>2017-02-04T17:06:46+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -18,7 +18,7 @@
     <link href="https://beachape.com/blog/2017/02/04/rust-generic-not-generics/"/>
     <updated>2017-02-04T02:14:00+09:00</updated>
     <id>https://beachape.com/blog/2017/02/04/rust-generic-not-generics</id>
-    <content type="html"><![CDATA[<p>Have you ever wanted to convert <code>Hlist</code>s into a Struct type or to reuse logic across different types that are structurally identical or very similar (e.g. same data across different domains)? <code>Generic</code> can help you do that with minimal boilerplate.</p>
+    <content type="html"><![CDATA[<p>Have you ever wanted to convert <code>Hlist</code>s into Structs or to reuse logic across different types that are structurally identical or very similar (e.g. same data across different domains)? <code>Generic</code> can help you do that with minimal boilerplate.</p>
 
 <p><img class="center" src="/images/generic_example.png" width="350" height="350" title="'From Hlist to Struct, no boilerplate'" ></p>
 
