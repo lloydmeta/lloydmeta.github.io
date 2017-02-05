@@ -162,10 +162,10 @@
 
 <p><img class="center" src="/images/generic_example.png" width="350" height="350" title="'From Hlist to Struct, no boilerplate'" ></p>
 
+<p><code>Generic</code> is a way of representing a type in &#8230; a generic way. By coding around <code>Generic</code>, you can write functions that abstract over types and arity, but still have the ability to recover your original type afterwards. This can be a fairly powerful thing.</p>
+
 <!-- more -->
 
-
-<p><code>Generic</code> is a way of representing a type in &#8230; a generic way. By coding around <code>Generic</code>, you can to write functions that abstract over types and arity, but still have the ability to recover your original type afterwards. This can be a fairly powerful thing.</p>
 
 <p>Thanks to the new Macros 1.1 infrastructure added in Rust 1.15, Frunk comes out of the box with a custom <code>Generic</code> derivation so that boilerplate is kept to a minimum. Without further ado, let&#8217;s dive in to see what Generic can do for us.</p>
 
@@ -395,6 +395,10 @@
 
 
 <p>To be clear, the actual expanded coded is much gnarlier because we use fully qualified names for the sake of hygiene and I&#8217;ve sugared some things up with their macro-powered equivalents to cut down on noise (namely the HList type signature, pattern matching, and construction).</p>
+
+<p>Someone on Twitter raised the point that if you had mixed up the ordering of the fields in your struct declaration (e.g. last name and first name are swapped between structs), then <code>Generic</code> would cause silent errors at runtime, because the Structs&#8217; shape would be the same. With all due respect to that individual, the same could happen even if you hand-wrote your <code>From</code> implementation and got your field assignments crossed. In the worst case; you&#8217;ve now got fields that are not ordered correctly, your <code>From</code> is wrong, and you&#8217;ve got more boilerplate to maintain.</p>
+
+<p>Really, the only way to truly prevent this kind of fat-fingering error is to have wrapper types (like <code>struct FirstName(String)</code>, etc) for all your fields, in which case <code>Generic</code> conversion would be foolproof (if you got your field declaration orders wrong, you&#8217;d get a compile-time error). Ultimately, how typesafe you want to be is a choice you will need to make while weighing the risk of fat-fingering with the burden of maintaining more code.</p>
 
 <p>I hope you&#8217;re now convinced that there is no dirty casting / unsafe stuff going on, so you can rest easy knowing your code is still as type-safe as it would have been if you had gone with something like <code>From</code> instead.</p>
 
