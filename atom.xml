@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-05T02:49:53+09:00</updated>
+  <updated>2017-02-05T21:12:11+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -91,6 +91,21 @@
 
 <p>This also works the other way too; just pass a struct to <code>into_generic</code> and get its generic representation.</p>
 
+<p>One usecase for something like this is if you have a bunch of fields that you want to validate &#8220;simultaneously&#8221;, and you want to transform the end result into a single Struct; this is often the case when you want to turn external input (e.g. coming into your API, a web form, or fields read from a database), and in a previous post I introduced <a href="https://beachape.com/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Validated</a> as a way of doing that.</p>
+
+<p>With the introduction of <code>Generic</code>, that last step of transforming an <code>HList</code> into your struct gets much simpler:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">validated</span> <span class="o">=</span> <span class="n">get_first_name</span><span class="p">().</span><span class="n">into_validated</span><span class="p">()</span> <span class="o">+</span> <span class="n">get_last_name</span><span class="p">()</span> <span class="o">+</span> <span class="n">get_age</span><span class="p">();</span>
+</span><span class='line'><span class="k">let</span> <span class="n">person</span><span class="o">:</span> <span class="n">Result</span><span class="o">&lt;</span><span class="n">Person</span><span class="p">,</span> <span class="n">_</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">validated</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">into_result</span><span class="p">()</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">h</span><span class="o">|</span> <span class="n">from_generic</span><span class="p">(</span><span class="n">h</span><span class="p">));</span> <span class="c1">// &lt;-- much simpler !</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
 <h3>Converting between Structs</h3>
 
 <p>Sometimes you might have 2 or more types that are structurally the same (e.g. different domains but the same data) and you&#8217;d like to convert between them. An example of this might be when you have a model for deserialising from an external API and another one for internal application business logic, and yet another for persistence.</p>
@@ -144,7 +159,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Another case where this might be useful is if you want to use different types to represent the same data at different stages (see <a href="http://stackoverflow.com/questions/31949455/transform-one-case-class-into-another-when-the-argument-list-is-the-same">this post on StackOverflow</a>).</p>
+<p>Another example of where this might be useful is if you want to use different types to represent the same data at different stages (see <a href="http://stackoverflow.com/questions/31949455/transform-one-case-class-into-another-when-the-argument-list-is-the-same">this post on StackOverflow</a>).</p>
 
 <h2>How it works (what is going on ? is it safe ?)</h2>
 
