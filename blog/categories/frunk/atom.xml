@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Frunk | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/frunk/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-05T21:25:36+09:00</updated>
+  <updated>2017-02-06T12:25:20+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -42,7 +42,7 @@ frunk = "0.1.8"
 
 <h3>HList ⇄ Struct</h3>
 
-<p>For anyone using <code>Validated</code> (introduced in <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">a previous post</a>), <code>Generic</code> makes mapping from an <code>HList</code> to your final type easier than ever.</p>
+<p>Have an <code>HList</code> lying around and want to turn it into a Struct with the same shape (maybe you're using <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Validated</a>)?</p>
 
 <p>```rust
 extern crate frunk;</p>
