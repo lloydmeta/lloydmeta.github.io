@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Validation | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/validation/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-07T10:33:19+09:00</updated>
+  <updated>2017-02-17T12:19:45+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -43,11 +43,11 @@ fn double_arg(mut argv: env::Args) -> Result&lt;i32, String> {</p>
 <!-- more -->
 
 
-<p><a href="https://crates.io/crates/frunk">Frunk</a> is published to <a href="crates.io/crates/frust">Crates.io</a>, so to begin, add the crate to your list of dependencies:</p>
+<p><a href="https://github.com/lloydmeta/frunk">Frunk</a> is published to <a href="//crates.io/crates/frust">Crates.io</a>, so to begin, add the crate to your list of dependencies:</p>
 
 <p><code>rust
 [dependencies]
-frunk = "0.1.4"
+frunk = "0.1.9"
 </code></p>
 
 <p>By the way, to take a dive into the deep end, jump <a href="https://beachape.com/frunk/frunk/validated/index.html" target="_blank">straight to Validated's Rustdocs</a>.</p>
