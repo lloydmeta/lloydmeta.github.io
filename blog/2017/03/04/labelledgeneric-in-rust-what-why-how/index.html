@@ -5,7 +5,7 @@
   <title>LabelledGeneric in Rust: What, Why, How? - BeachApe.</title>
   <meta name="author" content="Lloyd">
 
-  <meta name="description" content="Introducing labelled HLists and a simple, boilerplate-free LabelledGeneric implementation in Rust. What is it? Why? How is it implemented?">
+  <meta name="description" content="Introducing labelled HLists and a boilerplate-free LabelledGeneric implementation in Rust. What is it? Why? How is it implemented?">
   
   
 
@@ -50,7 +50,7 @@
   <meta property="og:site_name" content="BeachApe." />
   <meta property="og:url" content="https://beachape.com/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/" />
 
-  <meta property="og:description" content="Introducing labelled HLists and a simple, boilerplate-free LabelledGeneric implementation in Rust. What is it? Why? How is it implemented?" />
+  <meta property="og:description" content="Introducing labelled HLists and a boilerplate-free LabelledGeneric implementation in Rust. What is it? Why? How is it implemented?" />
   
   <meta property="og:author" content="https://www.facebook.com/BEACHAPE-221821961171501/" />
   <meta property="og:image" content="https://beachape.com/images/label-all-the-things.jpg" />
@@ -61,7 +61,7 @@
   <meta property="twitter:site" content="meta_lloyd" />
   <meta property="twitter:url" content="https://beachape.com/blog/2017/03/04/labelledgeneric-in-rust-what-why-how" />
   <meta property="twitter:title" content="LabelledGeneric in Rust: What, Why, How?" />
-  <meta property="twitter:description" content="Introducing labelled HLists and a simple, boilerplate-free LabelledGeneric implementation in Rust. What is it? Why? How is it implemented?" />
+  <meta property="twitter:description" content="Introducing labelled HLists and a boilerplate-free LabelledGeneric implementation in Rust. What is it? Why? How is it implemented?" />
   
   <meta property="twitter:creator" content="meta_lloyd" />
   <meta property="twitter:image:src" content="https://beachape.com/images/label-all-the-things.jpg" />
@@ -240,7 +240,7 @@
 </span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">d_user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">DeletedUser</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">LabelledGeneric</span><span class="o">&gt;::</span><span class="n">convert_from</span><span class="p">(</span><span class="n">s_user</span><span class="p">);</span><span class="w"></span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
-<p>The solution to this sort of problem has been in <a href="https://github.com/milessabin/shapeless">Shapeless</a> for some time; by using <code>HLists</code> where each cell contains not just a value, but instead hold <em>named</em> fields, where each value is labelled <em>at the type level</em>.</p>
+<p>The solution to this sort of problem has been in <a href="https://github.com/milessabin/shapeless">Shapeless</a> for some time; by using <code>HList</code>s where each cell contains not just a value, but instead hold <em>named</em> fields, where each value is labelled <em>at the type level</em>.</p>
 
 <p>Let’s take a look at how Frunk implements <code>Labelled</code> values and <code>LabelledGeneric</code> in Rust :)</p>
 

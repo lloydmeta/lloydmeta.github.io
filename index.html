@@ -241,7 +241,7 @@
 </span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">d_user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">DeletedUser</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">LabelledGeneric</span><span class="o">&gt;::</span><span class="n">convert_from</span><span class="p">(</span><span class="n">s_user</span><span class="p">);</span><span class="w"></span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
-<p>The solution to this sort of problem has been in <a href="https://github.com/milessabin/shapeless">Shapeless</a> for some time; by using <code>HLists</code> where each cell contains not just a value, but instead hold <em>named</em> fields, where each value is labelled <em>at the type level</em>.</p>
+<p>The solution to this sort of problem has been in <a href="https://github.com/milessabin/shapeless">Shapeless</a> for some time; by using <code>HList</code>s where each cell contains not just a value, but instead hold <em>named</em> fields, where each value is labelled <em>at the type level</em>.</p>
 
 <p>Let’s take a look at how Frunk implements <code>Labelled</code> values and <code>LabelledGeneric</code> in Rust :)</p>
 

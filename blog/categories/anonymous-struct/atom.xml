@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Anonymous Struct | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/anonymous-struct/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-03-05T02:10:04+09:00</updated>
+  <updated>2017-03-05T02:34:18+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -69,7 +69,7 @@ struct JumbledUser&lt;’a&gt; {
 let d_user = <DeletedUser as="" LabelledGeneric="">::convert_from(s_user);
 ```</DeletedUser></p>
 
-<p>The solution to this sort of problem has been in <a href="https://github.com/milessabin/shapeless">Shapeless</a> for some time; by using <code>HLists</code> where each cell contains not just a value, but instead hold <em>named</em> fields, where each value is labelled <em>at the type level</em>.</p>
+<p>The solution to this sort of problem has been in <a href="https://github.com/milessabin/shapeless">Shapeless</a> for some time; by using <code>HList</code>s where each cell contains not just a value, but instead hold <em>named</em> fields, where each value is labelled <em>at the type level</em>.</p>
 
 <p>Let’s take a look at how Frunk implements <code>Labelled</code> values and <code>LabelledGeneric</code> in Rust :)</p>
 
