@@ -160,266 +160,256 @@
 
 <div class="entry-content clearfix" itemprop="articleBody"><p>Have you ever wanted to convert <code>Hlist</code>s into Structs or to reuse logic across different types that are structurally identical or very similar (e.g. same data across different domains)? <code>Generic</code> can help you do that with minimal boilerplate.</p>
 
-<p><img class="center" src="/images/generic_example.png" width="350" height="350" title="'From Hlist to Struct, no boilerplate'" ></p>
+<p><img class="center" src="/images/generic_example.png" width="350" height="350" title="'From Hlist to Struct, no boilerplate'" /></p>
 
-<p><code>Generic</code> is a way of representing a type in &#8230; a generic way. By coding around <code>Generic</code>, you can write functions that abstract over types and arity, but still have the ability to recover your original type afterwards. This can be a fairly powerful thing.</p>
+<p><code>Generic</code> is a way of representing a type in … a generic way. By coding around <code>Generic</code>, you can write functions that abstract over types and arity, but still have the ability to recover your original type afterwards. This can be a fairly powerful thing.</p>
 
 <!-- more -->
 
+<p>Thanks to the new Macros 1.1 infrastructure added in Rust 1.15, Frunk comes out of the box with a custom <code>Generic</code> derivation so that boilerplate is kept to a minimum. Without further ado, let’s dive in to see what Generic can do for us.</p>
 
-<p>Thanks to the new Macros 1.1 infrastructure added in Rust 1.15, Frunk comes out of the box with a custom <code>Generic</code> derivation so that boilerplate is kept to a minimum. Without further ado, let&#8217;s dive in to see what Generic can do for us.</p>
-
-<h2>Add Frunk to your project</h2>
+<h2 id="add-frunk-to-your-project">Add Frunk to your project</h2>
 
 <p><a href="https://github.com/lloydmeta/frunk">Frunk</a> is published to <a href="//crates.io/crates/frust">Crates.io</a>, so to begin, add the crate to your list of dependencies:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="p">[</span><span class="n">dependencies</span><span class="p">]</span>
-</span><span class='line'><span class="n">frunk</span> <span class="o">=</span> <span class="s">&quot;0.1.9&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="p">[</span><span class="n">dependencies</span><span class="p">]</span><span class="w"></span>
+</span><span class="line"><span class="n">frunk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.1.9&quot;</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
 
+<h2 id="examples">Examples</h2>
 
-<h2>Examples</h2>
+<h3 id="hlist--struct">HList ⇄ Struct</h3>
 
-<h3>HList ⇄ Struct</h3>
+<p>Have an <code>HList</code> lying around and want to turn it into a Struct with the same shape (maybe you’re using <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Validated</a>)?</p>
 
-<p>Have an <code>HList</code> lying around and want to turn it into a Struct with the same shape (maybe you&#8217;re using <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Validated</a>)?</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">frunk</span><span class="p">;</span>
-</span><span class='line'><span class="cp">#[macro_use]</span> <span class="c1">// for the hlist macro</span>
-</span><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">frunk_core</span><span class="p">;</span>
-</span><span class='line'><span class="k">use</span> <span class="n">frunk</span><span class="o">::*</span><span class="p">;</span> <span class="c1">// for the Generic trait and HList</span>
-</span><span class='line'>
-</span><span class='line'><span class="cp">#[derive(Generic, Debug, PartialEq)]</span>
-</span><span class='line'><span class="n">struct</span> <span class="n">Person</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="o">&gt;</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">first_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
-</span><span class='line'>    <span class="n">last_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
-</span><span class='line'>    <span class="n">age</span><span class="o">:</span> <span class="n">usize</span><span class="p">,</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">);</span>
-</span><span class='line'><span class="k">let</span> <span class="n">p</span><span class="o">:</span> <span class="n">Person</span> <span class="o">=</span> <span class="n">from_generic</span><span class="p">(</span><span class="n">h</span><span class="p">);</span>
-</span><span class='line'><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">p</span><span class="p">,</span>
-</span><span class='line'>           <span class="n">Person</span> <span class="p">{</span>
-</span><span class='line'>               <span class="n">first_name</span><span class="o">:</span> <span class="s">&quot;Joe&quot;</span><span class="p">,</span>
-</span><span class='line'>               <span class="n">last_name</span><span class="o">:</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span>
-</span><span class='line'>               <span class="n">age</span><span class="o">:</span> <span class="m">30</span><span class="p">,</span>
-</span><span class='line'>           <span class="p">});</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">extern</span><span class="w"> </span><span class="k">crate</span><span class="w"> </span><span class="n">frunk</span><span class="p">;</span><span class="w"></span>
+</span><span class="line"><span class="cp">#[macro_use]</span><span class="w"> </span><span class="c1">// for the hlist macro</span>
+</span><span class="line"><span class="k">extern</span><span class="w"> </span><span class="k">crate</span><span class="w"> </span><span class="n">frunk_core</span><span class="p">;</span><span class="w"></span>
+</span><span class="line"><span class="k">use</span><span class="w"> </span><span class="n">frunk</span><span class="o">::*</span><span class="p">;</span><span class="w"> </span><span class="c1">// for the Generic trait and HList</span>
+</span><span class="line">
+</span><span class="line"><span class="cp">#[derive(Generic, Debug, PartialEq)]</span><span class="w"></span>
+</span><span class="line"><span class="k">struct</span> <span class="nc">Person</span><span class="o">&lt;</span><span class="na">&#39;a</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="kt">usize</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Blow&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">p</span><span class="o">:</span><span class="w"> </span><span class="n">Person</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">from_generic</span><span class="p">(</span><span class="n">h</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">           </span><span class="n">Person</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">               </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Joe&quot;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">               </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Blow&quot;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">               </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">           </span><span class="p">});</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>This also works the other way too; just pass a struct to <code>into_generic</code> and get its generic representation.</p>
 
-<p>One usecase for something like this is if you have a bunch of fields that you want to validate &#8220;simultaneously&#8221;, and you want to transform the end result into a single Struct; this is often the case when you want to turn external input (e.g. coming into your API, a web form, or fields read from a database), and in a previous post I introduced <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Validated</a> as a way of doing that.</p>
+<p>One usecase for something like this is if you have a bunch of fields that you want to validate “simultaneously”, and you want to transform the end result into a single Struct; this is often the case when you want to turn external input (e.g. coming into your API, a web form, or fields read from a database), and in a previous post I introduced <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Validated</a> as a way of doing that.</p>
 
 <p>With the introduction of <code>Generic</code>, that last step of transforming an <code>HList</code> into your struct gets much simpler:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">validated</span> <span class="o">=</span> <span class="n">get_first_name</span><span class="p">().</span><span class="n">into_validated</span><span class="p">()</span> <span class="o">+</span> <span class="n">get_last_name</span><span class="p">()</span> <span class="o">+</span> <span class="n">get_age</span><span class="p">();</span>
-</span><span class='line'><span class="k">let</span> <span class="n">person</span><span class="o">:</span> <span class="n">Result</span><span class="o">&lt;</span><span class="n">Person</span><span class="p">,</span> <span class="n">_</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">validated</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">into_result</span><span class="p">()</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">h</span><span class="o">|</span> <span class="n">from_generic</span><span class="p">(</span><span class="n">h</span><span class="p">));</span> <span class="c1">// &lt;-- much simpler !</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="bogus-wrapper"><notextile><figure class="code"> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">validated</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_first_name</span><span class="p">().</span><span class="n">into_validated</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">get_last_name</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">get_age</span><span class="p">();</span><span class="w"></span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">person</span><span class="o">:</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">Person</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">validated</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="p">.</span><span class="n">into_result</span><span class="p">()</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">h</span><span class="o">|</span><span class="w"> </span><span class="n">from_generic</span><span class="p">(</span><span class="n">h</span><span class="p">));</span><span class="w"> </span><span class="c1">// &lt;-- much simpler !</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
 
+<h3 id="converting-between-structs">Converting between Structs</h3>
 
-<h3>Converting between Structs</h3>
-
-<p>Sometimes you might have 2 or more types that are structurally the same (e.g. different domains but the same data) and you&#8217;d like to convert between them. An example of this might be when you have a model for deserialising from an external API and another one for internal application business logic, and yet another for persistence.</p>
+<p>Sometimes you might have 2 or more types that are structurally the same (e.g. different domains but the same data) and you’d like to convert between them. An example of this might be when you have a model for deserialising from an external API and another one for internal application business logic, and yet another for persistence.</p>
 
 <p>Generic comes with a handy <code>convert_from</code> method that helps here:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="c1">// Assume we have all the imports needed</span>
-</span><span class='line'>
-</span><span class='line'><span class="cp">#[derive(Generic)]</span>
-</span><span class='line'><span class="n">struct</span> <span class="n">ApiPerson</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="o">&gt;</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">FirstName</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
-</span><span class='line'>    <span class="n">LastName</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
-</span><span class='line'>    <span class="n">Age</span><span class="o">:</span> <span class="n">usize</span><span class="p">,</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="cp">#[derive(Generic)]</span>
-</span><span class='line'><span class="n">struct</span> <span class="n">DomainPerson</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="o">&gt;</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">first_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
-</span><span class='line'>    <span class="n">last_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
-</span><span class='line'>    <span class="n">age</span><span class="o">:</span> <span class="n">usize</span><span class="p">,</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">a_person</span> <span class="o">=</span> <span class="n">ApiPersion</span> <span class="p">{</span>
-</span><span class='line'>                   <span class="n">first_name</span><span class="o">:</span> <span class="s">&quot;Joe&quot;</span><span class="p">,</span>
-</span><span class='line'>                   <span class="n">last_name</span><span class="o">:</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span>
-</span><span class='line'>                   <span class="n">age</span><span class="o">:</span> <span class="m">30</span><span class="p">,</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'><span class="k">let</span> <span class="n">d_person</span><span class="o">:</span> <span class="n">DomainPersion</span> <span class="o">=</span> <span class="n">convert_from</span><span class="p">(</span><span class="n">a_person</span><span class="p">);</span> <span class="c1">// done</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// Assume we have all the imports needed</span>
+</span><span class="line">
+</span><span class="line"><span class="cp">#[derive(Generic)]</span><span class="w"></span>
+</span><span class="line"><span class="k">struct</span> <span class="nc">ApiPerson</span><span class="o">&lt;</span><span class="na">&#39;a</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">FirstName</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">LastName</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">Age</span><span class="o">:</span><span class="w"> </span><span class="kt">usize</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="cp">#[derive(Generic)]</span><span class="w"></span>
+</span><span class="line"><span class="k">struct</span> <span class="nc">DomainPerson</span><span class="o">&lt;</span><span class="na">&#39;a</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="kt">usize</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">a_person</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ApiPersion</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">                   </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Joe&quot;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">                   </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Blow&quot;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">                   </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="p">};</span><span class="w"></span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">d_person</span><span class="o">:</span><span class="w"> </span><span class="n">DomainPersion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">convert_from</span><span class="p">(</span><span class="n">a_person</span><span class="p">);</span><span class="w"> </span><span class="c1">// done</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>Another example of where this might be useful is if you want to use different types to represent the same data at different stages (see <a href="http://stackoverflow.com/questions/31949455/transform-one-case-class-into-another-when-the-argument-list-is-the-same">this post on StackOverflow</a>).</p>
 
-<h2>How it works (what is going on ? is it safe ?)</h2>
+<h2 id="how-it-works-what-is-going-on--is-it-safe-">How it works (what is going on ? is it safe ?)</h2>
 
-<p>At a glance, <code>Generic</code> might look magical and dangerous, but really it is no more mysterious than the <code>From</code> trait in the standard lib; the only difference (for now) is that every <code>Generic</code> instance is bidirectional (can turn an <code>A</code> into a <code>Repr</code> and a <code>Repr</code> into an <code>A</code>). If you don&#8217;t believe me, just look at the type signatures.</p>
+<p>At a glance, <code>Generic</code> might look magical and dangerous, but really it is no more mysterious than the <code>From</code> trait in the standard lib; the only difference (for now) is that every <code>Generic</code> instance is bidirectional (can turn an <code>A</code> into a <code>Repr</code> and a <code>Repr</code> into an <code>A</code>). If you don’t believe me, just look at the type signatures.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">pub</span> <span class="n">trait</span> <span class="n">Generic</span><span class="o">&lt;</span><span class="n">Repr</span><span class="o">&gt;</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c1">/// Go from something to Repr</span>
-</span><span class='line'>    <span class="k">fn</span> <span class="n">into</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Repr</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c1">/// Go from Repr to something</span>
-</span><span class='line'>    <span class="k">fn</span> <span class="n">from</span><span class="p">(</span><span class="n">r</span><span class="o">:</span> <span class="n">Repr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">/// Given a generic Representation of an A, returns A</span>
-</span><span class='line'><span class="n">pub</span> <span class="k">fn</span> <span class="n">from_generic</span><span class="o">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">Repr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">gen</span><span class="o">:</span> <span class="n">Repr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">A</span> <span class="n">where</span> <span class="n">A</span><span class="o">:</span> <span class="n">Generic</span><span class="o">&lt;</span><span class="n">Repr</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">/// Given an A, returns its generic Representation</span>
-</span><span class='line'><span class="n">pub</span> <span class="k">fn</span> <span class="n">into_generic</span><span class="o">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">Repr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">a</span><span class="o">:</span> <span class="n">A</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Repr</span> <span class="n">where</span> <span class="n">A</span><span class="o">:</span> <span class="n">Generic</span><span class="o">&lt;</span><span class="n">Repr</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">/// Converts one type into another assuming they have the same generic Representation</span>
-</span><span class='line'><span class="n">pub</span> <span class="k">fn</span> <span class="n">convert_from</span><span class="o">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Repr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">a</span><span class="o">:</span> <span class="n">A</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">B</span>
-</span><span class='line'>  <span class="n">where</span>
-</span><span class='line'>    <span class="n">A</span><span class="o">:</span> <span class="n">Generic</span><span class="o">&lt;</span><span class="n">Repr</span><span class="o">&gt;</span><span class="p">,</span>
-</span><span class='line'>    <span class="n">B</span><span class="o">:</span> <span class="n">Generic</span><span class="o">&lt;</span><span class="n">Repr</span><span class="o">&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">pub</span><span class="w"> </span><span class="k">trait</span><span class="w"> </span><span class="n">Generic</span><span class="o">&lt;</span><span class="n">Repr</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="sd">/// Go from something to Repr</span>
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">into</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Repr</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="sd">/// Go from Repr to something</span>
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">from</span><span class="p">(</span><span class="n">r</span><span class="o">:</span><span class="w"> </span><span class="n">Repr</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Self</span><span class="p">;</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="sd">/// Given a generic Representation of an A, returns A</span>
+</span><span class="line"><span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">from_generic</span><span class="o">&lt;</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">Repr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">gen</span><span class="o">:</span><span class="w"> </span><span class="n">Repr</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">A</span><span class="w"> </span><span class="k">where</span><span class="w"> </span><span class="n">A</span><span class="o">:</span><span class="w"> </span><span class="n">Generic</span><span class="o">&lt;</span><span class="n">Repr</span><span class="o">&gt;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="sd">/// Given an A, returns its generic Representation</span>
+</span><span class="line"><span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">into_generic</span><span class="o">&lt;</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">Repr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">a</span><span class="o">:</span><span class="w"> </span><span class="n">A</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Repr</span><span class="w"> </span><span class="k">where</span><span class="w"> </span><span class="n">A</span><span class="o">:</span><span class="w"> </span><span class="n">Generic</span><span class="o">&lt;</span><span class="n">Repr</span><span class="o">&gt;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="sd">/// Converts one type into another assuming they have the same generic Representation</span>
+</span><span class="line"><span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">convert_from</span><span class="o">&lt;</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="n">Repr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">a</span><span class="o">:</span><span class="w"> </span><span class="n">A</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">B</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="k">where</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">A</span><span class="o">:</span><span class="w"> </span><span class="n">Generic</span><span class="o">&lt;</span><span class="n">Repr</span><span class="o">&gt;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">B</span><span class="o">:</span><span class="w"> </span><span class="n">Generic</span><span class="o">&lt;</span><span class="n">Repr</span><span class="o">&gt;</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>Most of the magic resides in how the custom derive of Generic, made possible by the 1.15 release of Rust, is implemented. If you want to find out more, take a look at the <code>derives</code> directory of Frunk <a href="https://github.com/lloydmeta/frunk/tree/master/derives/src">on Github</a>. In regards to the end-result though, the following:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="cp">#[derive(Generic)]</span>
-</span><span class='line'><span class="n">struct</span> <span class="n">Person</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="o">&gt;</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">first_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
-</span><span class='line'>    <span class="n">last_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
-</span><span class='line'>    <span class="n">age</span><span class="o">:</span> <span class="n">usize</span><span class="p">,</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="cp">#[derive(Generic)]</span><span class="w"></span>
+</span><span class="line"><span class="k">struct</span> <span class="nc">Person</span><span class="o">&lt;</span><span class="na">&#39;a</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="kt">usize</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>Gets expanded at compile-time to something resembling:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">impl</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="o">&gt;</span> <span class="n">Generic</span><span class="o">&lt;</span><span class="n">Hlist</span><span class="o">!</span><span class="p">(</span><span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span> <span class="n">usize</span><span class="p">)</span><span class="o">&gt;</span> <span class="k">for</span> <span class="n">Person</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="o">&gt;</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">fn</span> <span class="n">into</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Hlist</span><span class="o">!</span><span class="p">(</span><span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span> <span class="n">usize</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">let</span> <span class="n">Person</span> <span class="p">{</span> <span class="n">first_name</span><span class="p">,</span> <span class="n">last_name</span><span class="p">,</span> <span class="n">age</span> <span class="p">}</span> <span class="o">=</span> <span class="n">self</span><span class="p">;</span>
-</span><span class='line'>        <span class="n">hlist</span><span class="o">!</span> <span class="p">[</span> <span class="n">first_name</span><span class="p">,</span> <span class="n">last_name</span><span class="p">,</span> <span class="n">age</span> <span class="p">]</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">fn</span> <span class="n">from</span><span class="p">(</span><span class="n">r</span><span class="o">:</span> <span class="n">Hlist</span><span class="o">!</span><span class="p">(</span><span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span> <span class="n">usize</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n">Self</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">let</span> <span class="n">hlist_pat</span><span class="o">!</span> <span class="p">[</span> <span class="n">first_name</span><span class="p">,</span> <span class="n">last_name</span><span class="p">,</span> <span class="n">age</span> <span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">;</span>
-</span><span class='line'>        <span class="n">Person</span> <span class="p">{</span> <span class="n">first_name</span><span class="o">:</span> <span class="n">first_name</span><span class="p">,</span> <span class="n">last_name</span><span class="o">:</span> <span class="n">last_name</span><span class="p">,</span> <span class="n">age</span><span class="o">:</span> <span class="n">age</span> <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">impl</span><span class="o">&lt;</span><span class="na">&#39;a</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Generic</span><span class="o">&lt;</span><span class="n">Hlist</span><span class="o">!</span><span class="p">(</span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="kt">usize</span><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">Person</span><span class="o">&lt;</span><span class="na">&#39;a</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">into</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Hlist</span><span class="o">!</span><span class="p">(</span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="kt">usize</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">Person</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">first_name</span><span class="p">,</span><span class="w"> </span><span class="n">last_name</span><span class="p">,</span><span class="w"> </span><span class="n">age</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">self</span><span class="p">;</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="n">hlist</span><span class="o">!</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="n">first_name</span><span class="p">,</span><span class="w"> </span><span class="n">last_name</span><span class="p">,</span><span class="w"> </span><span class="n">age</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="p">}</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">from</span><span class="p">(</span><span class="n">r</span><span class="o">:</span><span class="w"> </span><span class="n">Hlist</span><span class="o">!</span><span class="p">(</span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="kt">usize</span><span class="p">))</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Self</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">hlist_pat</span><span class="o">!</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="n">first_name</span><span class="p">,</span><span class="w"> </span><span class="n">last_name</span><span class="p">,</span><span class="w"> </span><span class="n">age</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r</span><span class="p">;</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="n">Person</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="n">first_name</span><span class="p">,</span><span class="w"> </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="n">last_name</span><span class="p">,</span><span class="w"> </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="n">age</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
 
+<p>To be clear, the actual expanded coded is much gnarlier because we use fully qualified names for the sake of hygiene and I’ve sugared some things up with their macro-powered equivalents to cut down on noise (namely the HList type signature, pattern matching, and construction).</p>
 
-<p>To be clear, the actual expanded coded is much gnarlier because we use fully qualified names for the sake of hygiene and I&#8217;ve sugared some things up with their macro-powered equivalents to cut down on noise (namely the HList type signature, pattern matching, and construction).</p>
+<p>Someone on Twitter raised the point that if you had mixed up the ordering of the fields in your struct declaration (e.g. last name and first name are swapped between structs), then <code>Generic</code> would cause silent errors at runtime because the Structs’ shape would be the same, and that implementing <code>From</code> was more typesafe. With all due respect to that individual, the same could happen even if you hand-wrote your <code>From</code> implementation and got your field assignments crossed. In the worst case; you’ve now got fields that are not ordered correctly, your <code>From</code> is wrong, and you’ve got more boilerplate to maintain.</p>
 
-<p>Someone on Twitter raised the point that if you had mixed up the ordering of the fields in your struct declaration (e.g. last name and first name are swapped between structs), then <code>Generic</code> would cause silent errors at runtime because the Structs&#8217; shape would be the same, and that implementing <code>From</code> was more typesafe. With all due respect to that individual, the same could happen even if you hand-wrote your <code>From</code> implementation and got your field assignments crossed. In the worst case; you&#8217;ve now got fields that are not ordered correctly, your <code>From</code> is wrong, and you&#8217;ve got more boilerplate to maintain.</p>
+<p>Really, the only way to truly prevent this kind of fat-fingering error is to have wrapper types (like <code>struct FirstName(String)</code>, etc) for all your fields, in which case <code>Generic</code> conversion would be foolproof (if you got your field declaration orders wrong, you’d get a compile-time error). Ultimately, how typesafe you want to be is a choice you will need to make while weighing the risk of fat-fingering against the burden of maintaining more code.</p>
 
-<p>Really, the only way to truly prevent this kind of fat-fingering error is to have wrapper types (like <code>struct FirstName(String)</code>, etc) for all your fields, in which case <code>Generic</code> conversion would be foolproof (if you got your field declaration orders wrong, you&#8217;d get a compile-time error). Ultimately, how typesafe you want to be is a choice you will need to make while weighing the risk of fat-fingering against the burden of maintaining more code.</p>
+<p>I hope you’re now convinced that there is no dirty casting / unsafe stuff going on, so you can rest easy knowing your code is still as type-safe as it would have been if you had gone with something like <code>From</code> instead.</p>
 
-<p>I hope you&#8217;re now convinced that there is no dirty casting / unsafe stuff going on, so you can rest easy knowing your code is still as type-safe as it would have been if you had gone with something like <code>From</code> instead.</p>
+<h2 id="conclusion">Conclusion</h2>
 
-<h2>Conclusion</h2>
+<p>There are probably many other ways that <code>Generic</code> can be used to make code nicer (more reusable, DRYer, less noisy), so go ahead and see what you can cook up. As always, please don’t hesitate to get in touch via comments, on Github or on Gitter with suggestions, issues, questions, or PRs.</p>
 
-<p>There are probably many other ways that <code>Generic</code> can be used to make code nicer (more reusable, DRYer, less noisy), so go ahead and see what you can cook up. As always, please don&#8217;t hesitate to get in touch via comments, on Github or on Gitter with suggestions, issues, questions, or PRs.</p>
-
-<h2>Links</h2>
-
-<ol>
-<li><a href="https://github.com/lloydmeta/frunk">Frunk on Github</a></li>
-<li><a href="https://crates.io/crates/frunk">Frunk on Crates.io</a></li>
-</ol>
-
-
-<h2>Credit</h2>
+<h2 id="links">Links</h2>
 
 <ol>
-<li><a href="https://github.com/milessabin/shapeless">Shapeless</a></li>
+  <li><a href="https://github.com/lloydmeta/frunk">Frunk on Github</a></li>
+  <li><a href="https://crates.io/crates/frunk">Frunk on Crates.io</a></li>
 </ol>
 
+<h2 id="credit">Credit</h2>
+
+<ol>
+  <li><a href="https://github.com/milessabin/shapeless">Shapeless</a></li>
+</ol>
 </div>
 
 
@@ -475,6 +465,8 @@
             <li class="previous"><a href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/" title="Previous Post: Rust performance testing on Travis CI">&laquo; Rust performance testing on Travis CI</a></li>
             
             
+            <li class="next"><a href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/" title="Next Post: LabelledGeneric in Rust: What, Why, How?">LabelledGeneric in Rust: What, Why, How? &raquo;</a></li>
+            
           </ul>
         
       </footer>
@@ -498,6 +490,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric in Rust: What, Why, How?</a>
+    
     <a class="list-group-item active" href="/blog/2017/02/04/rust-generic-not-generics/">Rust Generic (Not Generics)</a>
     
     <a class="list-group-item " href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/">Rust Performance Testing on Travis CI</a>
@@ -505,8 +499,6 @@
     <a class="list-group-item " href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Accumulating Results in Rust With Validated</a>
     
     <a class="list-group-item " href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">Rust HLists (Heterogenous List)</a>
-    
-    <a class="list-group-item " href="/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe/">Enumeratum 1.4: ValueEnums + Circe</a>
     
   </div>
 </section>

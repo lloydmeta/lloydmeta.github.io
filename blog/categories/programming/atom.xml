@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/programming/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-17T12:19:45+09:00</updated>
+  <updated>2017-03-05T02:10:04+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -18,14 +18,13 @@
     <link href="https://beachape.com/blog/2013/01/18/walking-a-ruby-hash/"/>
     <updated>2013-01-18T23:52:00+09:00</updated>
     <id>https://beachape.com/blog/2013/01/18/walking-a-ruby-hash</id>
-    <content type="html"><![CDATA[<p><em>TL;DR</em> If you're using Ruby, want to perform operations on the values of a hash only at specific locations in the hash, check out <a href="https://rubygems.org/gems/hash_walker">hash_walker</a></p>
+    <content type="html"><![CDATA[<p><em>TL;DR</em> If you’re using Ruby, want to perform operations on the values of a hash only at specific locations in the hash, check out <a href="https://rubygems.org/gems/hash_walker">hash_walker</a></p>
 
 <p>A while back I worked at a Tokyo-based startup focused on building a crowd-sourced translation platform. The great thing about <a href="http://gengo.com/">Gengo</a> was that we (and they still do) offered a translation API that allowed clients to integrate and thus order huge amounts of translations, receive translated content back via callbacks and do whatever it is that clients do with translated materials.</p>
 
 <p>On one of the projects I worked on for a potential client, as part of a trial project, I needed to process a huge amounts (ok, not huge, maybe around 2000 or so) JSON responses and grab the data, throw it over the Gengo API and once it was translated, re-insert the translated content into the JSON responses and send all the JSON responses in text files to the client.</p>
 
 <!-- more -->
-
 
 <p>Not too hard, but at the same time not entirely trivial because the client wanted to make sure that only specific pieces in the original JSON were translated. For example given the following JSON response:</p>
 
@@ -63,7 +62,7 @@
 <span class='line-number'>31</span>
 <span class='line-number'>32</span>
 <span class='line-number'>33</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span></span><span class="p">{</span>
 </span><span class='line'>    <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Hilarious article&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;subtitle&quot;</span><span class="p">:</span> <span class="s2">&quot;Something people might find funny&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;super funny stuff&quot;</span><span class="p">,</span>
@@ -98,11 +97,11 @@
 </span><span class='line'><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>The client wanted title, subtitle, description, content.categories, content.body translated, but <strong>NOT</strong>  system.categories, system.descriptions etc. So in other words, it wouldn't be good enough to just traverse the JSON and look for specific keys, it had to be dependent on where the key was. To make things even more interesting, there would be cases where keys were inside objects that were inside arrays inside objects, inside arrays, etc.</p>
+<p>The client wanted title, subtitle, description, content.categories, content.body translated, but <strong>NOT</strong>  system.categories, system.descriptions etc. So in other words, it wouldn’t be good enough to just traverse the JSON and look for specific keys, it had to be dependent on where the key was. To make things even more interesting, there would be cases where keys were inside objects that were inside arrays inside objects, inside arrays, etc.</p>
 
-<p>Since I like using Ruby and in Ruby, the natural data structure that JSON maps to is the Hash, I decided to build an app that would allow me to define some sort of "template" if you will, for the purpose of traversing the JSON responses involved in this project.</p>
+<p>Since I like using Ruby and in Ruby, the natural data structure that JSON maps to is the Hash, I decided to build an app that would allow me to define some sort of “template” if you will, for the purpose of traversing the JSON responses involved in this project.</p>
 
-<p>I came up with the <a href="https://rubygems.org/gems/hash_walker">hash_walker gem</a>. Use it like you would any gem, require it, and you get a each_primitive_value_at method on all hash objects. For full details on how to use it, check out <a href="https://github.com/lloydmeta/hash_walker">the project's Github page</a>; I'll just be explaining the basics here.</p>
+<p>I came up with the <a href="https://rubygems.org/gems/hash_walker">hash_walker gem</a>. Use it like you would any gem, require it, and you get a each_primitive_value_at method on all hash objects. For full details on how to use it, check out <a href="https://github.com/lloydmeta/hash_walker">the project’s Github page</a>; I’ll just be explaining the basics here.</p>
 
 <p>Since a code example says a thousand words:</p>
 
@@ -166,7 +165,7 @@
 <span class='line-number'>57</span>
 <span class='line-number'>58</span>
 <span class='line-number'>59</span>
-</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">require</span> <span class="s1">&#39;hash_walker&#39;</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span></span><span class="nb">require</span> <span class="s1">&#39;hash_walker&#39;</span>
 </span><span class='line'>
 </span><span class='line'><span class="n">json_response</span> <span class="o">=</span> <span class="p">{</span>
 </span><span class='line'>    <span class="s2">&quot;title&quot;</span><span class="o">=&gt;</span> <span class="s2">&quot;Hilarious article&quot;</span><span class="p">,</span>

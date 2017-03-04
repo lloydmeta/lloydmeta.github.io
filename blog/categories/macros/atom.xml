@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Macros | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/macros/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-17T12:19:45+09:00</updated>
+  <updated>2017-03-05T02:10:04+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -18,33 +18,29 @@
     <link href="https://beachape.com/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe/"/>
     <updated>2016-04-16T16:25:00+09:00</updated>
     <id>https://beachape.com/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe</id>
-    <content type="html"><![CDATA[<p>It's been a while since the last major release of <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a>, and in 1.4.0, minor changes include Play 2.5 support, integration library version bumps, and small internal refactorings. More excitingly though, the latest version adds support for a new kind of enumeration, <code>ValueEnum</code>, as well as an integration with the <a href="https://github.com/travisbrown/circe">Circe JSON library</a>.</p>
+    <content type="html"><![CDATA[<p>It’s been a while since the last major release of <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a>, and in 1.4.0, minor changes include Play 2.5 support, integration library version bumps, and small internal refactorings. More excitingly though, the latest version adds support for a new kind of enumeration, <code>ValueEnum</code>, as well as an integration with the <a href="https://github.com/travisbrown/circe">Circe JSON library</a>.</p>
 
 <p>Points of interest:</p>
 
 <ul>
-<li>Unlike other value enum implementations, Enumeration's value enums perform uniqueness checks at compile time to make sure you have unique values across your enum members.</li>
-<li>Circe integration allows you to send and receive JSON data between your front end and your server using the same code</li>
+  <li>Unlike other value enum implementations, Enumeration’s value enums perform uniqueness checks at compile time to make sure you have unique values across your enum members.</li>
+  <li>Circe integration allows you to send and receive JSON data between your front end and your server using the same code</li>
 </ul>
 
-
-<p><img class="center /images/abc-123.gif  400 400  'Enumeratum: Enums as easy as ABC" src="<em>and</em>" width="123"></p>
+<p><img class="center /images/abc-123.gif  400 400  ‘Enumeratum: Enums as easy as ABC" src="<em>and</em>" width="123"></p>
 
 <!-- more -->
 
-
-<p>The <a href="https://github.com/lloydmeta/enumeratum/releases/tag/v1.4.0">1.4.0 release page</a> on Github has a more detailed list of changes, but we'll specifically go through:</p>
+<p>The <a href="https://github.com/lloydmeta/enumeratum/releases/tag/v1.4.0">1.4.0 release page</a> on Github has a more detailed list of changes, but we’ll specifically go through:</p>
 
 <ol>
-<li><a href="#valueenums">ValueEnums</a></li>
-<li><a href="#circe-integration">Circe Integration</a></li>
+  <li><a href="#valueenums">ValueEnums</a></li>
+  <li><a href="#circe-integration">Circe Integration</a></li>
 </ol>
-
 
 <h2 id="valueenums">ValueEnums</h2>
 
-
-<p>What is a <code>ValueEnum</code>? It's an enum that represents a primitive value  (e.g. <code>Int</code>, <code>Long</code>, <code>Short</code>) instead of a <code>String</code>. I may have just made up the term, but it doesn't matter as long as you know what I mean.</p>
+<p>What is a <code>ValueEnum</code>? It’s an enum that represents a primitive value  (e.g. <code>Int</code>, <code>Long</code>, <code>Short</code>) instead of a <code>String</code>. I may have just made up the term, but it doesn’t matter as long as you know what I mean.</p>
 
 <p>```scala</p>
 
@@ -58,36 +54,36 @@ object ContentType {
 assert(ContentType.withValue(3) == ContentType.Image)
 ```</p>
 
-<p>This may sound mundane, since you can already build something like this yourself with the standard library's <code>Enumeration</code> (or  previous versions of Enumeratum ), but sometimes the most straightforward solutions are suboptimal.</p>
+<p>This may sound mundane, since you can already build something like this yourself with the standard library’s <code>Enumeration</code> (or  previous versions of Enumeratum ), but sometimes the most straightforward solutions are suboptimal.</p>
 
-<h3>The trouble with <code>Enumeration</code></h3>
+<h3 id="the-trouble-with-enumeration">The trouble with <code>Enumeration</code></h3>
 
-<p>The standard lib's <code>Enumeration</code> comes with the notion of a customisable <code>id: Int</code> on each member, which is a great starting point for implementing numbers-based enumerations.</p>
+<p>The standard lib’s <code>Enumeration</code> comes with the notion of a customisable <code>id: Int</code> on each member, which is a great starting point for implementing numbers-based enumerations.</p>
 
 <p>```scala
-/<em>*
+/**
   * This is an anti-example to show what can go wrong.
   *
   * Do not use this
-  </em>/
+  */
 object Things extends Enumeration {
   val First = Value(1)
   val Second = Value(2)
   val Third = Value(3)
   val Fourth = Value(3) // not enough coffeeeeee</p>
 
-<p>  def withValueOpt(i: Int): Option[Things.Value] = values.find(_.id == i)
+<p>def withValueOpt(i: Int): Option[Things.Value] = values.find(_.id == i)
 }</p>
 
-<p>/<em>
+<p>/*
  *  The above Enumeration will compile. Fine, but imagine now your app is deployed
  *  and somewhere else in your code you have to actually use your enum.
- </em>/</p>
+ */</p>
 
-<p>Things.First // => java.lang.AssertionError: assertion failed: Duplicate id: 3</p>
+<p>Things.First // =&gt; java.lang.AssertionError: assertion failed: Duplicate id: 3</p>
 
-<p>// If at first you don't succeed???
-Things.First // => java.lang.NoClassDefFoundError: Could not initialize class Things$
+<p>// If at first you don’t succeed???
+Things.First // =&gt; java.lang.NoClassDefFoundError: Could not initialize class Things$
 // newp
 ```</p>
 
@@ -95,13 +91,13 @@ Things.First // => java.lang.NoClassDefFoundError: Could not initialize class Th
 
 <p>What has happend in the above example is the enumeration code compiles, but when we call <code>Things.First</code>, <code>object Things</code> gets instantiated, and throws an assertion error when <code>val Fourth</code> is being instantiated with an id of 3, which has already been assigned to <code>Third</code> and thus is already in the aforementioned <code>HashMap</code>.  This prevents the singleton <code>Things</code> from getting instantiated, and the next time you try to use it, Scala will throw a <code>NoClassDefFoundError</code>.</p>
 
-<p>One way to work around this is to write tests for every such <code>Enumeration</code> to make sure that no one working in the code base has fat-fingered any ids. I'm a big proponent of writing tests, but tests are also code and come with a maintenance and cognitive cost, so I would prefer not having to write tests to make sure my simple value enums can be safely initialised.</p>
+<p>One way to work around this is to write tests for every such <code>Enumeration</code> to make sure that no one working in the code base has fat-fingered any ids. I’m a big proponent of writing tests, but tests are also code and come with a maintenance and cognitive cost, so I would prefer not having to write tests to make sure my simple value enums can be safely initialised.</p>
 
 <p>This kind of problem is not limited to <code>Enumeration</code>: careless implementation of something similar may result in arguably freakier outcomes such as silent failures (2 members with the same value but only one of the members can be retrieved by value).</p>
 
-<h3><code>ValueEnum</code></h3>
+<h3 id="valueenum"><code>ValueEnum</code></h3>
 
-<p>In version 1.4.0 of Enumeratum, we've introduced 3 pairs of traits: <code>IntEnum</code> and <code>IntEnumEntry</code>, <code>LongEnum</code> and <code>LongEnumEntry</code>, and <code>ShortEnum</code> and <code>ShortEnumEntry</code>.  As their names suggest, these are value enum traits that allow you to create enums that are backed by <code>Int</code>, <code>Long</code> and <code>Short</code> respectively.  Each pair extends <code>ValueEnum</code> and <code>ValueEnumEntry</code>. Note that this class hierarchy is a bit extensive for now, and it may be more streamlined in the future.</p>
+<p>In version 1.4.0 of Enumeratum, we’ve introduced 3 pairs of traits: <code>IntEnum</code> and <code>IntEnumEntry</code>, <code>LongEnum</code> and <code>LongEnumEntry</code>, and <code>ShortEnum</code> and <code>ShortEnumEntry</code>.  As their names suggest, these are value enum traits that allow you to create enums that are backed by <code>Int</code>, <code>Long</code> and <code>Short</code> respectively.  Each pair extends <code>ValueEnum</code> and <code>ValueEnumEntry</code>. Note that this class hierarchy is a bit extensive for now, and it may be more streamlined in the future.</p>
 
 <p>This is an example of how you would create an <code>Long</code> based value enum with Play integration (JSON readers and writers, Query string binders, Path binders, Form formatters, etc):</p>
 
@@ -134,7 +130,7 @@ Things.First // => java.lang.NoClassDefFoundError: Could not initialize class Th
 <span class='line-number'>26</span>
 <span class='line-number'>27</span>
 <span class='line-number'>28</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">enumeratum.values._</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">import</span> <span class="nn">enumeratum.values._</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">sealed</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">ContentType</span><span class="o">(</span><span class="k">val</span> <span class="n">value</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">LongEnumEntry</span>
 </span><span class='line'>
@@ -164,18 +160,17 @@ Things.First // => java.lang.NoClassDefFoundError: Could not initialize class Th
 </span><span class='line'><span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>The <code>findValues</code> method of <code>ValueEnum</code>s works similarly to the <code>findValues</code> method of Enumeratum's older <code>Enum</code>, except the macro will ensure that there is a literal <code>value</code> member or constructor for each enum entry and fails the compilation if more than one member shares the same value.</p>
+<p>The <code>findValues</code> method of <code>ValueEnum</code>s works similarly to the <code>findValues</code> method of Enumeratum’s older <code>Enum</code>, except the macro will ensure that there is a literal <code>value</code> member or constructor for each enum entry and fails the compilation if more than one member shares the same value.</p>
 
 <p>As the above example demonstrates, there are Play (and standalone Play-JSON) integrations available for this new kind of enum, as well as for UPickle, and Circe.</p>
 
-<p><del>Note that this new feature is not yet available in Scala 2.10 and in the REPL due to Macro expansion differences</del> (update: now works in the REPL <em>and</em> is available for 2.10.x!).</p>
+<p>~~Note that this new feature is not yet available in Scala 2.10 and in the REPL due to Macro expansion differences~~ (update: now works in the REPL <em>and</em> is available for 2.10.x!).</p>
 
 <h2 id="circe-integration">Circe integration</h2>
 
-
 <p>Enumeratum 1.4.0 also adds support for serialising/deserialising to JSON using <a href="https://github.com/travisbrown/circe">Circe</a>, an up-and-coming performant and feature-filled JSON library published for both JVM <em>and</em> ScalaJS.</p>
 
-<p>This is how you would use Circe with Enumeratum's <code>Enum</code> (integrations for <code>ValueEnum</code> also exist)</p>
+<p>This is how you would use Circe with Enumeratum’s <code>Enum</code> (integrations for <code>ValueEnum</code> also exist)</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>ShirtSize Enum with Circe integration (ShirtSize.scala)</span> <a href='/downloads/code/scala/ShirtSize.scala'>download</a></figcaption>
  <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -198,7 +193,7 @@ Things.First // => java.lang.NoClassDefFoundError: Could not initialize class Th
 <span class='line-number'>18</span>
 <span class='line-number'>19</span>
 <span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">enumeratum._</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">import</span> <span class="nn">enumeratum._</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">ShirtSize</span> <span class="k">extends</span> <span class="nc">EnumEntry</span>
 </span><span class='line'>
@@ -220,18 +215,17 @@ Things.First // => java.lang.NoClassDefFoundError: Could not initialize class Th
 </span><span class='line'><span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<h2>Conclusion</h2>
+<h2 id="conclusion">Conclusion</h2>
 
-<p>Hopefully, Enumeratum's new <code>ValueEnum</code> implementations will make development easier and safer for engineers out there who need to use value enumerations.  Since uniqueness is checked at compile-time, you can save yourself the trouble of writing a bunch of pedantic tests.  Circe is a promising JSON library that was really easy to integrate with and I look forward to taking advantage of the fact that it works on both server side and on the front end.</p>
+<p>Hopefully, Enumeratum’s new <code>ValueEnum</code> implementations will make development easier and safer for engineers out there who need to use value enumerations.  Since uniqueness is checked at compile-time, you can save yourself the trouble of writing a bunch of pedantic tests.  Circe is a promising JSON library that was really easy to integrate with and I look forward to taking advantage of the fact that it works on both server side and on the front end.</p>
 
 <p>As always, if you have any problems, questions, suggestions, or better yet, PRs, please do not hesitate to get in touch on Github.</p>
 
-<h2>Links</h2>
+<h2 id="links">Links</h2>
 
 <ul>
-<li><a href="https://github.com/lloydmeta/enumeratum">Enumeratum on Github</a></li>
+  <li><a href="https://github.com/lloydmeta/enumeratum">Enumeratum on Github</a></li>
 </ul>
-
 ]]></content>
   </entry>
   
@@ -240,29 +234,25 @@ Things.First // => java.lang.NoClassDefFoundError: Could not initialize class Th
     <link href="https://beachape.com/blog/2015/02/11/enumeratum-sealed-trait-enums-for-scala/"/>
     <updated>2015-02-11T16:47:00+09:00</updated>
     <id>https://beachape.com/blog/2015/02/11/enumeratum-sealed-trait-enums-for-scala</id>
-    <content type="html"><![CDATA[<p>If you've been working with Scala for a while, you might have come across a few "problems" with the built in <code>Enumeration</code> that's provided out-of-the-box.  This is especially true if you have colleagues who come from a Java background and yearn for the Java-style <code>Enum</code> that gave them lots of power and flexibility.</p>
+    <content type="html"><![CDATA[<p>If you’ve been working with Scala for a while, you might have come across a few “problems” with the built in <code>Enumeration</code> that’s provided out-of-the-box.  This is especially true if you have colleagues who come from a Java background and yearn for the Java-style <code>Enum</code> that gave them lots of power and flexibility.</p>
 
-<p>A quick search on the internet for "Scala enumeration alternative" will yield a lot of results (perhaps on StackOverflow) where people have cooked up their own implementation of enumerations, usually built on <code>sealed traits</code>. Personally, I found most of them to be either too inconvenient to use, too over-powered, or too complicated, and I really didn't want to have to copy-paste enum-related code into all my projects.</p>
+<p>A quick search on the internet for “Scala enumeration alternative” will yield a lot of results (perhaps on StackOverflow) where people have cooked up their own implementation of enumerations, usually built on <code>sealed traits</code>. Personally, I found most of them to be either too inconvenient to use, too over-powered, or too complicated, and I really didn’t want to have to copy-paste enum-related code into all my projects.</p>
 
 <p>Thus <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> was born.</p>
 
 <!-- more -->
 
-
 <p><a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> aims to be simple to use, idiomatic, small (LoC), yet flexible enough to allow Scala devs to make power enums if they so wish. It is also Mavenised for easy import into any project.</p>
 
 <p>To use it, simply <a href="https://github.com/lloydmeta/enumeratum#sbt">add it as a dependency</a></p>
 
-<p>```scala
+<p><code>scala
 val enumeratumVersion = "1.4.2"  // latest version number can be found on the Maven Central version badge on the Github repo.
-libraryDependencies ++= Seq(</p>
-
-<pre><code>"com.beachape" %% "enumeratum" % enumeratumVersion,
-"com.beachape" %% "enumeratum-play" % enumeratumVersion // if you are using Play and want to avoid boilerplate
-</code></pre>
-
-<p>)
-```</p>
+libraryDependencies ++= Seq(
+    "com.beachape" %% "enumeratum" % enumeratumVersion,
+    "com.beachape" %% "enumeratum-play" % enumeratumVersion // if you are using Play and want to avoid boilerplate
+)
+</code></p>
 
 <p>Then</p>
 
@@ -309,7 +299,7 @@ libraryDependencies ++= Seq(</p>
 <span class='line-number'>40</span>
 <span class='line-number'>41</span>
 <span class='line-number'>42</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="c1">// For use in a REPL</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="c1">// For use in a REPL</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">import</span> <span class="nn">enumeratum._</span>
 </span><span class='line'>
@@ -355,32 +345,31 @@ libraryDependencies ++= Seq(</p>
 
 <p>You get nice things like exhaustive match warnings at compile-time, enums with methods, no more Enum-value type erasure, and other nice stuff.</p>
 
-<h2>How it works</h2>
+<h2 id="how-it-works">How it works</h2>
 
 <p>Some of the solutions for custom enums out there are based on macros that reflect at compile time using <code>knownDirectSubclasses</code> to find enum values, but as of writing, there is a <a href="https://issues.scala-lang.org/browse/SI-7046">2 year old bug</a> for that method.</p>
 
-<p>As a result, <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> uses another method of finding enum values: looking in an enclosed object to find the enum values. The macro behind <code>findValues</code> does this for you so that you don't have to maintain your own collection of enum values, which is both error-prone and tedious.</p>
+<p>As a result, <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> uses another method of finding enum values: looking in an enclosed object to find the enum values. The macro behind <code>findValues</code> does this for you so that you don’t have to maintain your own collection of enum values, which is both error-prone and tedious.</p>
 
-<h2>Play</h2>
+<h2 id="play">Play</h2>
 
 <p>If you want to use <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> in a Play app, you may as well add <a href="https://github.com/lloydmeta/enumeratum#play-2"><code>enumeratum-play</code></a> as a dependency instead so that you can use the <code>PlayEnum[A]</code> trait (instead of <code>Enum[A]</code>), which will give you nice things like QueryStringBinders, PathBinders, form mappers, and Json Reads/Writes/Formats. To make use of this integration, just extend from <code>PlayEnum</code> instead of <code>Enum</code> in the above example.</p>
 
 <p>This means less boilerplate in your project, which is A Good Thing, right?</p>
 
-<h2>Limitations</h2>
+<h2 id="limitations">Limitations</h2>
 
 <p>There are a few limitations with Enumeratum:</p>
 
 <ul>
-<li><del>Ordinality is not taken care of. From what I've seen, this is one of the least-used functions of Enums in general. That said, nothing is stoping you from defining an <code>Ordering</code> in your companion object for your sealed trait.</del></li>
-<li>Because the Enum values are case objects, they will be inferred to have their own specific type, which may cause problems with compilation for typeclasses that are not contravariant. In that case, simply help the compiler by adding a type (e.g. <code>val myPhone: Phone = Iphone</code>)</li>
-<li><del>The method <code>withName</code> relies on the <code>toString</code> method of the Enum values for lookup. Make sure to override this if you have specific requirements.</del></li>
+  <li>~~Ordinality is not taken care of. From what I’ve seen, this is one of the least-used functions of Enums in general. That said, nothing is stoping you from defining an <code>Ordering</code> in your companion object for your sealed trait.~~</li>
+  <li>Because the Enum values are case objects, they will be inferred to have their own specific type, which may cause problems with compilation for typeclasses that are not contravariant. In that case, simply help the compiler by adding a type (e.g. <code>val myPhone: Phone = Iphone</code>)</li>
+  <li>~~The method <code>withName</code> relies on the <code>toString</code> method of the Enum values for lookup. Make sure to override this if you have specific requirements.~~</li>
 </ul>
-
 
 <p><strong>Update 2016/04/22</strong> Crossed out a bunch of limitations that no longer apply.</p>
 
-<h2>Enjoy</h2>
+<h2 id="enjoy">Enjoy</h2>
 
 <p>I hope <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> can help you out of your <code>Enumeration</code> woes. Have a look, play around, and send a PR or two !</p>
 ]]></content>
@@ -391,40 +380,38 @@ libraryDependencies ++= Seq(</p>
     <link href="https://beachape.com/blog/2014/08/11/scala-unless-when-via-macros/"/>
     <updated>2014-08-11T18:41:00+09:00</updated>
     <id>https://beachape.com/blog/2014/08/11/scala-unless-when-via-macros</id>
-    <content type="html"><![CDATA[<p>Last week, I decided to take a stab at learning <a href="http://scalamacros.org/">Scala macros</a>. I had played around with macros when I wrote Scheme for a living (yes, believe it or not, these places exist...and existed long before Clojure made Lisp hip again), but the complexity of Scala's macros always put me off (if you don't believe me, check out the example given in the offical docs for a simple <a href="http://docs.scala-lang.org/overviews/macros/overview.html#a-complete-example">print macro</a>).</p>
+    <content type="html"><![CDATA[<p>Last week, I decided to take a stab at learning <a href="http://scalamacros.org/">Scala macros</a>. I had played around with macros when I wrote Scheme for a living (yes, believe it or not, these places exist…and existed long before Clojure made Lisp hip again), but the complexity of Scala’s macros always put me off (if you don’t believe me, check out the example given in the offical docs for a simple <a href="http://docs.scala-lang.org/overviews/macros/overview.html#a-complete-example">print macro</a>).</p>
 
-<p>In Scala, things are not so simple, but with the introduction of <a href="docs.scala-lang.org/overviews/macros/quasiquotes.html">quasiquotes</a> and some refinements brought by Scala 2.11, things are smoother. Still, for a guy like me, the documentation was both sparse and DRY. Since I learn best when I'm actively engaged in building something, I decided to try writing the <a href="http://clhs.lisp.se/Body/m_when_.htm">run-of-the-mill unless-when</a> macros in Scala.</p>
+<p>In Scala, things are not so simple, but with the introduction of <a href="docs.scala-lang.org/overviews/macros/quasiquotes.html">quasiquotes</a> and some refinements brought by Scala 2.11, things are smoother. Still, for a guy like me, the documentation was both sparse and DRY. Since I learn best when I’m actively engaged in building something, I decided to try writing the <a href="http://clhs.lisp.se/Body/m_when_.htm">run-of-the-mill unless-when</a> macros in Scala.</p>
 
-<p>This post aims to summarise my journey towards implementing <a href="https://github.com/lloydmeta/unless-when">unless-when</a> and hopefully along the way make Scala macros accessible, at least at an introductory level, for Most People. There are already a few Scala macro blog posts out there but another one can't hurt.</p>
+<p>This post aims to summarise my journey towards implementing <a href="https://github.com/lloydmeta/unless-when">unless-when</a> and hopefully along the way make Scala macros accessible, at least at an introductory level, for Most People. There are already a few Scala macro blog posts out there but another one can’t hurt.</p>
 
 <!-- more -->
 
-
 <p><em>Note</em>: this blog post aims to explore macros as they are usable in Scala 2.10+. It also focuses on implementing macros with quasiquotes, as using them is more human-friendly than manually constructing Abstract Syntax Trees (AST).</p>
 
-<h2>Goal</h2>
-
-<p>For those unfamiliar with <code>when</code> and <code>unless</code>: the basic idea is that <code>when</code> is an <code>if</code> without an else, and <code>unless</code> is it's opposite. The main reason for their existence is to make code more readable by adding a tiny bit of syntatic sugar. Without further ado, an example of what we want to achieve</p>
+<h2 id="goal">Goal</h2>
+<p>For those unfamiliar with <code>when</code> and <code>unless</code>: the basic idea is that <code>when</code> is an <code>if</code> without an else, and <code>unless</code> is it’s opposite. The main reason for their existence is to make code more readable by adding a tiny bit of syntatic sugar. Without further ado, an example of what we want to achieve</p>
 
 <p>```scala
-/<em>
+/*
   This should replace if (true) { block of code }
-</em>/
+*/
 when (true) {
   // block of code
 }</p>
 
-<p>/<em>
+<p>/*
   This should replace if (!true) { do something }
-</em>/
+*/
 unless (false) {
   // block of code
 }
 ```</p>
 
-<p>Since we're writing Scala, it would be nice if these constructs returned something useful; using the <a href="http://www.scala-lang.org/api/current/scala/Option.html">Option</a> monad seems reasonable: If the block is run, we return the result in a Some and otherwise return a None. <a href="http://danielwestheide.com/blog/2012/12/19/the-neophytes-guide-to-scala-part-5-the-option-type.html">This tutorial</a> is a good guide for Options in case you are unfamiliar with the concept.</p>
+<p>Since we’re writing Scala, it would be nice if these constructs returned something useful; using the <a href="http://www.scala-lang.org/api/current/scala/Option.html">Option</a> monad seems reasonable: If the block is run, we return the result in a Some and otherwise return a None. <a href="http://danielwestheide.com/blog/2012/12/19/the-neophytes-guide-to-scala-part-5-the-option-type.html">This tutorial</a> is a good guide for Options in case you are unfamiliar with the concept.</p>
 
-<h2>Macro-y basics</h2>
+<h2 id="macro-y-basics">Macro-y basics</h2>
 
 <p>Taking a look at the documentation, you will quickly notice the general pattern for implementing a simple Scala macro</p>
 
@@ -433,77 +420,70 @@ import scala.language.experimental.macros
 import scala.reflect.macros._</p>
 
 <p>object Example {
-  def meth<a href="x:%20A">A</a>: A = macro implRef[A]</p>
+  def meth<a href="x: A">A</a>: A = macro implRef[A]</p>
 
-<p>...</p>
+<p>…</p>
 
-<p>  def implRef<a href="c:%20Context">A: c.WeakTypeTag</a>(x: c.Expr[A]): c.Expr[A] = ...
+<p>def implRef<a href="c: Context">A: c.WeakTypeTag</a>(x: c.Expr[A]): c.Expr[A] = …
 }
 ```
-What does this mean? Let's break it down:</p>
+What does this mean? Let’s break it down:</p>
 
 <ul>
-<li><code>import scala.language.experimental.macros</code> and <code>import scala.reflect.macros._</code> are standard Scala imports that allow us to play around with macros. What's not listed in this example is the declaration that your project depends on <code>scala-reflect</code>. You can do so by adding the following to your build.sbt:
-
-<ul>
-<li><code>libraryDependencies ++= Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)</code></li>
-</ul>
-</li>
-<li><code>def meth[A](x: A): A</code> this is still just normal Scala code that we would normally see. It simply declares a method belonging to the Example singleton that is parameterised on the input type, and we want to make sure that the output type matches this type (e.g. if we invoke <code>meth</code> with an <code>Int</code>, we expect the output to be an <code>Int</code> because that is the contract of the method). For more info on writing parametric polymorphism, please check out <a href="Parametric%20polymorphism">this guide</a>:</li>
-<li><code>macro implRef[A]</code> this is where things start looking macro-ish. The <code>macro</code> keyword lets the compiler know that the body of this method is going to be implemented via a macro definition, in this case <code>implRef</code>.</li>
-<li><code>def implRef[A: c.WeakTypeTag](c: Context)(x: c.Expr[A]): c.Expr[A]</code> .. wow. This itself needs to be broken down:
-
-<ul>
-<li><code>def implRef[A: c.WeakTypeTag]</code> The first part <code>def implRef</code> is still standard Scala</li>
-<li><code>(c: Context)</code> (we'll cover <code>[A: c.WeakTypeTag]</code> in a bit). In this part, <code>(c: Context)</code> declares that the first argument passed to the macro implementation must be a Context. This is a requirement for playing around with Scala macros, and is actually passed by the compiler when it invokes macro expansion, so that you can write code that accesses the compiler API.</li>
-<li><code>[A: c.WeakTypeTag]</code> This is a bit mischievous because we combine Scala-shorthand for typeclasses with macro-magic. This probably deserves a post in and of itself, but for now, please consider this to mean "A is a type parameter passed during macro invocation, but we must ALSO have in scope a WeakTypeTag coming from the Context that is parameterised to type A, which can be written in full as c.WeakTypeTag[A]". This WeakTypeTag business is required so that we can pass along the type parameter from <code>meth</code> into the <code>implRef</code> macro expansion implementation, allowing us to have a type parameterised macro definition.
-
-<ul>
-<li>For more information on type classes and the shorthand we use here, I highly recommend this <a href="danielwestheide.com/blog/2013/02/06/the-neophytes-guide-to-scala-part-12-type-classes.html">blog post on type classes</a></li>
-</ul>
-</li>
-<li><code>(x: c.Expr[A])</code> means that the first non-Context parameter of the macro implementation (remember that the first one is always taken by the compiler and must be a Context) is <code>x</code> and it is a <code>c.Expr[A]</code>. It is important that the name of the parameter matches that used in the invoking method (see how <code>meth</code> also has <code>x</code> as the first parameter). <code>c.Expr</code> is type of object that wraps the abstract syntax tree that represents the input to the invoking function, and it is typed to A.
-
-<ul>
-<li><em>NOTE:</em> since the argument's type is <code>c.Expr</code> (essentially an abstract syntax tree), any expression passed to the method <code>meth</code> actually may not get invoked or evaluated even though it is not a <a href="http://daily-scala.blogspot.jp/2009/12/by-name-parameter-to-function.html">pass-by-name parameter</a>. In other words, while the macro is expanding, it <strong>acts</strong> like a pass-by name parameter and is "lazy".</li>
-</ul>
-</li>
-<li><code>: c.Expr[A]</code> all this means is that the result of the macro expansion is also a <code>c.Expr</code> type parameterised to A.</li>
-</ul>
-</li>
+  <li><code>import scala.language.experimental.macros</code> and <code>import scala.reflect.macros._</code> are standard Scala imports that allow us to play around with macros. What’s not listed in this example is the declaration that your project depends on <code>scala-reflect</code>. You can do so by adding the following to your build.sbt:
+    <ul>
+      <li><code>libraryDependencies ++= Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)</code></li>
+    </ul>
+  </li>
+  <li><code>def meth[A](x: A): A</code> this is still just normal Scala code that we would normally see. It simply declares a method belonging to the Example singleton that is parameterised on the input type, and we want to make sure that the output type matches this type (e.g. if we invoke <code>meth</code> with an <code>Int</code>, we expect the output to be an <code>Int</code> because that is the contract of the method). For more info on writing parametric polymorphism, please check out <a href="Parametric polymorphism">this guide</a>:</li>
+  <li><code>macro implRef[A]</code> this is where things start looking macro-ish. The <code>macro</code> keyword lets the compiler know that the body of this method is going to be implemented via a macro definition, in this case <code>implRef</code>.</li>
+  <li><code>def implRef[A: c.WeakTypeTag](c: Context)(x: c.Expr[A]): c.Expr[A]</code> .. wow. This itself needs to be broken down:
+    <ul>
+      <li><code>def implRef[A: c.WeakTypeTag]</code> The first part <code>def implRef</code> is still standard Scala</li>
+      <li><code>(c: Context)</code> (we’ll cover <code>[A: c.WeakTypeTag]</code> in a bit). In this part, <code>(c: Context)</code> declares that the first argument passed to the macro implementation must be a Context. This is a requirement for playing around with Scala macros, and is actually passed by the compiler when it invokes macro expansion, so that you can write code that accesses the compiler API.</li>
+      <li><code>[A: c.WeakTypeTag]</code> This is a bit mischievous because we combine Scala-shorthand for typeclasses with macro-magic. This probably deserves a post in and of itself, but for now, please consider this to mean “A is a type parameter passed during macro invocation, but we must ALSO have in scope a WeakTypeTag coming from the Context that is parameterised to type A, which can be written in full as c.WeakTypeTag[A]”. This WeakTypeTag business is required so that we can pass along the type parameter from <code>meth</code> into the <code>implRef</code> macro expansion implementation, allowing us to have a type parameterised macro definition.
+        <ul>
+          <li>For more information on type classes and the shorthand we use here, I highly recommend this <a href="danielwestheide.com/blog/2013/02/06/the-neophytes-guide-to-scala-part-12-type-classes.html">blog post on type classes</a></li>
+        </ul>
+      </li>
+      <li><code>(x: c.Expr[A])</code> means that the first non-Context parameter of the macro implementation (remember that the first one is always taken by the compiler and must be a Context) is <code>x</code> and it is a <code>c.Expr[A]</code>. It is important that the name of the parameter matches that used in the invoking method (see how <code>meth</code> also has <code>x</code> as the first parameter). <code>c.Expr</code> is type of object that wraps the abstract syntax tree that represents the input to the invoking function, and it is typed to A.
+        <ul>
+          <li><em>NOTE:</em> since the argument’s type is <code>c.Expr</code> (essentially an abstract syntax tree), any expression passed to the method <code>meth</code> actually may not get invoked or evaluated even though it is not a <a href="http://daily-scala.blogspot.jp/2009/12/by-name-parameter-to-function.html">pass-by-name parameter</a>. In other words, while the macro is expanding, it <strong>acts</strong> like a pass-by name parameter and is “lazy”.</li>
+        </ul>
+      </li>
+      <li><code>: c.Expr[A]</code> all this means is that the result of the macro expansion is also a <code>c.Expr</code> type parameterised to A.</li>
+    </ul>
+  </li>
 </ul>
 
-
-<h2>Quasiquotes</h2>
-
+<h2 id="quasiquotes">Quasiquotes</h2>
 <p>Quasiquotes are not a Scala-exclusive construct, and a Google search will show that they are used in other languages that support metaprogramming, like Scheme.</p>
 
 <p>In short, they offer the macro programmer an easy way to manipulate or create abstract syntax trees without having to build them manually. This makes them extremely helpful in Scala because:
   1. Scala syntax does not map to ASTs easily like Lisps
-  2. Scala is typed, which means your manually-built AST also needs typing...which wraps non-macro-land types (notice how a normal type parameter like <code>[A]</code> becomes <code>c.Expr[A]</code> ... that's twice as many characters  !)</p>
+  2. Scala is typed, which means your manually-built AST also needs typing…which wraps non-macro-land types (notice how a normal type parameter like <code>[A]</code> becomes <code>c.Expr[A]</code> … that’s twice as many characters  !)</p>
 
 <p>Quasiquotes allow us to use <a href="http://docs.scala-lang.org/overviews/core/string-interpolation.html">string-interpolation-like syntax</a> to interpolate elements into a tree as we define it.</p>
 
 <p>For example:</p>
 
 <p>```scala
-scala> val aquasiquote = q"a quasiquote"
+scala&gt; val aquasiquote = q”a quasiquote”
 aquasiquote: universe.Select = a.quasiquote</p>
 
-<p>scala> val tree = q"i am { $aquasiquote }"
+<p>scala&gt; val tree = q”i am { $aquasiquote }”
 tree: universe.Tree = i.am(a.quasiquote)
 ```
 The above example was taken from the <a href="http://docs.scala-lang.org/overviews/quasiquotes/intro.html">official documentation on quasiquotes</a>, which I highly recommend you take a look at if you find the rest of this post hard to follow.</p>
 
-<h2>Implementation</h2>
-
+<h2 id="implementation">Implementation</h2>
 <p>For <code>when</code>, we know that we roughly want the following:</p>
 
 <p><code>scala
 when (someCondition) { result }
 </code></p>
 
-<p>To expand via our macro into the following (yes we are using an inline if .. if you don't like it, pretend we didn't)</p>
+<p>To expand via our macro into the following (yes we are using an inline if .. if you don’t like it, pretend we didn’t)</p>
 
 <p><code>scala
 if (someCondition) Some(result) else None
@@ -517,46 +497,41 @@ import scala.reflect.macros._</p>
 
 <p>object Example {</p>
 
-<p>  def when<a href="p:%20Boolean">A</a>(f: A): Option[A] = macro whenImp[A]</p>
+<p>def when<a href="p: Boolean">A</a>(f: A): Option[A] = macro whenImp[A]</p>
 
-<p>  def whenImp<a href="c:%20Context">A: c.WeakTypeTag</a>(p: c.Expr[Boolean])(f: c.Expr[A]): c.Expr[Option[A]] = {</p>
-
-<pre><code>import c.universe._
-c.Expr[Option[A]](q"if ($p) Some($f) else None")
-</code></pre>
-
-<p>  }
+<p>def whenImp<a href="c: Context">A: c.WeakTypeTag</a>(p: c.Expr[Boolean])(f: c.Expr[A]): c.Expr[Option[A]] = {
+    import c.universe._
+    c.Expr<a href="q&quot;if ($p) Some($f) else None&quot;">Option[A]</a>
+  }
 }
 ```</p>
 
 <p>Implementing <code>unless</code> is left as an exercise for the reader :)</p>
 
-<h2>Trying it out</h2>
+<h2 id="trying-it-out">Trying it out</h2>
 
 <p>Putting the above into a Scala REPL (you will probably need to use <code>:paste</code> mode) will prove that it works.</p>
 
 <p>For example:</p>
 
 <p>```scala
-scala> import Example.<em>
-import Example.</em></p>
+scala&gt; import Example._
+import Example._</p>
 
 <p>when(true)(3)
 res1: Option[Int] = Some(3)
 ```</p>
 
-<p>Also, remember that since our <code>when</code> is backed by a macro, the <code>f</code> argument (our block) passed to the second parameter list, behaves "lazily" and won't execute if our predicate<code>p</code> returns false. This is because when <code>when</code> is invoked, the compiler knows to pass the entire AST for that block parameter (well, wrapped inside a <code>c.Expr</code>) to our macro, which interpolates the it into the final tree.</p>
+<p>Also, remember that since our <code>when</code> is backed by a macro, the <code>f</code> argument (our block) passed to the second parameter list, behaves “lazily” and won’t execute if our predicate<code>p</code> returns false. This is because when <code>when</code> is invoked, the compiler knows to pass the entire AST for that block parameter (well, wrapped inside a <code>c.Expr</code>) to our macro, which interpolates the it into the final tree.</p>
 
-<p>For the performance-conscious, this means that we get "lazy" for free; that is, without using Scala's call-by-name parameter feature, which, although nice to use in many cases, <em>does</em> incur some run-time performance penalty because it is implemented by instantiating anonymous classes (see <a href="http://infoscience.epfl.ch/record/128135/files/paper.pdf">this paper</a> for more information about the performance cost of call-by-name parameters .. among other performance-related Scala things).</p>
+<p>For the performance-conscious, this means that we get “lazy” for free; that is, without using Scala’s call-by-name parameter feature, which, although nice to use in many cases, <em>does</em> incur some run-time performance penalty because it is implemented by instantiating anonymous classes (see <a href="http://infoscience.epfl.ch/record/128135/files/paper.pdf">this paper</a> for more information about the performance cost of call-by-name parameters .. among other performance-related Scala things).</p>
 
-<h2>unless-when library</h2>
-
-<p>I've put the above into a library and included trailing variants of <code>when</code> and <code>unless</code> as bonuses (Rubyists should be familiar with these).</p>
+<h2 id="unless-when-library">unless-when library</h2>
+<p>I’ve put the above into a library and included trailing variants of <code>when</code> and <code>unless</code> as bonuses (Rubyists should be familiar with these).</p>
 
 <p>You can find the lib <a href="https://github.com/lloydmeta/unless-when">here on Github</a>. It is fully tested and Mavenised for easy out-of-the-box usage.</p>
 
-<h2>Conclusion</h2>
-
+<h2 id="conclusion">Conclusion</h2>
 <p>I hope this post has been helpful in giving a simple, but full example of how to get started with macros in Scala. If you spot any errors, have questions or suggestions, please feel free to leave a comment!</p>
 ]]></content>
   </entry>

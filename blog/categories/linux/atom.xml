@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Linux | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/linux/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-17T12:19:45+09:00</updated>
+  <updated>2017-03-05T02:10:04+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -18,46 +18,41 @@
     <link href="https://beachape.com/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric/"/>
     <updated>2014-01-14T22:35:00+09:00</updated>
     <id>https://beachape.com/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric</id>
-    <content type="html"><![CDATA[<h2>Goal</h2>
-
+    <content type="html"><![CDATA[<h2 id="goal">Goal</h2>
 <p>Create a backported Ruby 1.9.3p484 Ubuntu package. For the purposes of this post, we will assume that you are OK with not creating a signed package (required if uploading to launchpad). If you wish to upload to launchpad (for example to share your backport with the world), it may be useful for you to <a href="http://opensourcehacker.com/2013/03/20/how-to-backport-packages-on-ubuntu-linux/">check out this site</a> after reading through this guide.</p>
 
-<h2>Motivation</h2>
-
+<h2 id="motivation">Motivation</h2>
 <p>At my day job, I had to upgrade Ruby on very old production boxes that were running Oneiric AMD64. Upgrading the OS was a chore that would be happening later but we needed to start using the latest Ruby as soon as possible.</p>
 
 <p>Unfortunately, there is no Ruby 1.9.3p484 Debian package readily available for Oneiric, not even as a backport.</p>
 
 <!-- more -->
 
-
-<h2>Basic requirements</h2>
-
+<h2 id="basic-requirements">Basic requirements</h2>
 <ul>
-<li>A reasonable Ubuntu environment. Use Vagrant (and its dependencies, such as Virtualbox) if you are on OSX</li>
-<li>Basic *Nix knowledge (command line editors and various tools)</li>
+  <li>A reasonable Ubuntu environment. Use Vagrant (and its dependencies, such as Virtualbox) if you are on OSX</li>
+  <li>Basic *Nix knowledge (command line editors and various tools)</li>
 </ul>
 
-
-<h2>Overview</h2>
-
+<h2 id="overview">Overview</h2>
 <p>The idea is to use tools readily available on Ubuntu and Debian to create a backported package. These include <code>backportpackage</code> and <code>pbuilder</code> among others.</p>
 
 <p>Without going into too much detail, <code>backportpackage</code> helps us “prep” (e.g. generating .dsc files with conventional names for backported packages) our existing target package on to be backported. <code>pbuilder</code> is a tool that sets up a clean chroot environment (via <a href="https://wiki.debian.org/Debootstrap">debootstrap</a>) to build Debian packages. See the <a href="http://manpages.ubuntu.com/manpages/oneiric/man1/backportpackage.1.html">man page for backportpackage</a> and the <a href="https://wiki.ubuntu.com/PbuilderHowto">pbuilder howto page</a> for more information.</p>
 
 <p>Normally, <code>backportpackage</code> and <code>pbuilder</code> are very straightforward to use when backporting packages that do not have many dependencies. However, when porting the Ruby 1.9.3p484 package from Trusty to Oneiric, quite a bit of “massaging” needed to be done, mostly because of the significant time difference between the two Ubuntu releases.</p>
 
-<h2>Procedure</h2>
-
+<h2 id="procedure">Procedure</h2>
 <ol>
-<li>Have a reasonable Ubuntu environment ready. It doesn’t matter which version you are currently on because we will be using the aforementioned tools to download, prep and build packages. It may be a good idea to run <code>$ sudo apt-get update</code></li>
-<li><code>$ sudo apt-get install ubuntu-dev-tools</code> to install Ubuntu dev tools on your host machine. This will install</li>
-<li>If you are using a version of Ubuntu newer than Precise, you may be able to skip this step. <code>$ wget http://ubuntu.wikimedia.org/ubuntu//pool/universe/u/ubuntu-dev-tools/ubuntu-dev-tools_0.143_all.deb &amp;&amp; sudo dpkg -i ubuntu-dev-tools_0.143_all.deb</code> This installs a newer version of <code>backportpackages</code> that allows us to not sign our packages</li>
-<li><code>$ mkdir -p ~/backport_workdir/ruby191 &amp;&amp; cd ~/backport_workdir/ruby191</code> to create and go to our working directory</li>
-<li><code>$ backportpackage --dont-sign -s trusty -d oneiric -w . ruby1.9.1</code> to download the newest (at time or writing) <a href="http://packages.ubuntu.com/source/trusty/ruby1.9.1">Ruby 1.9.3p484 package</a> and create the prepped .dsc files for backporting.</li>
-<li><strong>Important</strong> Open up <code>ruby1.9.1_1.9.3.484-1ubuntu2~ubuntu11.10.1.dsc</code> with your preferred editor and remove the versioning constraints on <code>debhelper</code> and <code>cdbs</code> in the <code>Build-Depends</code> line. Theoretically you could backport dependencies as well and put them in a local apt-get repo, but these particular packages are nasty in that they have many further dependencies and since in this case, the default versions that come with Oneiric are fine, we can safely remove these constraints.</li>
-<li><code>$ sudo apt-get install pbuilder</code> to install <code>pbuilder</code></li>
-<li><p>Create a <code>~/.pbuilderrc</code> file with the following contents. This is a preference file for <code>pbuilder</code> and the following configuration will allow us to easily toggle between different distributions of Ubuntu and architectures when using it to build packages. Credit to <a href="http://www.tolaris.com/2009/03/31/backporting-debian-packages-with-pbuilder/">tolaris.com</a></p>
+  <li>Have a reasonable Ubuntu environment ready. It doesn’t matter which version you are currently on because we will be using the aforementioned tools to download, prep and build packages. It may be a good idea to run <code>$ sudo apt-get update</code></li>
+  <li><code>$ sudo apt-get install ubuntu-dev-tools</code> to install Ubuntu dev tools on your host machine. This will install</li>
+  <li>If you are using a version of Ubuntu newer than Precise, you may be able to skip this step. <code>$ wget http://ubuntu.wikimedia.org/ubuntu//pool/universe/u/ubuntu-dev-tools/ubuntu-dev-tools_0.143_all.deb &amp;&amp; sudo dpkg -i ubuntu-dev-tools_0.143_all.deb </code> This installs a newer version of <code>backportpackages</code> that allows us to not sign our packages</li>
+  <li><code>$ mkdir -p ~/backport_workdir/ruby191 &amp;&amp; cd ~/backport_workdir/ruby191</code> to create and go to our working directory</li>
+  <li><code>$ backportpackage --dont-sign -s trusty -d oneiric -w . ruby1.9.1</code> to download the newest (at time or writing) <a href="http://packages.ubuntu.com/source/trusty/ruby1.9.1">Ruby 1.9.3p484 package</a> and create the prepped .dsc files for backporting.</li>
+  <li><strong>Important</strong> Open up <code>ruby1.9.1_1.9.3.484-1ubuntu2~ubuntu11.10.1.dsc</code> with your preferred editor and remove the versioning constraints on <code>debhelper</code> and <code>cdbs</code> in the <code>Build-Depends</code> line. Theoretically you could backport dependencies as well and put them in a local apt-get repo, but these particular packages are nasty in that they have many further dependencies and since in this case, the default versions that come with Oneiric are fine, we can safely remove these constraints.</li>
+  <li><code>$ sudo apt-get install pbuilder</code> to install <code>pbuilder</code>
+8.
+  Create a <code>~/.pbuilderrc</code> file with the following contents. This is a preference file for <code>pbuilder</code> and the following configuration will allow us to easily toggle between different distributions of Ubuntu and architectures when using it to build packages. Credit to <a href="http://www.tolaris.com/2009/03/31/backporting-debian-packages-with-pbuilder/">tolaris.com</a></li>
+</ol>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>pbuilderrc  (pbuilderrc)</span> <a href='/downloads/code/pbuilder/pbuilderrc'>download</a></figcaption>
  <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -88,47 +83,44 @@
 <span class='line-number'>26</span>
 <span class='line-number'>27</span>
 <span class='line-number'>28</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>: <span class="k">${</span><span class="nv">DIST</span><span class="p">:=</span><span class="k">$(</span>lsb_release --short --codename<span class="k">)}</span>
-</span><span class='line'>: <span class="k">${</span><span class="nv">ARCH</span><span class="p">:=</span><span class="k">$(</span>dpkg --print-architecture<span class="k">)}</span>
-</span><span class='line'><span class="nv">NAME</span><span class="o">=</span><span class="s2">&quot;$DIST-$ARCH&quot;</span>
-</span><span class='line'><span class="nv">DISTRIBUTION</span><span class="o">=</span><span class="s2">&quot;$DIST&quot;</span>
-</span><span class='line'><span class="nv">DEBOOTSTRAPOPTS</span><span class="o">=(</span><span class="s2">&quot;--arch&quot;</span> <span class="s2">&quot;$ARCH&quot;</span> <span class="s2">&quot;${DEBOOTSTRAPOPTS[@]}&quot;</span><span class="o">)</span>
-</span><span class='line'><span class="nv">BASETGZ</span><span class="o">=</span><span class="s2">&quot;`dirname $BASETGZ`/$NAME-base.tgz&quot;</span>
-</span><span class='line'><span class="nv">BUILDRESULT</span><span class="o">=</span><span class="s2">&quot;/var/cache/pbuilder/$NAME/result/&quot;</span>
-</span><span class='line'><span class="nv">APTCACHE</span><span class="o">=</span><span class="s2">&quot;/var/cache/pbuilder/$NAME/aptcache/&quot;</span>
-</span><span class='line'><span class="c"># Don&#39;t rebuild source files (.diff.gz, .dsc), or list them in .changes</span>
-</span><span class='line'><span class="c"># See Ubuntu bug 118181</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span></span>: <span class="si">${</span><span class="nv">DIST</span><span class="p">:=</span><span class="k">$(</span>lsb_release --short --codename<span class="k">)</span><span class="si">}</span>
+</span><span class='line'>: <span class="si">${</span><span class="nv">ARCH</span><span class="p">:=</span><span class="k">$(</span>dpkg --print-architecture<span class="k">)</span><span class="si">}</span>
+</span><span class='line'><span class="nv">NAME</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$DIST</span><span class="s2">-</span><span class="nv">$ARCH</span><span class="s2">&quot;</span>
+</span><span class='line'><span class="nv">DISTRIBUTION</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$DIST</span><span class="s2">&quot;</span>
+</span><span class='line'><span class="nv">DEBOOTSTRAPOPTS</span><span class="o">=(</span><span class="s2">&quot;--arch&quot;</span> <span class="s2">&quot;</span><span class="nv">$ARCH</span><span class="s2">&quot;</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">DEBOOTSTRAPOPTS</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">)</span>
+</span><span class='line'><span class="nv">BASETGZ</span><span class="o">=</span><span class="s2">&quot;`dirname </span><span class="nv">$BASETGZ</span><span class="s2">`/</span><span class="nv">$NAME</span><span class="s2">-base.tgz&quot;</span>
+</span><span class='line'><span class="nv">BUILDRESULT</span><span class="o">=</span><span class="s2">&quot;/var/cache/pbuilder/</span><span class="nv">$NAME</span><span class="s2">/result/&quot;</span>
+</span><span class='line'><span class="nv">APTCACHE</span><span class="o">=</span><span class="s2">&quot;/var/cache/pbuilder/</span><span class="nv">$NAME</span><span class="s2">/aptcache/&quot;</span>
+</span><span class='line'><span class="c1"># Don&#39;t rebuild source files (.diff.gz, .dsc), or list them in .changes</span>
+</span><span class='line'><span class="c1"># See Ubuntu bug 118181</span>
 </span><span class='line'><span class="nv">DEBBUILDOPTS</span><span class="o">=</span><span class="s2">&quot;-b -d&quot;</span>
 </span><span class='line'>
-</span><span class='line'><span class="k">case</span> <span class="s2">&quot;$DIST&quot;</span> in
-</span><span class='line'>    oneiric|trusty|lucid|karmic|jaunty|intrepid|hardy|dapper<span class="o">)</span> <span class="c"># ubuntu specific</span>
+</span><span class='line'><span class="k">case</span> <span class="s2">&quot;</span><span class="nv">$DIST</span><span class="s2">&quot;</span> in
+</span><span class='line'>    oneiric<span class="p">|</span>trusty<span class="p">|</span>lucid<span class="p">|</span>karmic<span class="p">|</span>jaunty<span class="p">|</span>intrepid<span class="p">|</span>hardy<span class="p">|</span>dapper<span class="o">)</span> <span class="c1"># ubuntu specific</span>
 </span><span class='line'>        <span class="nv">MIRRORSITE</span><span class="o">=</span><span class="s2">&quot;http://archive.ubuntu.com/ubuntu/&quot;</span>
 </span><span class='line'>        <span class="nv">COMPONENTS</span><span class="o">=</span><span class="s2">&quot;main restricted universe multiverse&quot;</span>
-</span><span class='line'>        ;;
-</span><span class='line'>    sid|squeeze|lenny|etch<span class="o">)</span> <span class="c"># debian specific</span>
+</span><span class='line'>        <span class="p">;;</span>
+</span><span class='line'>    sid<span class="p">|</span>squeeze<span class="p">|</span>lenny<span class="p">|</span>etch<span class="o">)</span> <span class="c1"># debian specific</span>
 </span><span class='line'>        <span class="nv">MIRRORSITE</span><span class="o">=</span><span class="s2">&quot;http://mirrors.kernel.org/debian/&quot;</span>
 </span><span class='line'>        <span class="nv">COMPONENTS</span><span class="o">=</span><span class="s2">&quot;main contrib non-free&quot;</span>
-</span><span class='line'>        ;;
+</span><span class='line'>        <span class="p">;;</span>
 </span><span class='line'>    *<span class="o">)</span>
-</span><span class='line'>        <span class="nb">echo</span> <span class="s2">&quot;Unknown distribution: $DIST&quot;</span>
-</span><span class='line'>        <span class="nb">exit </span>1
-</span><span class='line'>        ;;
+</span><span class='line'>        <span class="nb">echo</span> <span class="s2">&quot;Unknown distribution: </span><span class="nv">$DIST</span><span class="s2">&quot;</span>
+</span><span class='line'>        <span class="nb">exit</span> <span class="m">1</span>
+</span><span class='line'>        <span class="p">;;</span>
 </span><span class='line'><span class="k">esac</span>
 </span><span class='line'>
 </span><span class='line'><span class="nv">HOOKDIR</span><span class="o">=</span><span class="nv">$HOME</span>/.pbuilder-hooks
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>The only additions I've made are to add the <code>-d</code> flag, which is required for us to ignore dependency discrepancies (in this case, our <code>debhelper</code> and <code>cdbs</code> dependencies are not at the version specified by the official package) and to update the list of Ubuntu distro names.</p></li>
-<li><code>$ sudo DIST=oneiric ARCH=amd64 pbuilder create</code> to create an Oneiric AMD64 chroot environment to build our backport on.</li>
-<li><code>$ sudo DIST=oneiric ARCH=amd64 pbuilder login --save-after-login</code> to login to our chroot environment. The <code>--save-after-login</code> flag tells pbuilder to save the environment after we exit.</li>
-<li><strong>In chroot environment</strong> <code>$ apt-get update &amp;&amp; apt-get install tcl8.5-dev tk8.5-dev</code> to install tcl/tk dev packages. Next, symlink the .so files to where the Ruby 1.9.3p484 package for Trusty expects them to be by doing: <code>$ ln -s /usr/lib/libtk8.5.so /usr/lib/x86_64-linux-gnu/libtk8.5.so &amp;&amp; ln -s /usr/lib/libtcl8.5.so /usr/lib/x86_64-linux-gnu/libtcl8.5.so</code>. Next, exit the chroot environment by hitting Control-D or <code>$ exit</code>. Normally, <code>pbuilder</code> will take care of downloading build-dependencies for you, but in this case, the problem is that the Ruby 1.9.3p484 package for Trusty assumes taht <code>libtcl</code> and <code>libtk</code> <code>.so</code> files are located in places where they are not installed by default on our target distro.</li>
-<li><code>$ sudo DIST=oneiric ARCH=amd64 pbuilder build ruby1.9.1_1.9.3.484-1ubuntu2~ubuntu11.10.1.dsc</code> to instruct <code>pbuilder</code> to build your package. Go grab a coffee, walk your dog, etc. because this may take a while. If you are running in a VM (e.g. in Vagrant), be sure you’ve allocated enough memory (I recommend at least 2GB) so that the build tests for Ruby will pass.</li>
-<li>When <code>pbuilder</code> is done, look in <code>/var/cache/pbuilder/oneiric-amd64/result/</code> for your packages</li>
-</ol>
+<p>The only additions I’ve made are to add the <code>-d</code> flag, which is required for us to ignore dependency discrepancies (in this case, our <code>debhelper</code> and <code>cdbs</code> dependencies are not at the version specified by the official package) and to update the list of Ubuntu distro names.
+9. <code>$ sudo DIST=oneiric ARCH=amd64 pbuilder create</code> to create an Oneiric AMD64 chroot environment to build our backport on.
+10. <code>$ sudo DIST=oneiric ARCH=amd64 pbuilder login --save-after-login</code> to login to our chroot environment. The <code>--save-after-login</code> flag tells pbuilder to save the environment after we exit.
+11. <strong>In chroot environment</strong> <code>$ apt-get update &amp;&amp; apt-get install tcl8.5-dev tk8.5-dev</code> to install tcl/tk dev packages. Next, symlink the .so files to where the Ruby 1.9.3p484 package for Trusty expects them to be by doing: <code>$ ln -s /usr/lib/libtk8.5.so /usr/lib/x86_64-linux-gnu/libtk8.5.so &amp;&amp; ln -s /usr/lib/libtcl8.5.so /usr/lib/x86_64-linux-gnu/libtcl8.5.so</code>. Next, exit the chroot environment by hitting Control-D or <code>$ exit</code>. Normally, <code>pbuilder</code> will take care of downloading build-dependencies for you, but in this case, the problem is that the Ruby 1.9.3p484 package for Trusty assumes taht <code>libtcl</code> and <code>libtk</code> <code>.so</code> files are located in places where they are not installed by default on our target distro.
+12. <code>$ sudo DIST=oneiric ARCH=amd64 pbuilder build ruby1.9.1_1.9.3.484-1ubuntu2~ubuntu11.10.1.dsc</code> to instruct <code>pbuilder</code> to build your package. Go grab a coffee, walk your dog, etc. because this may take a while. If you are running in a VM (e.g. in Vagrant), be sure you’ve allocated enough memory (I recommend at least 2GB) so that the build tests for Ruby will pass.
+13. When <code>pbuilder</code> is done, look in <code>/var/cache/pbuilder/oneiric-amd64/result/</code> for your packages</p>
 
-
-<h2>Conclusion</h2>
-
+<h2 id="conclusion">Conclusion</h2>
 <p>There are a few places where I needed to get my hands dirty and look at package source code to understand where and why things were failing. Hopefully this guide helps you to backport not only Ruby, but any Ubuntu/Debian package between different releases !</p>
 
 <p>If you have problems and questions, please leave a comment :)</p>
@@ -140,60 +132,53 @@
     <link href="https://beachape.com/blog/2013/09/12/resolving-java-oom-unable-to-create-new-native-thread-errors-on-heroku/"/>
     <updated>2013-09-12T13:25:00+09:00</updated>
     <id>https://beachape.com/blog/2013/09/12/resolving-java-oom-unable-to-create-new-native-thread-errors-on-heroku</id>
-    <content type="html"><![CDATA[<p>For the most part, I'm a very happy Heroku user. The platform allows me deploy my apps, be they Java, Scala or Ruby-based without having to think/worry about infrastructure, which is amazing. They also allow me to, for the most part, do this for free. For the most part, I love it, and so do many others. That said, sometimes you do run into problems that cause you to lose lots of time debugging ... in the wrong direction.</p>
+    <content type="html"><![CDATA[<p>For the most part, I’m a very happy Heroku user. The platform allows me deploy my apps, be they Java, Scala or Ruby-based without having to think/worry about infrastructure, which is amazing. They also allow me to, for the most part, do this for free. For the most part, I love it, and so do many others. That said, sometimes you do run into problems that cause you to lose lots of time debugging … in the wrong direction.</p>
 
 <p>Yesterday, after adding non-blocking I/O to my <a href="https://github.com/lloydmeta/metascraper">Metascraper library</a>, I load tested my deployed application and found it fatally crashing with <code>java.lang.OutOfMemoryError: unable to create new native thread</code> errors. <strong>Not Good</strong></p>
 
 <!-- more -->
 
+<h3 id="what-i-did-wrong">What I did wrong</h3>
 
-<h3>What I did wrong</h3>
+<p>Because of the error thrown, I immediately thought to myself: “there’s gotta be a memory leak. Good thing I’m monitoring the app with New Relic !”. For the most part, if you <a href="https://www.google.com/search?q=java+out+of+memory+error+unable+to+create+new+native+thread&amp;oq=java+out+of+memory+error+unable+to+create+new+native+thread&amp;aqs=chrome..69i57.273j0&amp;sourceid=chrome&amp;ie=UTF-8">Google the error</a>, you find a lot of posts suggesting that your app has a memory leak somewhere, you need to tweak your VM memory options, etc. <strong>All of this advice is valid.</strong></p>
 
-<p>Because of the error thrown, I immediately thought to myself: "there's gotta be a memory leak. Good thing I'm monitoring the app with New Relic !". For the most part, if you <a href="https://www.google.com/search?q=java+out+of+memory+error+unable+to+create+new+native+thread&amp;oq=java+out+of+memory+error+unable+to+create+new+native+thread&amp;aqs=chrome..69i57.273j0&amp;sourceid=chrome&amp;ie=UTF-8">Google the error</a>, you find a lot of posts suggesting that your app has a memory leak somewhere, you need to tweak your VM memory options, etc. <strong>All of this advice is valid.</strong></p>
+<p>After looking at my instance’s memory usage though, it didn’t seem like that was the problem; used heap, commited heap, etc all looked fine. I should have probably stopped looking at memory usage, but I didn’t and proceeded to spend a few hours going through the cycle of combing through code, tweaking memory options, and testing. To no avail.</p>
 
-<p>After looking at my instance's memory usage though, it didn't seem like that was the problem; used heap, commited heap, etc all looked fine. I should have probably stopped looking at memory usage, but I didn't and proceeded to spend a few hours going through the cycle of combing through code, tweaking memory options, and testing. To no avail.</p>
+<h3 id="seeing-the-light">Seeing the light</h3>
 
-<h3>Seeing the light</h3>
+<p>Then, finally, I stumbled across <a href="http://devgrok.blogspot.jp/2012/03/resolving-outofmemoryerror-unable-to.html">this page</a>, talking about how to resolve said OOM error. In short, the JVM apparently throws the Java OOM error whenever it can’t allocate a new thread from the OS, regardless of the cause. Their solution was to up the max processes per user. Hmmmm.</p>
 
-<p>Then, finally, I stumbled across <a href="http://devgrok.blogspot.jp/2012/03/resolving-outofmemoryerror-unable-to.html">this page</a>, talking about how to resolve said OOM error. In short, the JVM apparently throws the Java OOM error whenever it can't allocate a new thread from the OS, regardless of the cause. Their solution was to up the max processes per user. Hmmmm.</p>
-
-<p>```c Where in jvm.cpp that the error is thrown http://hg.openjdk.java.net/jdk7/jdk7/hotspot/file/tip/src/share/vm/prims/jvm.cpp
-if (native_thread->osthread() == NULL) {
+<p><code>c Where in jvm.cpp that the error is thrown http://hg.openjdk.java.net/jdk7/jdk7/hotspot/file/tip/src/share/vm/prims/jvm.cpp
+if (native_thread-&gt;osthread() == NULL) {
   // No one should hold a reference to the 'native_thread'.
   delete native_thread;
-  if (JvmtiExport::should_post_resource_exhausted()) {</p>
+  if (JvmtiExport::should_post_resource_exhausted()) {
+    JvmtiExport::post_resource_exhausted(
+      JVMTI_RESOURCE_EXHAUSTED_OOM_ERROR | JVMTI_RESOURCE_EXHAUSTED_THREADS,
+      "unable to create new native thread");
+  }
+  THROW_MSG(vmSymbols::java_lang_OutOfMemoryError(),
+            "unable to create new native thread");
+}
+</code></p>
 
-<pre><code>JvmtiExport::post_resource_exhausted(
-  JVMTI_RESOURCE_EXHAUSTED_OOM_ERROR | JVMTI_RESOURCE_EXHAUSTED_THREADS,
-  "unable to create new native thread");
-</code></pre>
-
-<p>  }
-  THROW_MSG(vmSymbols::java_lang_OutOfMemoryError(),</p>
-
-<pre><code>        "unable to create new native thread");
-</code></pre>
-
-<p>}
-```</p>
-
-<p>Since I had added non-blocking I/O, which inherently must be doing some kind of threading somewhere, I felt I was on to something. Googling "Heroku thread limits" brought me to <a href="https://devcenter.heroku.com/articles/limits#processes-threads">this page</a></p>
+<p>Since I had added non-blocking I/O, which inherently must be doing some kind of threading somewhere, I felt I was on to something. Googling “Heroku thread limits” brought me to <a href="https://devcenter.heroku.com/articles/limits#processes-threads">this page</a></p>
 
 <p><blockquote><p>1X Dynos are limited a combined sum of 256 processes and threads. 2X Dynos are limited to 512. This limit applies whether they are executing, sleeping, or in any other state.</p><footer><strong>Heroku</strong> <cite><a href='https://devcenter.heroku.com/articles/limits#processes-threads'>devcenter.heroku.com/articles/&hellip;</a></cite></footer></blockquote></p>
 
-<p>Bingo, but because there was nothing I could do about Heroku's thread+process limits, I decided to look at the code for <a href="https://github.com/dispatch/reboot">Dispatch</a>, the HTTP library I'm using for fetching pages from URLs to look at how it manages threads. This is where things get icky.</p>
+<p>Bingo, but because there was nothing I could do about Heroku’s thread+process limits, I decided to look at the code for <a href="https://github.com/dispatch/reboot">Dispatch</a>, the HTTP library I’m using for fetching pages from URLs to look at how it manages threads. This is where things get icky.</p>
 
-<h3>Diving in</h3>
+<h3 id="diving-in">Diving in</h3>
 
-<p>Apparently, in previous versions of Dispatch, one could configure the number of threads easily (I believe in 0.9.x, you had access to a <code>threads</code> method). However, in the version that I'm using (latest as of writing), version 0.11.0, you do not. Moreover, unless being called from <code>sbt</code>, the library now defaults to building clients using the default configuration for the underlying <code>async-http-client</code> (which does make sense). Unfortunately, <a href="https://github.com/AsyncHttpClient/async-http-client/blob/b9f1ca733d05530f19d66c4afbb9ee0aeafd05d1/api/src/main/java/org/asynchttpclient/AsyncHttpClientConfigBean.java#L81-L96">it appears that the default configuration therefore results in the use of</a> <code>Executor.newCachedThreadPool</code>, which some say is <a href="http://stackoverflow.com/questions/15058978/how-to-decide-whether-to-use-newcachedthreadpool-or-newfixedthreadpool">good</a> and <a href="http://paultyma.blogspot.jp/2008/03/writing-java-multithreaded-servers.html">bad</a>.</p>
+<p>Apparently, in previous versions of Dispatch, one could configure the number of threads easily (I believe in 0.9.x, you had access to a <code>threads</code> method). However, in the version that I’m using (latest as of writing), version 0.11.0, you do not. Moreover, unless being called from <code>sbt</code>, the library now defaults to building clients using the default configuration for the underlying <code>async-http-client</code> (which does make sense). Unfortunately, <a href="https://github.com/AsyncHttpClient/async-http-client/blob/b9f1ca733d05530f19d66c4afbb9ee0aeafd05d1/api/src/main/java/org/asynchttpclient/AsyncHttpClientConfigBean.java#L81-L96">it appears that the default configuration therefore results in the use of</a> <code>Executor.newCachedThreadPool</code>, which some say is <a href="http://stackoverflow.com/questions/15058978/how-to-decide-whether-to-use-newcachedthreadpool-or-newfixedthreadpool">good</a> and <a href="http://paultyma.blogspot.jp/2008/03/writing-java-multithreaded-servers.html">bad</a>.</p>
 
-<h3>Problem identified</h3>
+<h3 id="problem-identified">Problem identified</h3>
 
-<p>The main point is this: because of it's use of <a href="http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/Executors.html#newCachedThreadPool">newCachedThreadPool</a>, <strong><code>aysnc-http-client</code>, and thus <code>Dispatch</code> is going to use as many threads as necessary to handle the workload that you give it and rely on the JVM clean up idle threads later</strong> . Usually, this might not be a problem, but when running on Heroku or any other environment where you might hit thread limit constraints, the cleanup might not happen quick enough to not crash your program.</p>
+<p>The main point is this: because of it’s use of <a href="http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/Executors.html#newCachedThreadPool">newCachedThreadPool</a>, <strong><code>aysnc-http-client</code>, and thus <code>Dispatch</code> is going to use as many threads as necessary to handle the workload that you give it and rely on the JVM clean up idle threads later</strong> . Usually, this might not be a problem, but when running on Heroku or any other environment where you might hit thread limit constraints, the cleanup might not happen quick enough to not crash your program.</p>
 
-<h3>Resolution</h3>
+<h3 id="resolution">Resolution</h3>
 
-<p>To fix the scary "OOM unable to create new thread" problem when an app using my library is running in such an environment, I did a bit of sleuthing to find out how I might limit the number of threads used by my HTTP library and came up with <a href="https://github.com/lloydmeta/metascraper/blob/master/src/main/scala/com/beachape/metascraper/ScraperActor.scala#L63-L77">this</a>.</p>
+<p>To fix the scary “OOM unable to create new thread” problem when an app using my library is running in such an environment, I did a bit of sleuthing to find out how I might limit the number of threads used by my HTTP library and came up with <a href="https://github.com/lloydmeta/metascraper/blob/master/src/main/scala/com/beachape/metascraper/ScraperActor.scala#L63-L77">this</a>.</p>
 
 <p><code>scala
 // Http client
@@ -213,15 +198,14 @@ lazy val asyncHttpClient = new AsyncHttpClient(config)
 lazy val httpClient = new Http(asyncHttpClient)
 </code></p>
 
-<p>It makes more sense when you look at the entire Actor source, but in short, I instantiate an HTTP client, passing in an <code>ExecutorService</code> that uses a <strong>fixed</strong> threads pool. I then allow library users to configure the number of threads for the client when instantiating the actor (and other options). Of course, this means that an actor's HTTP client will wait if all execution threads are busy, but since it's a non-blocking call, the actor itself doesn't care, and the only negative result is maybe slower operations under load. All in all, I think it's a good tradeoff for not having your app die.</p>
+<p>It makes more sense when you look at the entire Actor source, but in short, I instantiate an HTTP client, passing in an <code>ExecutorService</code> that uses a <strong>fixed</strong> threads pool. I then allow library users to configure the number of threads for the client when instantiating the actor (and other options). Of course, this means that an actor’s HTTP client will wait if all execution threads are busy, but since it’s a non-blocking call, the actor itself doesn’t care, and the only negative result is maybe slower operations under load. All in all, I think it’s a good tradeoff for not having your app die.</p>
 
-<h3>Lessons learned</h3>
+<h3 id="lessons-learned">Lessons learned</h3>
 
 <ol>
-<li>Don't take an error message at face value. Know exactly when it gets thrown and if there are multiple possible causes, go for the most likely one first.</li>
-<li>Know your environment and its constraints.</li>
+  <li>Don’t take an error message at face value. Know exactly when it gets thrown and if there are multiple possible causes, go for the most likely one first.</li>
+  <li>Know your environment and its constraints.</li>
 </ol>
-
 
 <p>Hoped this post helped you !</p>
 ]]></content>

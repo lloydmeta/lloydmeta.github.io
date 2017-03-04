@@ -158,150 +158,146 @@
   </header>
 
 
-<div class="entry-content clearfix" itemprop="articleBody"><p>If you&#8217;ve been working with Scala for a while, you might have come across a few &#8220;problems&#8221; with the built in <code>Enumeration</code> that&#8217;s provided out-of-the-box.  This is especially true if you have colleagues who come from a Java background and yearn for the Java-style <code>Enum</code> that gave them lots of power and flexibility.</p>
+<div class="entry-content clearfix" itemprop="articleBody"><p>If you’ve been working with Scala for a while, you might have come across a few “problems” with the built in <code>Enumeration</code> that’s provided out-of-the-box.  This is especially true if you have colleagues who come from a Java background and yearn for the Java-style <code>Enum</code> that gave them lots of power and flexibility.</p>
 
-<p>A quick search on the internet for &#8220;Scala enumeration alternative&#8221; will yield a lot of results (perhaps on StackOverflow) where people have cooked up their own implementation of enumerations, usually built on <code>sealed traits</code>. Personally, I found most of them to be either too inconvenient to use, too over-powered, or too complicated, and I really didn&#8217;t want to have to copy-paste enum-related code into all my projects.</p>
+<p>A quick search on the internet for “Scala enumeration alternative” will yield a lot of results (perhaps on StackOverflow) where people have cooked up their own implementation of enumerations, usually built on <code>sealed traits</code>. Personally, I found most of them to be either too inconvenient to use, too over-powered, or too complicated, and I really didn’t want to have to copy-paste enum-related code into all my projects.</p>
 
 <p>Thus <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> was born.</p>
 
 <!-- more -->
 
-
 <p><a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> aims to be simple to use, idiomatic, small (LoC), yet flexible enough to allow Scala devs to make power enums if they so wish. It is also Mavenised for easy import into any project.</p>
 
 <p>To use it, simply <a href="https://github.com/lloydmeta/enumeratum#sbt">add it as a dependency</a></p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">val</span> <span class="n">enumeratumVersion</span> <span class="k">=</span> <span class="s">&quot;1.4.2&quot;</span>  <span class="c1">// latest version number can be found on the Maven Central version badge on the Github repo.</span>
-</span><span class='line'><span class="n">libraryDependencies</span> <span class="o">++=</span> <span class="nc">Seq</span><span class="o">(</span>
-</span><span class='line'>    <span class="s">&quot;com.beachape&quot;</span> <span class="o">%%</span> <span class="s">&quot;enumeratum&quot;</span> <span class="o">%</span> <span class="n">enumeratumVersion</span><span class="o">,</span>
-</span><span class='line'>    <span class="s">&quot;com.beachape&quot;</span> <span class="o">%%</span> <span class="s">&quot;enumeratum-play&quot;</span> <span class="o">%</span> <span class="n">enumeratumVersion</span> <span class="c1">// if you are using Play and want to avoid boilerplate</span>
-</span><span class='line'><span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">val</span> <span class="n">enumeratumVersion</span> <span class="k">=</span> <span class="s">&quot;1.4.2&quot;</span>  <span class="c1">// latest version number can be found on the Maven Central version badge on the Github repo.</span>
+</span><span class="line"><span class="n">libraryDependencies</span> <span class="o">++=</span> <span class="nc">Seq</span><span class="o">(</span>
+</span><span class="line">    <span class="s">&quot;com.beachape&quot;</span> <span class="o">%%</span> <span class="s">&quot;enumeratum&quot;</span> <span class="o">%</span> <span class="n">enumeratumVersion</span><span class="o">,</span>
+</span><span class="line">    <span class="s">&quot;com.beachape&quot;</span> <span class="o">%%</span> <span class="s">&quot;enumeratum-play&quot;</span> <span class="o">%</span> <span class="n">enumeratumVersion</span> <span class="c1">// if you are using Play and want to avoid boilerplate</span>
+</span><span class="line"><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>Then</p>
 
-<figure class='code'><figcaption><span>Enumeratum example code (enumeratum_example.scala)</span> <a href='/downloads/code/scala/enumeratum_example.scala'>download</a></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="c1">// For use in a REPL</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">import</span> <span class="nn">enumeratum._</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">Phone</span> <span class="o">{</span>
-</span><span class='line'>  <span class="k">def</span> <span class="n">call</span><span class="o">(</span><span class="n">number</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">String</span>
-</span><span class='line'><span class="o">}</span> <span class="k">extends</span> <span class="nc">EnumEntry</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">case</span> <span class="k">object</span> <span class="nc">Phone</span> <span class="k">extends</span> <span class="nc">Enum</span><span class="o">[</span><span class="kt">Phone</span><span class="o">]</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">case</span> <span class="k">object</span> <span class="nc">Android</span> <span class="k">extends</span> <span class="nc">Phone</span> <span class="o">{</span>
-</span><span class='line'>    <span class="k">def</span> <span class="n">call</span><span class="o">(</span><span class="n">number</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">=</span> <span class="s">&quot;This is Larry Page.&quot;</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">case</span> <span class="k">object</span> <span class="nc">Iphone</span> <span class="k">extends</span> <span class="nc">Phone</span> <span class="o">{</span>
-</span><span class='line'>    <span class="k">def</span> <span class="n">call</span><span class="o">(</span><span class="n">number</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">=</span> <span class="s">&quot;This is Steve Jobs.&quot;</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">case</span> <span class="k">object</span> <span class="nc">WindowsPhone</span> <span class="k">extends</span> <span class="nc">Phone</span> <span class="o">{</span>
-</span><span class='line'>    <span class="k">def</span> <span class="n">call</span><span class="o">(</span><span class="n">number</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">=</span> <span class="s">&quot;This is Bill Gates.&quot;</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="n">findValues</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">import</span> <span class="nn">Phone._</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// Use as needed.</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">val</span> <span class="n">myPhone</span> <span class="k">=</span> <span class="nc">Iphone</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// Get exhaustive match warnings</span>
-</span><span class='line'><span class="k">def</span> <span class="n">rate</span><span class="o">(</span><span class="n">phone</span><span class="k">:</span> <span class="kt">Phone</span><span class="o">)</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="n">phone</span> <span class="k">match</span> <span class="o">{</span>
-</span><span class='line'>  <span class="k">case</span> <span class="nc">Android</span> <span class="k">=&gt;</span> <span class="s">&quot;Great!&quot;</span>
-</span><span class='line'>  <span class="k">case</span> <span class="nc">Iphone</span> <span class="k">=&gt;</span> <span class="s">&quot;Awesome!&quot;</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="cm">/*</span>
-</span><span class='line'><span class="cm">&lt;console&gt;:17: warning: match may not be exhaustive.</span>
-</span><span class='line'><span class="cm">It would fail on the following input: WindowsPhone</span>
-</span><span class='line'><span class="cm">*/</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span>Enumeratum example code (enumeratum_example.scala)</span> <a href="/downloads/code/scala/enumeratum_example.scala">download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="c1">// For use in a REPL</span>
+</span><span class="line">
+</span><span class="line"><span class="k">import</span> <span class="nn">enumeratum._</span>
+</span><span class="line">
+</span><span class="line"><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">Phone</span> <span class="o">{</span>
+</span><span class="line">  <span class="k">def</span> <span class="n">call</span><span class="o">(</span><span class="n">number</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">String</span>
+</span><span class="line"><span class="o">}</span> <span class="k">extends</span> <span class="nc">EnumEntry</span>
+</span><span class="line">
+</span><span class="line"><span class="k">case</span> <span class="k">object</span> <span class="nc">Phone</span> <span class="k">extends</span> <span class="nc">Enum</span><span class="o">[</span><span class="kt">Phone</span><span class="o">]</span> <span class="o">{</span>
+</span><span class="line">
+</span><span class="line">  <span class="k">case</span> <span class="k">object</span> <span class="nc">Android</span> <span class="k">extends</span> <span class="nc">Phone</span> <span class="o">{</span>
+</span><span class="line">    <span class="k">def</span> <span class="n">call</span><span class="o">(</span><span class="n">number</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">=</span> <span class="s">&quot;This is Larry Page.&quot;</span>
+</span><span class="line">  <span class="o">}</span>
+</span><span class="line">
+</span><span class="line">  <span class="k">case</span> <span class="k">object</span> <span class="nc">Iphone</span> <span class="k">extends</span> <span class="nc">Phone</span> <span class="o">{</span>
+</span><span class="line">    <span class="k">def</span> <span class="n">call</span><span class="o">(</span><span class="n">number</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">=</span> <span class="s">&quot;This is Steve Jobs.&quot;</span>
+</span><span class="line">  <span class="o">}</span>
+</span><span class="line">
+</span><span class="line">  <span class="k">case</span> <span class="k">object</span> <span class="nc">WindowsPhone</span> <span class="k">extends</span> <span class="nc">Phone</span> <span class="o">{</span>
+</span><span class="line">    <span class="k">def</span> <span class="n">call</span><span class="o">(</span><span class="n">number</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">=</span> <span class="s">&quot;This is Bill Gates.&quot;</span>
+</span><span class="line">  <span class="o">}</span>
+</span><span class="line">
+</span><span class="line">  <span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="n">findValues</span>
+</span><span class="line">
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="k">import</span> <span class="nn">Phone._</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// Use as needed.</span>
+</span><span class="line">
+</span><span class="line"><span class="k">val</span> <span class="n">myPhone</span> <span class="k">=</span> <span class="nc">Iphone</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// Get exhaustive match warnings</span>
+</span><span class="line"><span class="k">def</span> <span class="n">rate</span><span class="o">(</span><span class="n">phone</span><span class="k">:</span> <span class="kt">Phone</span><span class="o">)</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="n">phone</span> <span class="k">match</span> <span class="o">{</span>
+</span><span class="line">  <span class="k">case</span> <span class="nc">Android</span> <span class="k">=&gt;</span> <span class="s">&quot;Great!&quot;</span>
+</span><span class="line">  <span class="k">case</span> <span class="nc">Iphone</span> <span class="k">=&gt;</span> <span class="s">&quot;Awesome!&quot;</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line"><span class="cm">/*</span>
+</span><span class="line"><span class="cm">&lt;console&gt;:17: warning: match may not be exhaustive.</span>
+</span><span class="line"><span class="cm">It would fail on the following input: WindowsPhone</span>
+</span><span class="line"><span class="cm">*/</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>You get nice things like exhaustive match warnings at compile-time, enums with methods, no more Enum-value type erasure, and other nice stuff.</p>
 
-<h2>How it works</h2>
+<h2 id="how-it-works">How it works</h2>
 
 <p>Some of the solutions for custom enums out there are based on macros that reflect at compile time using <code>knownDirectSubclasses</code> to find enum values, but as of writing, there is a <a href="https://issues.scala-lang.org/browse/SI-7046">2 year old bug</a> for that method.</p>
 
-<p>As a result, <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> uses another method of finding enum values: looking in an enclosed object to find the enum values. The macro behind <code>findValues</code> does this for you so that you don&#8217;t have to maintain your own collection of enum values, which is both error-prone and tedious.</p>
+<p>As a result, <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> uses another method of finding enum values: looking in an enclosed object to find the enum values. The macro behind <code>findValues</code> does this for you so that you don’t have to maintain your own collection of enum values, which is both error-prone and tedious.</p>
 
-<h2>Play</h2>
+<h2 id="play">Play</h2>
 
 <p>If you want to use <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> in a Play app, you may as well add <a href="https://github.com/lloydmeta/enumeratum#play-2"><code>enumeratum-play</code></a> as a dependency instead so that you can use the <code>PlayEnum[A]</code> trait (instead of <code>Enum[A]</code>), which will give you nice things like QueryStringBinders, PathBinders, form mappers, and Json Reads/Writes/Formats. To make use of this integration, just extend from <code>PlayEnum</code> instead of <code>Enum</code> in the above example.</p>
 
 <p>This means less boilerplate in your project, which is A Good Thing, right?</p>
 
-<h2>Limitations</h2>
+<h2 id="limitations">Limitations</h2>
 
 <p>There are a few limitations with Enumeratum:</p>
 
 <ul>
-<li><del>Ordinality is not taken care of. From what I&#8217;ve seen, this is one of the least-used functions of Enums in general. That said, nothing is stoping you from defining an <code>Ordering</code> in your companion object for your sealed trait.</del></li>
-<li>Because the Enum values are case objects, they will be inferred to have their own specific type, which may cause problems with compilation for typeclasses that are not contravariant. In that case, simply help the compiler by adding a type (e.g. <code>val myPhone: Phone = Iphone</code>)</li>
-<li><del>The method <code>withName</code> relies on the <code>toString</code> method of the Enum values for lookup. Make sure to override this if you have specific requirements.</del></li>
+  <li>~~Ordinality is not taken care of. From what I’ve seen, this is one of the least-used functions of Enums in general. That said, nothing is stoping you from defining an <code>Ordering</code> in your companion object for your sealed trait.~~</li>
+  <li>Because the Enum values are case objects, they will be inferred to have their own specific type, which may cause problems with compilation for typeclasses that are not contravariant. In that case, simply help the compiler by adding a type (e.g. <code>val myPhone: Phone = Iphone</code>)</li>
+  <li>~~The method <code>withName</code> relies on the <code>toString</code> method of the Enum values for lookup. Make sure to override this if you have specific requirements.~~</li>
 </ul>
-
 
 <p><strong>Update 2016/04/22</strong> Crossed out a bunch of limitations that no longer apply.</p>
 
-<h2>Enjoy</h2>
+<h2 id="enjoy">Enjoy</h2>
 
 <p>I hope <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a> can help you out of your <code>Enumeration</code> woes. Have a look, play around, and send a PR or two !</p>
 </div>
@@ -384,6 +380,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric in Rust: What, Why, How?</a>
+    
     <a class="list-group-item " href="/blog/2017/02/04/rust-generic-not-generics/">Rust Generic (Not Generics)</a>
     
     <a class="list-group-item " href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/">Rust Performance Testing on Travis CI</a>
@@ -391,8 +389,6 @@
     <a class="list-group-item " href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Accumulating Results in Rust With Validated</a>
     
     <a class="list-group-item " href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">Rust HLists (Heterogenous List)</a>
-    
-    <a class="list-group-item " href="/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe/">Enumeratum 1.4: ValueEnums + Circe</a>
     
   </div>
 </section>

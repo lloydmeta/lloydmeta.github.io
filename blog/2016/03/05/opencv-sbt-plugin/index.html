@@ -158,42 +158,39 @@
   </header>
 
 
-<div class="entry-content clearfix" itemprop="articleBody"><p> OpenCV is arguably the defacto free, open-source computer vision library, but setting it up for usage in a JVM project can be hard because OpenCV itself is written in C++, so there are a bunch of system-dependent things that you need to download/compile/install before you can use it.</p>
+<div class="entry-content clearfix" itemprop="articleBody"><p>OpenCV is arguably the defacto free, open-source computer vision library, but setting it up for usage in a JVM project can be hard because OpenCV itself is written in C++, so there are a bunch of system-dependent things that you need to download/compile/install before you can use it.</p>
 
-<p> <a href="https://github.com/bytedeco/javacv">JavaCV</a>, written by <a href="http://bytedeco.org/">Bytedeco</a> is a library that makes it more bearable to use OpenCV from JVM projects by providing a bunch of wrapper classes and logic around OpenCV (there&#8217;s a lot more to it, see their page for details).</p>
+<p><a href="https://github.com/bytedeco/javacv">JavaCV</a>, written by <a href="http://bytedeco.org/">Bytedeco</a> is a library that makes it more bearable to use OpenCV from JVM projects by providing a bunch of wrapper classes and logic around OpenCV (there’s a lot more to it, see their page for details).</p>
 
-<p> Still, because JavaCV depends on <a href="https://github.com/bytedeco/javacpp-presets">JavaCPP</a> for common and OpenCV C++ wrappers, and JavaCPP requires you to set your target platform (what platform you want to run on), I thought getting started could be easier still.</p>
+<p>Still, because JavaCV depends on <a href="https://github.com/bytedeco/javacpp-presets">JavaCPP</a> for common and OpenCV C++ wrappers, and JavaCPP requires you to set your target platform (what platform you want to run on), I thought getting started could be easier still.</p>
 
-<p> <!-- more --></p>
+<p><!-- more --></p>
 
 <p>After taking a look at <a href="https://github.com/chimpler/blog-scala-javacv/blob/master/build.sbt#L19">this Github project</a>, I created an SBT plugin, <a href="https://github.com/lloydmeta/sbt-opencv">SBT-OpenCV</a>, that allows you to add just one line to your <code>project/plugins.sbt</code> to begin playing around with OpenCV:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="n">addSbtPlugin</span><span class="o">(</span><span class="s">&quot;com.beachape&quot;</span> <span class="o">%</span> <span class="s">&quot;sbt-opencv&quot;</span> <span class="o">%</span> <span class="s">&quot;1.4&quot;</span><span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="n">addSbtPlugin</span><span class="o">(</span><span class="s">&quot;com.beachape&quot;</span> <span class="o">%</span> <span class="s">&quot;sbt-opencv&quot;</span> <span class="o">%</span> <span class="s">&quot;1.4&quot;</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>The following is a list of SBT setting keys that you can set in order to customise the behaviour of the plugin:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="o">*</span> <span class="n">`javaCVPlatform`</span><span class="k">:</span> <span class="kt">The</span> <span class="kt">platform</span> <span class="kt">that</span> <span class="kt">you</span> <span class="kt">want</span> <span class="kt">to</span> <span class="kt">compile</span> <span class="kt">for</span> <span class="o">(</span><span class="kt">defaults</span> <span class="kt">to</span> <span class="kt">the</span> <span class="kt">platform</span> <span class="kt">of</span> <span class="kt">the</span> <span class="kt">current</span> <span class="kt">computer</span><span class="o">)</span><span class="kt">.</span> <span class="kt">You</span> <span class="kt">can</span> <span class="kt">also</span> <span class="kt">set</span> <span class="kt">this</span> <span class="kt">via</span> <span class="kt">the</span> <span class="err">&quot;</span><span class="kt">sbt.javacv.platform</span><span class="err">&quot;</span> <span class="kt">System</span> <span class="kt">Property</span>
-</span><span class='line'><span class="o">*</span> <span class="n">`javaCppVersion`</span><span class="k">:</span> <span class="kt">Version</span> <span class="kt">of</span> <span class="kt">Java</span> <span class="kt">CPP</span> <span class="kt">that</span> <span class="kt">you</span> <span class="kt">want</span> <span class="kt">to</span> <span class="kt">use</span>
-</span><span class='line'><span class="o">*</span> <span class="n">`javaCppPresetsVersion`</span><span class="k">:</span>  <span class="kt">Version</span> <span class="kt">of</span> <span class="kt">Java</span> <span class="kt">CPP</span> <span class="kt">Presets</span> <span class="kt">that</span> <span class="kt">you</span> <span class="kt">want</span> <span class="kt">to</span> <span class="kt">use</span>
-</span><span class='line'><span class="o">*</span> <span class="n">`javaCVVersion`</span><span class="k">:</span> <span class="kt">Version</span> <span class="kt">of</span> <span class="kt">Java</span> <span class="kt">CV</span> <span class="kt">that</span> <span class="kt">you</span> <span class="kt">want</span> <span class="kt">to</span> <span class="kt">use</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="o">*</span> <span class="n">`javaCVPlatform`</span><span class="k">:</span> <span class="kt">The</span> <span class="kt">platform</span> <span class="kt">that</span> <span class="kt">you</span> <span class="kt">want</span> <span class="kt">to</span> <span class="kt">compile</span> <span class="kt">for</span> <span class="o">(</span><span class="kt">defaults</span> <span class="kt">to</span> <span class="kt">the</span> <span class="kt">platform</span> <span class="kt">of</span> <span class="kt">the</span> <span class="kt">current</span> <span class="kt">computer</span><span class="o">)</span><span class="kt">.</span> <span class="kt">You</span> <span class="kt">can</span> <span class="kt">also</span> <span class="kt">set</span> <span class="kt">this</span> <span class="kt">via</span> <span class="kt">the</span> <span class="err">&quot;</span><span class="kt">sbt.javacv.platform</span><span class="err">&quot;</span> <span class="kt">System</span> <span class="kt">Property</span>
+</span><span class="line"><span class="o">*</span> <span class="n">`javaCppVersion`</span><span class="k">:</span> <span class="kt">Version</span> <span class="kt">of</span> <span class="kt">Java</span> <span class="kt">CPP</span> <span class="kt">that</span> <span class="kt">you</span> <span class="kt">want</span> <span class="kt">to</span> <span class="kt">use</span>
+</span><span class="line"><span class="o">*</span> <span class="n">`javaCppPresetsVersion`</span><span class="k">:</span>  <span class="kt">Version</span> <span class="kt">of</span> <span class="kt">Java</span> <span class="kt">CPP</span> <span class="kt">Presets</span> <span class="kt">that</span> <span class="kt">you</span> <span class="kt">want</span> <span class="kt">to</span> <span class="kt">use</span>
+</span><span class="line"><span class="o">*</span> <span class="n">`javaCVVersion`</span><span class="k">:</span> <span class="kt">Version</span> <span class="kt">of</span> <span class="kt">Java</span> <span class="kt">CV</span> <span class="kt">that</span> <span class="kt">you</span> <span class="kt">want</span> <span class="kt">to</span> <span class="kt">use</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>I think <code>javaCVPlatform</code> is the one that will be most interesting, since you may want to compile JARs for different target platforms; for a list of supported strings, look at the classifiers supported by <a href="https://github.com/bytedeco/javacpp-presets">JavaCPP presets</a>, or work out the different strings that can result from <a href="https://github.com/bytedeco/javacpp/blob/master/src/main/java/org/bytedeco/javacpp/Loader.java#L65-L95">the JavaCPP Loader</a>.</p>
 
 <p>For example:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="n">javaCppPlatform</span> <span class="o">:=</span> <span class="s">&quot;android-arm&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="n">javaCppPlatform</span> <span class="o">:=</span> <span class="s">&quot;android-arm&quot;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>Feel free to try it out and submit issues, ideas, and PRs at the <a href="https://github.com/lloydmeta/sbt-opencv">Github page</a> :)</p>
 </div>
@@ -276,6 +273,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric in Rust: What, Why, How?</a>
+    
     <a class="list-group-item " href="/blog/2017/02/04/rust-generic-not-generics/">Rust Generic (Not Generics)</a>
     
     <a class="list-group-item " href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/">Rust Performance Testing on Travis CI</a>
@@ -283,8 +282,6 @@
     <a class="list-group-item " href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Accumulating Results in Rust With Validated</a>
     
     <a class="list-group-item " href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">Rust HLists (Heterogenous List)</a>
-    
-    <a class="list-group-item " href="/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe/">Enumeratum 1.4: ValueEnums + Circe</a>
     
   </div>
 </section>

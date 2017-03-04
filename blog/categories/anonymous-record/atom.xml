@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Anonymous Record | BeachApe.]]></title>
+  <link href="https://beachape.com/blog/categories/anonymous-record/atom.xml" rel="self"/>
+  <link href="https://beachape.com/"/>
+  <updated>2017-03-05T02:10:04+09:00</updated>
+  <id>https://beachape.com/</id>
+  <author>
+    <name><![CDATA[Lloyd]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[LabelledGeneric in Rust: What, Why, How?]]></title>
+    <link href="https://beachape.com/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/"/>
+    <updated>2017-03-04T12:23:00+09:00</updated>
+    <id>https://beachape.com/blog/2017/03/04/labelledgeneric-in-rust-what-why-how</id>
+    <content type="html"><![CDATA[<p>What is <code>LabelledGeneric</code>? How does one encode type-level Strings in Rust? What is a labelled HList?</p>
+
+<p>Hold on, let’s take a step back.</p>
+
+<p>In a previous post about <a href="/blog/2017/02/04/rust-generic-not-generics/">implementing <code>Generic</code> in Rust</a>, I briefly mentioned the fact that <code>Generic</code> could cause silent failures at runtime if you have 2 structs that are identically shaped type-wise, but have certain fields swapped.</p>
+
+<p>While we can work around this using wrapper types, that solution leaves something to be desired, because, well, more boilerplate adds noise and requires more maintenance.</p>
+
+<p>Ideally, we want to have something like this, where the following works:</p>
+
+<p>```rust
+#[derive(LabelledGeneric)]
+struct NewUser&lt;’a&gt; {
+    first_name: &amp;’a str,
+    last_name: &amp;’a str,
+    age: usize,
+}</p>
+
+<h1 id="derivelabelledgeneric">[derive(LabelledGeneric)]</h1>
+<p>struct SavedUser&lt;’a&gt; {
+    first_name: &amp;’a str,
+    last_name: &amp;’a str,
+    age: usize,
+}</p>
+
+<p>let n_u = NormalUser {
+                    first_name: “Moe”,
+                    last_name: “Ali”,
+                    age: 30
+                };</p>
+
+<p>// Convert from NewUser to SavedUser
+let s_user: SavedUser = labelled_convert_from(n_user);
+```</p>
+
+<p>but the following fails at compile-time because the fields are mis-matched (<code>first_name</code> and <code>last_name</code> have been swapped):</p>
+
+<p>```rust
+// Uh-oh! Fields are jumbled :(
+#[derive(LabelledGeneric)]
+struct JumbledUser&lt;’a&gt; {
+    last_name: &amp;’a str,
+    first_name: &amp;’a str,
+    age: usize
+}</p>
+
+<p>// This should fail at compile-time because last_name and first_name are swapped
+// even if they have the same type
+let d_user = <DeletedUser as="" LabelledGeneric="">::convert_from(s_user);
+```</DeletedUser></p>
+
+<p>The solution to this sort of problem has been in <a href="https://github.com/milessabin/shapeless">Shapeless</a> for some time; by using <code>HLists</code> where each cell contains not just a value, but instead hold <em>named</em> fields, where each value is labelled <em>at the type level</em>.</p>
+
+<p>Let’s take a look at how Frunk implements <code>Labelled</code> values and <code>LabelledGeneric</code> in Rust :)</p>
+
+<!-- more -->
+
+<h2 class="no_toc" id="add-frunk-to-your-project">Add Frunk to your project</h2>
+
+<p><a href="https://github.com/lloydmeta/frunk">Frunk</a> is published to <a href="//crates.io/crates/frust">Crates.io</a>, so to begin, add the crate to your list of dependencies:</p>
+
+<p><code>rust
+[dependencies]
+frunk = "0.1.16"
+</code></p>
+
+<h2 class="no_toc" id="outline">Outline</h2>
+<ul id="markdown-toc">
+  <li><a href="#derivelabelledgeneric" id="markdown-toc-derivelabelledgeneric">[derive(LabelledGeneric)]</a>    <ul>
+      <li><a href="#why-motivation" id="markdown-toc-why-motivation">Why? (Motivation)</a>        <ul>
+          <li><a href="#silent-runtime-errors-with-generic" id="markdown-toc-silent-runtime-errors-with-generic">Silent runtime errors with <code>Generic</code></a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="#derivegeneric" id="markdown-toc-derivegeneric">[derive(Generic)]</a>    <ul>
+      <li><a href="#labelledgeneric-to-the-rescue" id="markdown-toc-labelledgeneric-to-the-rescue"><code>LabelledGeneric</code> to the rescue</a></li>
+    </ul>
+  </li>
+  <li><a href="#derivelabelledgeneric-1" id="markdown-toc-derivelabelledgeneric-1">[derive(LabelledGeneric)]</a></li>
+  <li><a href="#derivegeneric-1" id="markdown-toc-derivegeneric-1">[derive(Generic)]</a>    <ul>
+      <li><a href="#labelled-" id="markdown-toc-labelled-"><code>Labelled</code> ??</a></li>
+      <li><a href="#how-it-works" id="markdown-toc-how-it-works">How it works</a>        <ul>
+          <li><a href="#labelledname-type" id="markdown-toc-labelledname-type"><code>Labelled&lt;Name, Type&gt;</code></a>            <ul>
+              <li><a href="#type-level-characters-and-strings" id="markdown-toc-type-level-characters-and-strings">Type-level characters and strings</a></li>
+            </ul>
+          </li>
+          <li><a href="#anonymous-records" id="markdown-toc-anonymous-records">(Anonymous) Records!</a></li>
+          <li><a href="#labelled-and-labelledgeneric" id="markdown-toc-labelled-and-labelledgeneric"><code>Labelled</code> and <code>LabelledGeneric</code></a></li>
+          <li><a href="#how-the-labelledgeneric-derivation-is-generated" id="markdown-toc-how-the-labelledgeneric-derivation-is-generated">How the <code>LabelledGeneric</code> derivation is generated</a></li>
+        </ul>
+      </li>
+      <li><a href="#conclusion" id="markdown-toc-conclusion">Conclusion</a></li>
+      <li><a href="#links" id="markdown-toc-links">Links</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="why-motivation">Why? (Motivation)</h2>
+
+<h3 id="silent-runtime-errors-with-generic">Silent runtime errors with <code>Generic</code></h3>
+
+<p>To illustrate the problem, observe that the following 2 structs have the exact same “shape”</p>
+
+<p>```rust
+#[derive(Generic)]
+struct NewUser&lt;’a&gt; {
+    first_name: &amp;’a str,
+    last_name: &amp;’a str,
+    age: usize,
+}</p>
+
+<h1 id="derivegeneric">[derive(Generic)]</h1>
+<p>struct JumbledUser&lt;’a&gt; {
+    last_name: &amp;’a str,
+    first_name: &amp;’a str,
+    age: usize
+}
+```</p>
+
+<p>That is, the <code>Generic</code> representation of their fields as <code>Generic</code> is simply <code>HList![&amp;'a str, &amp;'a str, usize]</code>. As a result, when we do the following:</p>
+
+<p>```rust
+let n_u = NormalUser {
+                    first_name: “Moe”,
+                    last_name: “Ali”,
+                    age: 30
+                };</p>
+
+<p>// Convert from NewUser to JumbledUser
+let s_user: JumbledUser = convert_from(n_user);
+```</p>
+
+<p>Oh no! <code>s_user</code> has <code>first_name</code> and <code>last_name</code> flipped :(</p>
+
+<p>As explained near the end of the post <a href="/blog/2017/02/04/rust-generic-not-generics/">introducing Generic</a>, you can catch this sort of mistake by introducing wrapper types like <code>FirstName&lt;'a&gt;(&amp;' str)</code> for each field, but that introduces more boilerplate.  This sucks, because <code>Generic</code> is supposed to help <em>avoid</em> boilerplate!</p>
+
+<p>Can we have our cake and eat it too ?</p>
+
+<h3 id="labelledgeneric-to-the-rescue"><code>LabelledGeneric</code> to the rescue</h3>
+
+<p><code>LabelledGeneric</code> was introduced in v0.1.12 of Frunk to solve this exact problem. This is how you use it.</p>
+
+<p>```rust
+#[derive(LabelledGeneric)]
+struct NewUser&lt;’a&gt; {
+    first_name: &amp;’a str,
+    last_name: &amp;’a str,
+    age: usize,
+}</p>
+
+<h1 id="derivelabelledgeneric-1">[derive(LabelledGeneric)]</h1>
+<p>struct SavedUser&lt;’a&gt; {
+    first_name: &amp;’a str,
+    last_name: &amp;’a str,
+    age: usize,
+}</p>
+
+<p>let n_u = NormalUser {
+                    first_name: “Moe”,
+                    last_name: “Ali”,
+                    age: 30
+                };</p>
+
+<p>// Convert from NewUser to SavedUser
+let s_user: SavedUser = labelled_convert_from(n_user);</p>
+
+<h1 id="derivegeneric-1">[derive(Generic)]</h1>
+<p>struct JumbledUser&lt;’a&gt; {
+    last_name: &amp;’a str,
+    first_name: &amp;’a str,
+    age: usize
+}
+// ⬇︎ This will fail at compile time
+let s_user: JumbledUser = labelled_convert_from(n_user);
+```
+There isn’t a whole lot different to using <code>LabelledGeneric</code> vs using <code>Generic</code>:</p>
+
+<ol>
+  <li>Instead of deriving <code>Generic</code>, derive <code>LabelledGeneric</code></li>
+  <li>Instead of calling <code>convert_from</code>, call <code>labelled_convert_from</code></li>
+</ol>
+
+<p>These 2 changes buy you a lot more type-safety at compile time, with zero boilerplate. By the way, if you’d like the compiler to automatically “align”, the generic representations so that you <em>could</em> instantiate a <code>JumbledUser</code> from a <code>NewUser</code>, then stay tuned for a later post ;)</p>
+
+<p>The tl;dr version of how this works is that deriving by <code>LabelledGeneric</code>, we make the struct an instance of the <code>LabelledGeneric</code> typeclass.  This typeclass is almost identical to the <code>Generic</code> typeclass, but the <code>derive</code> does something a bit different with the generic representation of the struct: it isn’t just an <code>HList</code> wrapping naked values.</p>
+
+<p>Instead, the generic representation will be an <code>HList</code> where each cell will contain <em>field name</em> information, at the type-level, and conceptually has the following types:</p>
+
+<p>```rust
+// LabelledGeneric Representation for NewUser
+type NewUserRepr = HList![
+  Labelled&lt;first_name, &amp;’a str&gt;,
+  Labelled&lt;last_name, &amp;’a str&gt;,
+  Labelled&lt;age, usize&gt;];</p>
+
+<p>// LabelledGeneric Representation for SavedUser
+type SavedUserRepr = HList![
+  Labelled&lt;first_name, &amp;’a str&gt;,
+  Labelled&lt;last_name, &amp;’a str&gt;,
+  Labelled&lt;age, usize&gt;];</p>
+
+<p>// LabelledGeneric Representation for JumbledUser
+type JumbledUserRepr = HList![
+  Labelled&lt;last_name, &amp;’a str&gt;,
+  Labelled&lt;first_name, &amp;’a str&gt;,
+  Labelled&lt;age, usize&gt;];
+```</p>
+
+<p>This difference in type-level representation is how the compiler knows that one can’t simply convert a <code>NewUser</code> or <code>SavedUser</code> into a <code>JumbledUser</code> via <code>labelled_convert_from</code>.</p>
+
+<h3 id="labelled-"><code>Labelled</code> ??</h3>
+
+<p>What is <code>Labelled</code> ? It’s simply a container struct that is parameterised by 2 types, and has the following signature:</p>
+
+<p><code>rust
+pub struct Labelled&lt;Name, Type&gt; { ... }
+</code></p>
+
+<p>The first type parameter is <code>Name</code> and its purpose is to contain a type-level String, and the second type parameter is <code>Type</code>, which reflects the type of value contained inside the struct.</p>
+
+<p>It may help to think of <code>Labelled</code> as an ad-hoc wrapper type.</p>
+
+<h2 id="how-it-works">How it works</h2>
+
+<h3 id="labelledname-type"><code>Labelled&lt;Name, Type&gt;</code></h3>
+
+<p>The full definition of <code>Labelled</code> is currently as follows:</p>
+
+<p><code>rust
+pub struct Labelled&lt;Name, Type&gt; {
+    name: PhantomData&lt;Name&gt;,
+    pub value: Type,
+}
+</code></p>
+
+<p><code>PhantomData</code> is used to allow us to bind a concrete type to the <code>Name</code> type parameter in an instance of <code>Labelled</code> without actually having it take up any space (for more details on Phantom data, refer to the <a href="https://doc.rust-lang.org/std/marker/struct.PhantomData.html">official docs</a>).</p>
+
+<p>To construct a <code>Labelled</code>, Frunk exposes a method called <code>label</code> so that you don’t need to touch <code>PhantomData</code> yourself.</p>
+
+<p>```rust
+pub fn label&lt;Name, Value&gt;(value: Value) -&gt; Labelled&lt;Name, Value&gt; {
+    Labelled {
+        name: PhantomData,
+        value: value,
+    }
+}</p>
+
+<p>// Usage: we let the compiler figure out the value type for us
+let age = label::&lt;(a, g, e), _&gt;(3);
+```</p>
+
+<p>Astute readers will notice the odd <code>(a,g,e)</code> type used for naming. What is that about ???</p>
+
+<h4 id="type-level-characters-and-strings">Type-level characters and strings</h4>
+
+<p>In order represent characters at the type level, Frunk currently uses <code>enum</code>s that have zero members. This is because empty enums have distinct types, and yet cannot be instantiated at runtime and thus are guaranteed to incur zero cost.</p>
+
+<p>Conceptually, we declare one enum for every character we want to represent:</p>
+
+<p>```rust
+pub enum a {}
+pub enum b {}
+pub enum c {}
+// …
+pub enum A {}
+// … etc
+// Numbers can’t be identifiers, so we preface them with an underscore
+pub enum _1 {}
+pub enum _2 {}</p>
+
+<p>// In reality, the above is generated by a macro.
+```</p>
+
+<p>This means that characters outside English alphanumeric range will need to be specially encoded (the <code>LabelledGeneric</code> derivation uses unicode, but more on this later), but for the most part, this should suffice for the use case of encoding field names as types.</p>
+
+<p>As you may have guessed, type-level strings are then simply represented as tuple types, hence <code>(a,g,e)</code>. For the sake of reducing noise, in the rest of this post, we will refer to these name-types without commas and parentheses.</p>
+
+<p><strong>Note</strong>: This type-level encoding of strings may change in the future.</p>
+
+<h3 id="anonymous-records">(Anonymous) Records!</h3>
+
+<p>Combining the <code>Labelled</code> and <code>HList</code> constructs gets us something else: Records. I believe once upon a time, Rust supported anonymous structs; well, you can get most of that functionality back with Frunk!</p>
+
+<p>```rust
+let record = hlist![
+    label::&lt;name, _&gt;(“Joe”),
+    label::&lt;age, _&gt;(30)
+];</p>
+
+<p>// We’ll talk about pluck() in a later post, but just an FYI, it returns the
+// target value with the type you specified as well as the remainder
+// of the HList in a pair. It is checked at compile time to make sure it never
+// fails at runtime.
+let (name, _): (Labelled&lt;name, _&gt;, _) = record.pluck();
+assert_eq!(name.value, “Joe”)
+```</p>
+
+<p>This kind of thing is sometimes called an “anonymous Record” in Scala (see <a href="https://github.com/scala-records/scala-records">scala-records</a>, or <a href="https://github.com/milessabin/shapeless/blob/master/examples/src/main/scala/shapeless/examples/records.scala">Shapeless</a>).</p>
+
+<p>In the future, the anonymous Records API in Frunk might be improved. As it stands, it exists mostly for the purpose of <code>LabelledGeneric</code> and is a bit noisy to use.</p>
+
+<h3 id="labelled-and-labelledgeneric"><code>Labelled</code> and <code>LabelledGeneric</code></h3>
+
+<p>So, what is the relationship between <code>Labelled</code> and  the <code>LabelledGeneric</code> typeclass?</p>
+
+<p>Quite simply, the associated <code>Repr</code> type of an instance of <code>LabelledGeneric</code> should have the type of an anonymous record (labelled <code>HList</code>).</p>
+
+<p>So, given the following</p>
+
+<p><code>rust
+struct Person {
+  name: String,
+  age: usize
+}
+</code></p>
+
+<p>This is one possible implementation of <code>LabelledGeneric</code> for <code>Person</code>:</p>
+
+<p>```rust
+impl LabelledGeneric for Person {</p>
+
+<p>type Repr = HList![ Labelled&lt;name, String&gt;, Labelled&lt;age, usize&gt; ];</p>
+
+<p>fn into(self) -&gt; Self::Repr {
+    hlist![
+      label::&lt;name, String&gt;(self.name),
+      label::&lt;age, usize&gt;(self.age)
+    ]
+  }</p>
+
+<p>fn from(r: Self::Repr) -&gt; Self {
+    let hlist_pat![ name, age ] = r;
+    Person {
+      name: name.value,
+      age: age.value
+    }
+  }</p>
+
+<p>}
+```</p>
+
+<p>But writing that yourself is tedious <strong>and</strong> error-prone, so Frunk provides a derivation for you.</p>
+
+<h3 id="how-the-labelledgeneric-derivation-is-generated">How the <code>LabelledGeneric</code> derivation is generated</h3>
+
+<p>As illustrated earlier, you can do the following to create an instance of <code>LabelledGeneric</code> for your struct:</p>
+
+<p><code>rust
+#[derive(LabelledGeneric)]
+struct Person {
+  name: String,
+  age: usize
+}
+</code></p>
+
+<p>It generates something conceptually similar to what we <a href="#labelled-and-labelledgeneric">had above</a>, so we won’t repeat that here.</p>
+
+<p>That said, there is something special about the way that characters outside the range of the standard English alphabet and digits are handled. For each of those characters, we get the Unicode hexcode and use those digits, sandwiched by <code>_uc</code> and <code>uc_</code> delimiters, as the type-level representation.</p>
+
+<p>```rust
+// This isn’t possible (yet) in Rust, but let’s pretend it is
+struct Fancy {
+  ❤: usize
+}</p>
+
+<p>// Since ❤ has a Unicode hexcode of \u{2764}\u{fe0f}, the
+// labelled generic representation for the above would be
+type Repr = HList![ Labelled&lt;(<em>ucu2764ufe0fuc</em>, usize&gt; ]
+```</p>
+
+<p>This allows us to effectively represent virtually any legal identifier at the type level, even when the ASCII-only restriction for identifiers is lifted from stable Rust. For more details, take a look at how characters are matched to identifiers <a href="https://github.com/lloydmeta/frunk/blob/8c75c23b1986e533ada83ba89b3b0de584db0f23/derives/src/derive_labelled_generic.rs#L105-L124">here</a>.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>In closing, I’d like to stress that all the abstractions and techniques described in this post are type-safe (no casting happening) and thus get fully verified by Rust’s compiler and its strong type system.</p>
+
+<p>As far as I am aware, this is the first implementation of labelled HLists (aka anonymous Records) and <code>LabelledGeneric</code> in Rust, and I hope this post did a good job of explaining what problems they solve, what they are, how they work, and why you might want to use them. As usual, please give them a go and chime in with questions, comments, ideas, or PRs!</p>
+
+<p>Also, as alluded to in <a href="#labelledgeneric-to-the-rescue">the section</a> introducing <code>LabelledGeneric</code>, there is a way to automatically match up out-of-order fields. We’ll go through this in another post.</p>
+
+<h2 id="links">Links</h2>
+
+<ol>
+  <li><a href="https://github.com/lloydmeta/frunk">Frunk on Github</a></li>
+  <li><a href="https://crates.io/crates/frunk">Frunk on Crates.io</a></li>
+</ol>
+]]></content>
+  </entry>
+  
+</feed>

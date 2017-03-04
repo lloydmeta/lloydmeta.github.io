@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Quasiquotes | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/quasiquotes/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-17T12:19:45+09:00</updated>
+  <updated>2017-03-05T02:10:04+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -18,40 +18,38 @@
     <link href="https://beachape.com/blog/2014/08/11/scala-unless-when-via-macros/"/>
     <updated>2014-08-11T18:41:00+09:00</updated>
     <id>https://beachape.com/blog/2014/08/11/scala-unless-when-via-macros</id>
-    <content type="html"><![CDATA[<p>Last week, I decided to take a stab at learning <a href="http://scalamacros.org/">Scala macros</a>. I had played around with macros when I wrote Scheme for a living (yes, believe it or not, these places exist...and existed long before Clojure made Lisp hip again), but the complexity of Scala's macros always put me off (if you don't believe me, check out the example given in the offical docs for a simple <a href="http://docs.scala-lang.org/overviews/macros/overview.html#a-complete-example">print macro</a>).</p>
+    <content type="html"><![CDATA[<p>Last week, I decided to take a stab at learning <a href="http://scalamacros.org/">Scala macros</a>. I had played around with macros when I wrote Scheme for a living (yes, believe it or not, these places exist…and existed long before Clojure made Lisp hip again), but the complexity of Scala’s macros always put me off (if you don’t believe me, check out the example given in the offical docs for a simple <a href="http://docs.scala-lang.org/overviews/macros/overview.html#a-complete-example">print macro</a>).</p>
 
-<p>In Scala, things are not so simple, but with the introduction of <a href="docs.scala-lang.org/overviews/macros/quasiquotes.html">quasiquotes</a> and some refinements brought by Scala 2.11, things are smoother. Still, for a guy like me, the documentation was both sparse and DRY. Since I learn best when I'm actively engaged in building something, I decided to try writing the <a href="http://clhs.lisp.se/Body/m_when_.htm">run-of-the-mill unless-when</a> macros in Scala.</p>
+<p>In Scala, things are not so simple, but with the introduction of <a href="docs.scala-lang.org/overviews/macros/quasiquotes.html">quasiquotes</a> and some refinements brought by Scala 2.11, things are smoother. Still, for a guy like me, the documentation was both sparse and DRY. Since I learn best when I’m actively engaged in building something, I decided to try writing the <a href="http://clhs.lisp.se/Body/m_when_.htm">run-of-the-mill unless-when</a> macros in Scala.</p>
 
-<p>This post aims to summarise my journey towards implementing <a href="https://github.com/lloydmeta/unless-when">unless-when</a> and hopefully along the way make Scala macros accessible, at least at an introductory level, for Most People. There are already a few Scala macro blog posts out there but another one can't hurt.</p>
+<p>This post aims to summarise my journey towards implementing <a href="https://github.com/lloydmeta/unless-when">unless-when</a> and hopefully along the way make Scala macros accessible, at least at an introductory level, for Most People. There are already a few Scala macro blog posts out there but another one can’t hurt.</p>
 
 <!-- more -->
 
-
 <p><em>Note</em>: this blog post aims to explore macros as they are usable in Scala 2.10+. It also focuses on implementing macros with quasiquotes, as using them is more human-friendly than manually constructing Abstract Syntax Trees (AST).</p>
 
-<h2>Goal</h2>
-
-<p>For those unfamiliar with <code>when</code> and <code>unless</code>: the basic idea is that <code>when</code> is an <code>if</code> without an else, and <code>unless</code> is it's opposite. The main reason for their existence is to make code more readable by adding a tiny bit of syntatic sugar. Without further ado, an example of what we want to achieve</p>
+<h2 id="goal">Goal</h2>
+<p>For those unfamiliar with <code>when</code> and <code>unless</code>: the basic idea is that <code>when</code> is an <code>if</code> without an else, and <code>unless</code> is it’s opposite. The main reason for their existence is to make code more readable by adding a tiny bit of syntatic sugar. Without further ado, an example of what we want to achieve</p>
 
 <p>```scala
-/<em>
+/*
   This should replace if (true) { block of code }
-</em>/
+*/
 when (true) {
   // block of code
 }</p>
 
-<p>/<em>
+<p>/*
   This should replace if (!true) { do something }
-</em>/
+*/
 unless (false) {
   // block of code
 }
 ```</p>
 
-<p>Since we're writing Scala, it would be nice if these constructs returned something useful; using the <a href="http://www.scala-lang.org/api/current/scala/Option.html">Option</a> monad seems reasonable: If the block is run, we return the result in a Some and otherwise return a None. <a href="http://danielwestheide.com/blog/2012/12/19/the-neophytes-guide-to-scala-part-5-the-option-type.html">This tutorial</a> is a good guide for Options in case you are unfamiliar with the concept.</p>
+<p>Since we’re writing Scala, it would be nice if these constructs returned something useful; using the <a href="http://www.scala-lang.org/api/current/scala/Option.html">Option</a> monad seems reasonable: If the block is run, we return the result in a Some and otherwise return a None. <a href="http://danielwestheide.com/blog/2012/12/19/the-neophytes-guide-to-scala-part-5-the-option-type.html">This tutorial</a> is a good guide for Options in case you are unfamiliar with the concept.</p>
 
-<h2>Macro-y basics</h2>
+<h2 id="macro-y-basics">Macro-y basics</h2>
 
 <p>Taking a look at the documentation, you will quickly notice the general pattern for implementing a simple Scala macro</p>
 
@@ -60,77 +58,70 @@ import scala.language.experimental.macros
 import scala.reflect.macros._</p>
 
 <p>object Example {
-  def meth<a href="x:%20A">A</a>: A = macro implRef[A]</p>
+  def meth<a href="x: A">A</a>: A = macro implRef[A]</p>
 
-<p>...</p>
+<p>…</p>
 
-<p>  def implRef<a href="c:%20Context">A: c.WeakTypeTag</a>(x: c.Expr[A]): c.Expr[A] = ...
+<p>def implRef<a href="c: Context">A: c.WeakTypeTag</a>(x: c.Expr[A]): c.Expr[A] = …
 }
 ```
-What does this mean? Let's break it down:</p>
+What does this mean? Let’s break it down:</p>
 
 <ul>
-<li><code>import scala.language.experimental.macros</code> and <code>import scala.reflect.macros._</code> are standard Scala imports that allow us to play around with macros. What's not listed in this example is the declaration that your project depends on <code>scala-reflect</code>. You can do so by adding the following to your build.sbt:
-
-<ul>
-<li><code>libraryDependencies ++= Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)</code></li>
-</ul>
-</li>
-<li><code>def meth[A](x: A): A</code> this is still just normal Scala code that we would normally see. It simply declares a method belonging to the Example singleton that is parameterised on the input type, and we want to make sure that the output type matches this type (e.g. if we invoke <code>meth</code> with an <code>Int</code>, we expect the output to be an <code>Int</code> because that is the contract of the method). For more info on writing parametric polymorphism, please check out <a href="Parametric%20polymorphism">this guide</a>:</li>
-<li><code>macro implRef[A]</code> this is where things start looking macro-ish. The <code>macro</code> keyword lets the compiler know that the body of this method is going to be implemented via a macro definition, in this case <code>implRef</code>.</li>
-<li><code>def implRef[A: c.WeakTypeTag](c: Context)(x: c.Expr[A]): c.Expr[A]</code> .. wow. This itself needs to be broken down:
-
-<ul>
-<li><code>def implRef[A: c.WeakTypeTag]</code> The first part <code>def implRef</code> is still standard Scala</li>
-<li><code>(c: Context)</code> (we'll cover <code>[A: c.WeakTypeTag]</code> in a bit). In this part, <code>(c: Context)</code> declares that the first argument passed to the macro implementation must be a Context. This is a requirement for playing around with Scala macros, and is actually passed by the compiler when it invokes macro expansion, so that you can write code that accesses the compiler API.</li>
-<li><code>[A: c.WeakTypeTag]</code> This is a bit mischievous because we combine Scala-shorthand for typeclasses with macro-magic. This probably deserves a post in and of itself, but for now, please consider this to mean "A is a type parameter passed during macro invocation, but we must ALSO have in scope a WeakTypeTag coming from the Context that is parameterised to type A, which can be written in full as c.WeakTypeTag[A]". This WeakTypeTag business is required so that we can pass along the type parameter from <code>meth</code> into the <code>implRef</code> macro expansion implementation, allowing us to have a type parameterised macro definition.
-
-<ul>
-<li>For more information on type classes and the shorthand we use here, I highly recommend this <a href="danielwestheide.com/blog/2013/02/06/the-neophytes-guide-to-scala-part-12-type-classes.html">blog post on type classes</a></li>
-</ul>
-</li>
-<li><code>(x: c.Expr[A])</code> means that the first non-Context parameter of the macro implementation (remember that the first one is always taken by the compiler and must be a Context) is <code>x</code> and it is a <code>c.Expr[A]</code>. It is important that the name of the parameter matches that used in the invoking method (see how <code>meth</code> also has <code>x</code> as the first parameter). <code>c.Expr</code> is type of object that wraps the abstract syntax tree that represents the input to the invoking function, and it is typed to A.
-
-<ul>
-<li><em>NOTE:</em> since the argument's type is <code>c.Expr</code> (essentially an abstract syntax tree), any expression passed to the method <code>meth</code> actually may not get invoked or evaluated even though it is not a <a href="http://daily-scala.blogspot.jp/2009/12/by-name-parameter-to-function.html">pass-by-name parameter</a>. In other words, while the macro is expanding, it <strong>acts</strong> like a pass-by name parameter and is "lazy".</li>
-</ul>
-</li>
-<li><code>: c.Expr[A]</code> all this means is that the result of the macro expansion is also a <code>c.Expr</code> type parameterised to A.</li>
-</ul>
-</li>
+  <li><code>import scala.language.experimental.macros</code> and <code>import scala.reflect.macros._</code> are standard Scala imports that allow us to play around with macros. What’s not listed in this example is the declaration that your project depends on <code>scala-reflect</code>. You can do so by adding the following to your build.sbt:
+    <ul>
+      <li><code>libraryDependencies ++= Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)</code></li>
+    </ul>
+  </li>
+  <li><code>def meth[A](x: A): A</code> this is still just normal Scala code that we would normally see. It simply declares a method belonging to the Example singleton that is parameterised on the input type, and we want to make sure that the output type matches this type (e.g. if we invoke <code>meth</code> with an <code>Int</code>, we expect the output to be an <code>Int</code> because that is the contract of the method). For more info on writing parametric polymorphism, please check out <a href="Parametric polymorphism">this guide</a>:</li>
+  <li><code>macro implRef[A]</code> this is where things start looking macro-ish. The <code>macro</code> keyword lets the compiler know that the body of this method is going to be implemented via a macro definition, in this case <code>implRef</code>.</li>
+  <li><code>def implRef[A: c.WeakTypeTag](c: Context)(x: c.Expr[A]): c.Expr[A]</code> .. wow. This itself needs to be broken down:
+    <ul>
+      <li><code>def implRef[A: c.WeakTypeTag]</code> The first part <code>def implRef</code> is still standard Scala</li>
+      <li><code>(c: Context)</code> (we’ll cover <code>[A: c.WeakTypeTag]</code> in a bit). In this part, <code>(c: Context)</code> declares that the first argument passed to the macro implementation must be a Context. This is a requirement for playing around with Scala macros, and is actually passed by the compiler when it invokes macro expansion, so that you can write code that accesses the compiler API.</li>
+      <li><code>[A: c.WeakTypeTag]</code> This is a bit mischievous because we combine Scala-shorthand for typeclasses with macro-magic. This probably deserves a post in and of itself, but for now, please consider this to mean “A is a type parameter passed during macro invocation, but we must ALSO have in scope a WeakTypeTag coming from the Context that is parameterised to type A, which can be written in full as c.WeakTypeTag[A]”. This WeakTypeTag business is required so that we can pass along the type parameter from <code>meth</code> into the <code>implRef</code> macro expansion implementation, allowing us to have a type parameterised macro definition.
+        <ul>
+          <li>For more information on type classes and the shorthand we use here, I highly recommend this <a href="danielwestheide.com/blog/2013/02/06/the-neophytes-guide-to-scala-part-12-type-classes.html">blog post on type classes</a></li>
+        </ul>
+      </li>
+      <li><code>(x: c.Expr[A])</code> means that the first non-Context parameter of the macro implementation (remember that the first one is always taken by the compiler and must be a Context) is <code>x</code> and it is a <code>c.Expr[A]</code>. It is important that the name of the parameter matches that used in the invoking method (see how <code>meth</code> also has <code>x</code> as the first parameter). <code>c.Expr</code> is type of object that wraps the abstract syntax tree that represents the input to the invoking function, and it is typed to A.
+        <ul>
+          <li><em>NOTE:</em> since the argument’s type is <code>c.Expr</code> (essentially an abstract syntax tree), any expression passed to the method <code>meth</code> actually may not get invoked or evaluated even though it is not a <a href="http://daily-scala.blogspot.jp/2009/12/by-name-parameter-to-function.html">pass-by-name parameter</a>. In other words, while the macro is expanding, it <strong>acts</strong> like a pass-by name parameter and is “lazy”.</li>
+        </ul>
+      </li>
+      <li><code>: c.Expr[A]</code> all this means is that the result of the macro expansion is also a <code>c.Expr</code> type parameterised to A.</li>
+    </ul>
+  </li>
 </ul>
 
-
-<h2>Quasiquotes</h2>
-
+<h2 id="quasiquotes">Quasiquotes</h2>
 <p>Quasiquotes are not a Scala-exclusive construct, and a Google search will show that they are used in other languages that support metaprogramming, like Scheme.</p>
 
 <p>In short, they offer the macro programmer an easy way to manipulate or create abstract syntax trees without having to build them manually. This makes them extremely helpful in Scala because:
   1. Scala syntax does not map to ASTs easily like Lisps
-  2. Scala is typed, which means your manually-built AST also needs typing...which wraps non-macro-land types (notice how a normal type parameter like <code>[A]</code> becomes <code>c.Expr[A]</code> ... that's twice as many characters  !)</p>
+  2. Scala is typed, which means your manually-built AST also needs typing…which wraps non-macro-land types (notice how a normal type parameter like <code>[A]</code> becomes <code>c.Expr[A]</code> … that’s twice as many characters  !)</p>
 
 <p>Quasiquotes allow us to use <a href="http://docs.scala-lang.org/overviews/core/string-interpolation.html">string-interpolation-like syntax</a> to interpolate elements into a tree as we define it.</p>
 
 <p>For example:</p>
 
 <p>```scala
-scala> val aquasiquote = q"a quasiquote"
+scala&gt; val aquasiquote = q”a quasiquote”
 aquasiquote: universe.Select = a.quasiquote</p>
 
-<p>scala> val tree = q"i am { $aquasiquote }"
+<p>scala&gt; val tree = q”i am { $aquasiquote }”
 tree: universe.Tree = i.am(a.quasiquote)
 ```
 The above example was taken from the <a href="http://docs.scala-lang.org/overviews/quasiquotes/intro.html">official documentation on quasiquotes</a>, which I highly recommend you take a look at if you find the rest of this post hard to follow.</p>
 
-<h2>Implementation</h2>
-
+<h2 id="implementation">Implementation</h2>
 <p>For <code>when</code>, we know that we roughly want the following:</p>
 
 <p><code>scala
 when (someCondition) { result }
 </code></p>
 
-<p>To expand via our macro into the following (yes we are using an inline if .. if you don't like it, pretend we didn't)</p>
+<p>To expand via our macro into the following (yes we are using an inline if .. if you don’t like it, pretend we didn’t)</p>
 
 <p><code>scala
 if (someCondition) Some(result) else None
@@ -144,46 +135,41 @@ import scala.reflect.macros._</p>
 
 <p>object Example {</p>
 
-<p>  def when<a href="p:%20Boolean">A</a>(f: A): Option[A] = macro whenImp[A]</p>
+<p>def when<a href="p: Boolean">A</a>(f: A): Option[A] = macro whenImp[A]</p>
 
-<p>  def whenImp<a href="c:%20Context">A: c.WeakTypeTag</a>(p: c.Expr[Boolean])(f: c.Expr[A]): c.Expr[Option[A]] = {</p>
-
-<pre><code>import c.universe._
-c.Expr[Option[A]](q"if ($p) Some($f) else None")
-</code></pre>
-
-<p>  }
+<p>def whenImp<a href="c: Context">A: c.WeakTypeTag</a>(p: c.Expr[Boolean])(f: c.Expr[A]): c.Expr[Option[A]] = {
+    import c.universe._
+    c.Expr<a href="q&quot;if ($p) Some($f) else None&quot;">Option[A]</a>
+  }
 }
 ```</p>
 
 <p>Implementing <code>unless</code> is left as an exercise for the reader :)</p>
 
-<h2>Trying it out</h2>
+<h2 id="trying-it-out">Trying it out</h2>
 
 <p>Putting the above into a Scala REPL (you will probably need to use <code>:paste</code> mode) will prove that it works.</p>
 
 <p>For example:</p>
 
 <p>```scala
-scala> import Example.<em>
-import Example.</em></p>
+scala&gt; import Example._
+import Example._</p>
 
 <p>when(true)(3)
 res1: Option[Int] = Some(3)
 ```</p>
 
-<p>Also, remember that since our <code>when</code> is backed by a macro, the <code>f</code> argument (our block) passed to the second parameter list, behaves "lazily" and won't execute if our predicate<code>p</code> returns false. This is because when <code>when</code> is invoked, the compiler knows to pass the entire AST for that block parameter (well, wrapped inside a <code>c.Expr</code>) to our macro, which interpolates the it into the final tree.</p>
+<p>Also, remember that since our <code>when</code> is backed by a macro, the <code>f</code> argument (our block) passed to the second parameter list, behaves “lazily” and won’t execute if our predicate<code>p</code> returns false. This is because when <code>when</code> is invoked, the compiler knows to pass the entire AST for that block parameter (well, wrapped inside a <code>c.Expr</code>) to our macro, which interpolates the it into the final tree.</p>
 
-<p>For the performance-conscious, this means that we get "lazy" for free; that is, without using Scala's call-by-name parameter feature, which, although nice to use in many cases, <em>does</em> incur some run-time performance penalty because it is implemented by instantiating anonymous classes (see <a href="http://infoscience.epfl.ch/record/128135/files/paper.pdf">this paper</a> for more information about the performance cost of call-by-name parameters .. among other performance-related Scala things).</p>
+<p>For the performance-conscious, this means that we get “lazy” for free; that is, without using Scala’s call-by-name parameter feature, which, although nice to use in many cases, <em>does</em> incur some run-time performance penalty because it is implemented by instantiating anonymous classes (see <a href="http://infoscience.epfl.ch/record/128135/files/paper.pdf">this paper</a> for more information about the performance cost of call-by-name parameters .. among other performance-related Scala things).</p>
 
-<h2>unless-when library</h2>
-
-<p>I've put the above into a library and included trailing variants of <code>when</code> and <code>unless</code> as bonuses (Rubyists should be familiar with these).</p>
+<h2 id="unless-when-library">unless-when library</h2>
+<p>I’ve put the above into a library and included trailing variants of <code>when</code> and <code>unless</code> as bonuses (Rubyists should be familiar with these).</p>
 
 <p>You can find the lib <a href="https://github.com/lloydmeta/unless-when">here on Github</a>. It is fully tested and Mavenised for easy out-of-the-box usage.</p>
 
-<h2>Conclusion</h2>
-
+<h2 id="conclusion">Conclusion</h2>
 <p>I hope this post has been helpful in giving a simple, but full example of how to get started with macros in Scala. If you spot any errors, have questions or suggestions, please feel free to leave a comment!</p>
 ]]></content>
   </entry>

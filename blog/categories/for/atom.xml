@@ -4,7 +4,7 @@
   <title><![CDATA[Category: For | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/for/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-17T12:19:45+09:00</updated>
+  <updated>2017-03-05T02:10:04+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -20,16 +20,15 @@
     <id>https://beachape.com/blog/2013/06/20/scala-processing-option-wrapped-collections</id>
     <content type="html"><![CDATA[<p>In Scala, there are a lot of cool things - too many to list. Among them is something borrowed from Haskell; the <strong>Maybe</strong>, spelt <a href="http://www.scala-lang.org/api/current/index.html#scala.Option"><em>Option</em> in Scala</a>, which itself is based on the concept of computing via <a href="http://en.wikibooks.org/wiki/Haskell/Understanding_monads">monads</a>.</p>
 
-<p>The reason why <code>Option</code> is awesome is that, if used properly, it largely frees the programmer from having to worry about various variables being in states of nothingness (Nil, null, etc). Without fail, every programmer has at one point or another written things like <code>thing.nil? ? do_nothing : do_something</code> .... all over the place. The point (in my mind, at least) of <code>Option</code> is to free us from having to do this in as many places as possible.</p>
+<p>The reason why <code>Option</code> is awesome is that, if used properly, it largely frees the programmer from having to worry about various variables being in states of nothingness (Nil, null, etc). Without fail, every programmer has at one point or another written things like <code>thing.nil? ? do_nothing : do_something</code> …. all over the place. The point (in my mind, at least) of <code>Option</code> is to free us from having to do this in as many places as possible.</p>
 
-<p>Many libraries in Scala, such as <a href="https://github.com/debasishg/scala-redis">Scala-Redis</a> are made with the assumption that the programmer knows how to deal with <code>Option</code> and return results wrapped in either <code>Some[List[T]]</code> or <code>None</code>.  That said, how to work with these types of results is not exactly straight forward for someone coming from other languages that don't have such constructs, so I've written down some of my thoughts.</p>
+<p>Many libraries in Scala, such as <a href="https://github.com/debasishg/scala-redis">Scala-Redis</a> are made with the assumption that the programmer knows how to deal with <code>Option</code> and return results wrapped in either <code>Some[List[T]]</code> or <code>None</code>.  That said, how to work with these types of results is not exactly straight forward for someone coming from other languages that don’t have such constructs, so I’ve written down some of my thoughts.</p>
 
 <!-- more -->
 
+<p>As an example, let’s try tackling the issue of how to use a result like the one that comes from <a href="https://github.com/debasishg/scala-redis">Scala-Redis</a>: <code>Some[List[T]]</code>.</p>
 
-<p>As an example, let's try tackling the issue of how to use a result like the one that comes from <a href="https://github.com/debasishg/scala-redis">Scala-Redis</a>: <code>Some[List[T]]</code>.</p>
-
-<p>To keep things simple, assume we have a <code>val maybeList = Some(List(1,2,3))</code> and we want to increment each member of the list inside the <code>Option</code>, and want to return another<code>Option</code> with the incremented list inside. While we could potentially do pattern matching to check if the <code>Option</code> is a <code>None</code>, we would prefer to take advantage of the patterns afforded to us by the fact that we're dealing with an <code>Option</code>. This means using <code>map</code>, <code>flatMap</code> and <code>for</code>.</p>
+<p>To keep things simple, assume we have a <code>val maybeList = Some(List(1,2,3))</code> and we want to increment each member of the list inside the <code>Option</code>, and want to return another<code>Option</code> with the incremented list inside. While we could potentially do pattern matching to check if the <code>Option</code> is a <code>None</code>, we would prefer to take advantage of the patterns afforded to us by the fact that we’re dealing with an <code>Option</code>. This means using <code>map</code>, <code>flatMap</code> and <code>for</code>.</p>
 
 <p>Based on what <a href="http://www.scala-lang.org/api/current/index.html#scala.Option">official Scala documentation on Options</a> tells us, we have</p>
 
@@ -47,7 +46,7 @@
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">def</span> <span class="n">incrementMaybeList</span><span class="o">(</span><span class="n">maybeList</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]],</span> <span class="n">increment</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1</span><span class="o">)</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]</span> <span class="k">=</span> <span class="o">{</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">def</span> <span class="n">incrementMaybeList</span><span class="o">(</span><span class="n">maybeList</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]],</span> <span class="n">increment</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1</span><span class="o">)</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]</span> <span class="k">=</span> <span class="o">{</span>
 </span><span class='line'>  <span class="n">maybeList</span><span class="o">.</span><span class="n">map</span><span class="o">{</span><span class="n">list</span> <span class="k">=&gt;</span>
 </span><span class='line'>    <span class="n">list</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="n">increment</span><span class="o">)</span>
 </span><span class='line'>  <span class="o">}</span>
@@ -69,14 +68,14 @@
 <p>```scala
 val maybeList = Some(List(1,2,3))
 val incrementedMaybeList = incrementMaybeList(maybeList)
-// => incrementedMaybeList: Option[List[Int]] = Some(List(2, 3, 4))</p>
+// =&gt; incrementedMaybeList: Option[List[Int]] = Some(List(2, 3, 4))</p>
 
 <p>val maybeListNone = None
 val incrementedMaybeList = incrementMaybeList(maybeListNone)
-// => incrementedMaybeList: Option[List[Int]] = None
+// =&gt; incrementedMaybeList: Option[List[Int]] = None
 ```</p>
 
-<p>The fact that calling <code>incrementMaybeList</code> with <code>maybeList</code> worked should not be surprising, but notice how <code>maybeListNone</code> didn't cause the function to throw up. This is because calling methods like <code>map</code> or using for-comprehnsion on <code>Option</code>s that are <code>None</code> immediately return None instead of proceeding to run internal logic. No need to write if/else guards !</p>
+<p>The fact that calling <code>incrementMaybeList</code> with <code>maybeList</code> worked should not be surprising, but notice how <code>maybeListNone</code> didn’t cause the function to throw up. This is because calling methods like <code>map</code> or using for-comprehnsion on <code>Option</code>s that are <code>None</code> immediately return None instead of proceeding to run internal logic. No need to write if/else guards !</p>
 
 <p>By building and using functions like <code>incrementMaybeList</code>, where an <code>Option</code> is processed and an <code>Option</code> is returned throughout the code, one can stop worrying about Nothingness (for the most part), because they can be chained together.</p>
 
@@ -101,8 +100,7 @@ incrementMaybeList(incrementMaybeList(None))
 } println(item)
 ```</p>
 
-<h2>Conclusion</h2>
-
+<h2 id="conclusion">Conclusion</h2>
 <p><code>Option</code>s  free the programmer from worrying about Nothingness and thus from writing tons of boilerplate nothingness checks in our code. This blog post talks about a simplish, but applicable example on how to deal with <code>Option</code> in Scala.</p>
 ]]></content>
   </entry>

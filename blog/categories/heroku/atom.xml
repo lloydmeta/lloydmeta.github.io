@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Heroku | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/heroku/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-17T12:19:45+09:00</updated>
+  <updated>2017-03-05T02:10:04+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -18,60 +18,53 @@
     <link href="https://beachape.com/blog/2013/09/12/resolving-java-oom-unable-to-create-new-native-thread-errors-on-heroku/"/>
     <updated>2013-09-12T13:25:00+09:00</updated>
     <id>https://beachape.com/blog/2013/09/12/resolving-java-oom-unable-to-create-new-native-thread-errors-on-heroku</id>
-    <content type="html"><![CDATA[<p>For the most part, I'm a very happy Heroku user. The platform allows me deploy my apps, be they Java, Scala or Ruby-based without having to think/worry about infrastructure, which is amazing. They also allow me to, for the most part, do this for free. For the most part, I love it, and so do many others. That said, sometimes you do run into problems that cause you to lose lots of time debugging ... in the wrong direction.</p>
+    <content type="html"><![CDATA[<p>For the most part, I’m a very happy Heroku user. The platform allows me deploy my apps, be they Java, Scala or Ruby-based without having to think/worry about infrastructure, which is amazing. They also allow me to, for the most part, do this for free. For the most part, I love it, and so do many others. That said, sometimes you do run into problems that cause you to lose lots of time debugging … in the wrong direction.</p>
 
 <p>Yesterday, after adding non-blocking I/O to my <a href="https://github.com/lloydmeta/metascraper">Metascraper library</a>, I load tested my deployed application and found it fatally crashing with <code>java.lang.OutOfMemoryError: unable to create new native thread</code> errors. <strong>Not Good</strong></p>
 
 <!-- more -->
 
+<h3 id="what-i-did-wrong">What I did wrong</h3>
 
-<h3>What I did wrong</h3>
+<p>Because of the error thrown, I immediately thought to myself: “there’s gotta be a memory leak. Good thing I’m monitoring the app with New Relic !”. For the most part, if you <a href="https://www.google.com/search?q=java+out+of+memory+error+unable+to+create+new+native+thread&amp;oq=java+out+of+memory+error+unable+to+create+new+native+thread&amp;aqs=chrome..69i57.273j0&amp;sourceid=chrome&amp;ie=UTF-8">Google the error</a>, you find a lot of posts suggesting that your app has a memory leak somewhere, you need to tweak your VM memory options, etc. <strong>All of this advice is valid.</strong></p>
 
-<p>Because of the error thrown, I immediately thought to myself: "there's gotta be a memory leak. Good thing I'm monitoring the app with New Relic !". For the most part, if you <a href="https://www.google.com/search?q=java+out+of+memory+error+unable+to+create+new+native+thread&amp;oq=java+out+of+memory+error+unable+to+create+new+native+thread&amp;aqs=chrome..69i57.273j0&amp;sourceid=chrome&amp;ie=UTF-8">Google the error</a>, you find a lot of posts suggesting that your app has a memory leak somewhere, you need to tweak your VM memory options, etc. <strong>All of this advice is valid.</strong></p>
+<p>After looking at my instance’s memory usage though, it didn’t seem like that was the problem; used heap, commited heap, etc all looked fine. I should have probably stopped looking at memory usage, but I didn’t and proceeded to spend a few hours going through the cycle of combing through code, tweaking memory options, and testing. To no avail.</p>
 
-<p>After looking at my instance's memory usage though, it didn't seem like that was the problem; used heap, commited heap, etc all looked fine. I should have probably stopped looking at memory usage, but I didn't and proceeded to spend a few hours going through the cycle of combing through code, tweaking memory options, and testing. To no avail.</p>
+<h3 id="seeing-the-light">Seeing the light</h3>
 
-<h3>Seeing the light</h3>
+<p>Then, finally, I stumbled across <a href="http://devgrok.blogspot.jp/2012/03/resolving-outofmemoryerror-unable-to.html">this page</a>, talking about how to resolve said OOM error. In short, the JVM apparently throws the Java OOM error whenever it can’t allocate a new thread from the OS, regardless of the cause. Their solution was to up the max processes per user. Hmmmm.</p>
 
-<p>Then, finally, I stumbled across <a href="http://devgrok.blogspot.jp/2012/03/resolving-outofmemoryerror-unable-to.html">this page</a>, talking about how to resolve said OOM error. In short, the JVM apparently throws the Java OOM error whenever it can't allocate a new thread from the OS, regardless of the cause. Their solution was to up the max processes per user. Hmmmm.</p>
-
-<p>```c Where in jvm.cpp that the error is thrown http://hg.openjdk.java.net/jdk7/jdk7/hotspot/file/tip/src/share/vm/prims/jvm.cpp
-if (native_thread->osthread() == NULL) {
+<p><code>c Where in jvm.cpp that the error is thrown http://hg.openjdk.java.net/jdk7/jdk7/hotspot/file/tip/src/share/vm/prims/jvm.cpp
+if (native_thread-&gt;osthread() == NULL) {
   // No one should hold a reference to the 'native_thread'.
   delete native_thread;
-  if (JvmtiExport::should_post_resource_exhausted()) {</p>
+  if (JvmtiExport::should_post_resource_exhausted()) {
+    JvmtiExport::post_resource_exhausted(
+      JVMTI_RESOURCE_EXHAUSTED_OOM_ERROR | JVMTI_RESOURCE_EXHAUSTED_THREADS,
+      "unable to create new native thread");
+  }
+  THROW_MSG(vmSymbols::java_lang_OutOfMemoryError(),
+            "unable to create new native thread");
+}
+</code></p>
 
-<pre><code>JvmtiExport::post_resource_exhausted(
-  JVMTI_RESOURCE_EXHAUSTED_OOM_ERROR | JVMTI_RESOURCE_EXHAUSTED_THREADS,
-  "unable to create new native thread");
-</code></pre>
-
-<p>  }
-  THROW_MSG(vmSymbols::java_lang_OutOfMemoryError(),</p>
-
-<pre><code>        "unable to create new native thread");
-</code></pre>
-
-<p>}
-```</p>
-
-<p>Since I had added non-blocking I/O, which inherently must be doing some kind of threading somewhere, I felt I was on to something. Googling "Heroku thread limits" brought me to <a href="https://devcenter.heroku.com/articles/limits#processes-threads">this page</a></p>
+<p>Since I had added non-blocking I/O, which inherently must be doing some kind of threading somewhere, I felt I was on to something. Googling “Heroku thread limits” brought me to <a href="https://devcenter.heroku.com/articles/limits#processes-threads">this page</a></p>
 
 <p><blockquote><p>1X Dynos are limited a combined sum of 256 processes and threads. 2X Dynos are limited to 512. This limit applies whether they are executing, sleeping, or in any other state.</p><footer><strong>Heroku</strong> <cite><a href='https://devcenter.heroku.com/articles/limits#processes-threads'>devcenter.heroku.com/articles/&hellip;</a></cite></footer></blockquote></p>
 
-<p>Bingo, but because there was nothing I could do about Heroku's thread+process limits, I decided to look at the code for <a href="https://github.com/dispatch/reboot">Dispatch</a>, the HTTP library I'm using for fetching pages from URLs to look at how it manages threads. This is where things get icky.</p>
+<p>Bingo, but because there was nothing I could do about Heroku’s thread+process limits, I decided to look at the code for <a href="https://github.com/dispatch/reboot">Dispatch</a>, the HTTP library I’m using for fetching pages from URLs to look at how it manages threads. This is where things get icky.</p>
 
-<h3>Diving in</h3>
+<h3 id="diving-in">Diving in</h3>
 
-<p>Apparently, in previous versions of Dispatch, one could configure the number of threads easily (I believe in 0.9.x, you had access to a <code>threads</code> method). However, in the version that I'm using (latest as of writing), version 0.11.0, you do not. Moreover, unless being called from <code>sbt</code>, the library now defaults to building clients using the default configuration for the underlying <code>async-http-client</code> (which does make sense). Unfortunately, <a href="https://github.com/AsyncHttpClient/async-http-client/blob/b9f1ca733d05530f19d66c4afbb9ee0aeafd05d1/api/src/main/java/org/asynchttpclient/AsyncHttpClientConfigBean.java#L81-L96">it appears that the default configuration therefore results in the use of</a> <code>Executor.newCachedThreadPool</code>, which some say is <a href="http://stackoverflow.com/questions/15058978/how-to-decide-whether-to-use-newcachedthreadpool-or-newfixedthreadpool">good</a> and <a href="http://paultyma.blogspot.jp/2008/03/writing-java-multithreaded-servers.html">bad</a>.</p>
+<p>Apparently, in previous versions of Dispatch, one could configure the number of threads easily (I believe in 0.9.x, you had access to a <code>threads</code> method). However, in the version that I’m using (latest as of writing), version 0.11.0, you do not. Moreover, unless being called from <code>sbt</code>, the library now defaults to building clients using the default configuration for the underlying <code>async-http-client</code> (which does make sense). Unfortunately, <a href="https://github.com/AsyncHttpClient/async-http-client/blob/b9f1ca733d05530f19d66c4afbb9ee0aeafd05d1/api/src/main/java/org/asynchttpclient/AsyncHttpClientConfigBean.java#L81-L96">it appears that the default configuration therefore results in the use of</a> <code>Executor.newCachedThreadPool</code>, which some say is <a href="http://stackoverflow.com/questions/15058978/how-to-decide-whether-to-use-newcachedthreadpool-or-newfixedthreadpool">good</a> and <a href="http://paultyma.blogspot.jp/2008/03/writing-java-multithreaded-servers.html">bad</a>.</p>
 
-<h3>Problem identified</h3>
+<h3 id="problem-identified">Problem identified</h3>
 
-<p>The main point is this: because of it's use of <a href="http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/Executors.html#newCachedThreadPool">newCachedThreadPool</a>, <strong><code>aysnc-http-client</code>, and thus <code>Dispatch</code> is going to use as many threads as necessary to handle the workload that you give it and rely on the JVM clean up idle threads later</strong> . Usually, this might not be a problem, but when running on Heroku or any other environment where you might hit thread limit constraints, the cleanup might not happen quick enough to not crash your program.</p>
+<p>The main point is this: because of it’s use of <a href="http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/Executors.html#newCachedThreadPool">newCachedThreadPool</a>, <strong><code>aysnc-http-client</code>, and thus <code>Dispatch</code> is going to use as many threads as necessary to handle the workload that you give it and rely on the JVM clean up idle threads later</strong> . Usually, this might not be a problem, but when running on Heroku or any other environment where you might hit thread limit constraints, the cleanup might not happen quick enough to not crash your program.</p>
 
-<h3>Resolution</h3>
+<h3 id="resolution">Resolution</h3>
 
-<p>To fix the scary "OOM unable to create new thread" problem when an app using my library is running in such an environment, I did a bit of sleuthing to find out how I might limit the number of threads used by my HTTP library and came up with <a href="https://github.com/lloydmeta/metascraper/blob/master/src/main/scala/com/beachape/metascraper/ScraperActor.scala#L63-L77">this</a>.</p>
+<p>To fix the scary “OOM unable to create new thread” problem when an app using my library is running in such an environment, I did a bit of sleuthing to find out how I might limit the number of threads used by my HTTP library and came up with <a href="https://github.com/lloydmeta/metascraper/blob/master/src/main/scala/com/beachape/metascraper/ScraperActor.scala#L63-L77">this</a>.</p>
 
 <p><code>scala
 // Http client
@@ -91,15 +84,14 @@ lazy val asyncHttpClient = new AsyncHttpClient(config)
 lazy val httpClient = new Http(asyncHttpClient)
 </code></p>
 
-<p>It makes more sense when you look at the entire Actor source, but in short, I instantiate an HTTP client, passing in an <code>ExecutorService</code> that uses a <strong>fixed</strong> threads pool. I then allow library users to configure the number of threads for the client when instantiating the actor (and other options). Of course, this means that an actor's HTTP client will wait if all execution threads are busy, but since it's a non-blocking call, the actor itself doesn't care, and the only negative result is maybe slower operations under load. All in all, I think it's a good tradeoff for not having your app die.</p>
+<p>It makes more sense when you look at the entire Actor source, but in short, I instantiate an HTTP client, passing in an <code>ExecutorService</code> that uses a <strong>fixed</strong> threads pool. I then allow library users to configure the number of threads for the client when instantiating the actor (and other options). Of course, this means that an actor’s HTTP client will wait if all execution threads are busy, but since it’s a non-blocking call, the actor itself doesn’t care, and the only negative result is maybe slower operations under load. All in all, I think it’s a good tradeoff for not having your app die.</p>
 
-<h3>Lessons learned</h3>
+<h3 id="lessons-learned">Lessons learned</h3>
 
 <ol>
-<li>Don't take an error message at face value. Know exactly when it gets thrown and if there are multiple possible causes, go for the most likely one first.</li>
-<li>Know your environment and its constraints.</li>
+  <li>Don’t take an error message at face value. Know exactly when it gets thrown and if there are multiple possible causes, go for the most likely one first.</li>
+  <li>Know your environment and its constraints.</li>
 </ol>
-
 
 <p>Hoped this post helped you !</p>
 ]]></content>
@@ -110,16 +102,15 @@ lazy val httpClient = new Http(asyncHttpClient)
     <link href="https://beachape.com/blog/2013/02/04/nodejs-on-heroku-with-newrelic/"/>
     <updated>2013-02-04T12:31:00+09:00</updated>
     <id>https://beachape.com/blog/2013/02/04/nodejs-on-heroku-with-newrelic</id>
-    <content type="html"><![CDATA[<p><em>TL;DR</em> If you're using NodeJS and want to monitor using NewRelic, follow <a href="https://npmjs.org/package/newrelic">these steps</a>. Additionally if you want to do this on Heroku using the NewRelic account you added through the Heroku API, make sure your <a href="https://github.com/lloydmeta/Node_notifications/blob/master/package.json">package.json has "newrelic"</a> and <a href="https://github.com/lloydmeta/Node_notifications/blob/master/newrelic.js">your newrelic.js points to the NEW_RELIC_LICENSE_KEY environment variable</a>.</p>
+    <content type="html"><![CDATA[<p><em>TL;DR</em> If you’re using NodeJS and want to monitor using NewRelic, follow <a href="https://npmjs.org/package/newrelic">these steps</a>. Additionally if you want to do this on Heroku using the NewRelic account you added through the Heroku API, make sure your <a href="https://github.com/lloydmeta/Node_notifications/blob/master/package.json">package.json has “newrelic”</a> and <a href="https://github.com/lloydmeta/Node_notifications/blob/master/newrelic.js">your newrelic.js points to the NEW_RELIC_LICENSE_KEY environment variable</a>.</p>
 
-<p>Last Friday, I set up a NodeJS push notification server for my current project. Essentially it was mostly inspired by this <a href="http://blog.joshsoftware.com/2012/01/30/push-notifications-using-express-js-and-socket-io/">excellent blog post</a>, but I updated it to use the latest NPM packages and to support sending notifications to all of a user's open sockets as well as cleaning up on disconnect. That's another story for another time.</p>
+<p>Last Friday, I set up a NodeJS push notification server for my current project. Essentially it was mostly inspired by this <a href="http://blog.joshsoftware.com/2012/01/30/push-notifications-using-express-js-and-socket-io/">excellent blog post</a>, but I updated it to use the latest NPM packages and to support sending notifications to all of a user’s open sockets as well as cleaning up on disconnect. That’s another story for another time.</p>
 
 <p>This blog post will cover how to get NodeJS monitoring with NewRelic <strong>on</strong> Heroku.</p>
 
 <!-- more -->
 
-
-<p>Some veterans may know that for a while, NewRelic didn't support NodeJS. <a href="https://npmjs.org/package/newrelic">That has now changed</a>.</p>
+<p>Some veterans may know that for a while, NewRelic didn’t support NodeJS. <a href="https://npmjs.org/package/newrelic">That has now changed</a>.</p>
 
 <p>All you really need to do is define your dependencies:</p>
 
@@ -141,7 +132,7 @@ lazy val httpClient = new Http(asyncHttpClient)
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
 <span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span></span><span class="p">{</span>
 </span><span class='line'>    <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;app&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;0.0.1&quot;</span><span class="p">,</span>
@@ -190,7 +181,7 @@ lazy val httpClient = new Http(asyncHttpClient)
 <span class='line-number'>23</span>
 <span class='line-number'>24</span>
 <span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="cm">/**</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span></span><span class="cm">/**</span>
 </span><span class='line'><span class="cm"> * New Relic agent configuration.</span>
 </span><span class='line'><span class="cm"> *</span>
 </span><span class='line'><span class="cm"> * See lib/config.defaults.js in the agent distribution for a more complete</span>

@@ -160,29 +160,26 @@
 
 <div class="entry-content clearfix" itemprop="articleBody"><p>These days, theres a lot of focus on reducing the load times on your website to make the experience smoother for your users. One way is to make creative use of CSS to style your websites instead of using images. That said, there are times when you have to use images and even the best front-end guys need to reach for images depending on what kind of design they were tasked with implementing.</p>
 
-<p>If you&#8217;re using PNGs, likely you&#8217;re already choosing to save them in a way that optimises them for the internets, but even then there are savings to be had by employing the use of <em>lossy</em> PNG optimisation.</p>
+<p>If you’re using PNGs, likely you’re already choosing to save them in a way that optimises them for the internets, but even then there are savings to be had by employing the use of <em>lossy</em> PNG optimisation.</p>
 
 <!-- more -->
 
-
-<p>On the project that I&#8217;m on at the moment, the front-end guys (for better or worse) went with making heavy, heavy use of images, almost all of them PNG files. I decided to try throwing them into two optimizers <a href="http://pngnq.sourceforge.net/">PNGNQ</a>, and <a href="http://pngquant.org/">pngquant</a> to see what I could get out of them.</p>
+<p>On the project that I’m on at the moment, the front-end guys (for better or worse) went with making heavy, heavy use of images, almost all of them PNG files. I decided to try throwing them into two optimizers <a href="http://pngnq.sourceforge.net/">PNGNQ</a>, and <a href="http://pngquant.org/">pngquant</a> to see what I could get out of them.</p>
 
 <p>Before we begin, I should be clear that this post focuses on OSX users and assumes you have <a href="http://mxcl.github.io/homebrew/">Homebrew</a> already installed and updated (<code>brew update</code>).</p>
 
-<h2>PNGNQ</h2>
-
+<h2 id="pngnq">PNGNQ</h2>
 <p>First, install the tool by running <code>brew install pngnq</code></p>
 
 <p>Next, navigate to your project folder, back it up (via some kind of version control like Git) and run:</p>
 
-<p><code>find . -type f -name '*.png' -print0 | xargs -0 -P4 pngnq -f -e '.png'</code></p>
+<p><code>find . -type f -name '*.png' -print0 | xargs -0 -P4 pngnq -f -e '.png' </code></p>
 
 <p>The above command will recursively look through your directory for PNG files and send them to pngnq for optimisation. The above command also has <code>-f -e '.png'</code> which means it will override the current PNG files once they are optimised.</p>
 
-<p>After running the above, I noticed around 50% savings in file size across all the PNG files. Quality was around the same, minus for some unsightly dithering on one of our icons (for the record, I also played around with <a href="http://manpages.ubuntu.com/manpages/precise/man1/pngnq.1.html">various pngnq options</a>, but it didn&#8217;t make much difference in terms of alleviating said artifacts)</p>
+<p>After running the above, I noticed around 50% savings in file size across all the PNG files. Quality was around the same, minus for some unsightly dithering on one of our icons (for the record, I also played around with <a href="http://manpages.ubuntu.com/manpages/precise/man1/pngnq.1.html">various pngnq options</a>, but it didn’t make much difference in terms of alleviating said artifacts)</p>
 
-<h2>PNGquant</h2>
-
+<h2 id="pngquant">PNGquant</h2>
 <p>I decided then to give <a href="http://pngquant.org/">pngquant</a> a try to see if I could get better results.</p>
 
 <p>I ran <code>brew install pngquant</code></p>
@@ -193,8 +190,7 @@
 
 <p>I noticed pretty much the same file size savings, but without the unsignhtly artifacts !</p>
 
-<h2>Conclusion</h2>
-
+<h2 id="conclusion">Conclusion</h2>
 <p>In my case, PNGquant gave me better results than PNGNQ, but your mileage may vary.</p>
 </div>
 
@@ -276,6 +272,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric in Rust: What, Why, How?</a>
+    
     <a class="list-group-item " href="/blog/2017/02/04/rust-generic-not-generics/">Rust Generic (Not Generics)</a>
     
     <a class="list-group-item " href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/">Rust Performance Testing on Travis CI</a>
@@ -283,8 +281,6 @@
     <a class="list-group-item " href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Accumulating Results in Rust With Validated</a>
     
     <a class="list-group-item " href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">Rust HLists (Heterogenous List)</a>
-    
-    <a class="list-group-item " href="/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe/">Enumeratum 1.4: ValueEnums + Circe</a>
     
   </div>
 </section>

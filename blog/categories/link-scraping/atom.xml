@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Link Scraping | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/link-scraping/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-17T12:19:45+09:00</updated>
+  <updated>2017-03-05T02:10:04+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -18,26 +18,23 @@
     <link href="https://beachape.com/blog/2013/09/12/metascraper-v0-dot-2-1-released/"/>
     <updated>2013-09-12T10:04:00+09:00</updated>
     <id>https://beachape.com/blog/2013/09/12/metascraper-v0-dot-2-1-released</id>
-    <content type="html"><![CDATA[<p>Sorry for the quick version-up. Version 0.1.1 added non-blocking I/O, but was using Dispatch without configuring the threadpool used for HTTP connections. This caused issues on Heroku where there is a 256 combined thread + process limit for 1x dynos (512 for 2x dynos), whereby Java OOM "unable to create new native thread" errors would be thrown.</p>
+    <content type="html"><![CDATA[<p>Sorry for the quick version-up. Version 0.1.1 added non-blocking I/O, but was using Dispatch without configuring the threadpool used for HTTP connections. This caused issues on Heroku where there is a 256 combined thread + process limit for 1x dynos (512 for 2x dynos), whereby Java OOM “unable to create new native thread” errors would be thrown.</p>
 
 <p>0.2.1 adds:</p>
 
 <ul>
-<li>Configuration of Actor HTTP client on ScraperActor instantiation
-
-<ul>
-<li>Notably: HTTP client ExecutorService thread pool</li>
+  <li>Configuration of Actor HTTP client on ScraperActor instantiation
+    <ul>
+      <li>Notably: HTTP client ExecutorService thread pool</li>
+    </ul>
+  </li>
 </ul>
-</li>
-</ul>
-
 
 <p>Relevent info:</p>
 
 <ul>
-<li><a href="https://github.com/lloydmeta/metascraper">Metascraper Github repo</a></li>
+  <li><a href="https://github.com/lloydmeta/metascraper">Metascraper Github repo</a></li>
 </ul>
-
 ]]></content>
   </entry>
   
@@ -49,22 +46,20 @@
     <content type="html"><![CDATA[<p>Metascraper v0.1.1 has been released. Major changes include:</p>
 
 <ul>
-<li>Async / non-blocking I/O for page requests: <a href="https://github.com/lloydmeta/metascraper/issues/2">Originally suggested by analytically</a>, I've added asynchronous requesting of webpages via <a href="http://dispatch.databinder.net/Dispatch.html">Dispatch</a></li>
-<li>ScraperActor now replies with <code>Either[Throwable, ScrapedData]</code> whereas before it replied with <code>Either[Throwable, ScrapedData]</code>. This allows library users to access the full capabilities of thrown objects. <em>This might break your app</em></li>
-<li>Added URL validations</li>
-<li>Better guessing of metadata</li>
-<li>More relevant <code>User-Agent</code> out of the box</li>
-<li>Better test coverage</li>
+  <li>Async / non-blocking I/O for page requests: <a href="https://github.com/lloydmeta/metascraper/issues/2">Originally suggested by analytically</a>, I’ve added asynchronous requesting of webpages via <a href="http://dispatch.databinder.net/Dispatch.html">Dispatch</a></li>
+  <li>ScraperActor now replies with <code>Either[Throwable, ScrapedData]</code> whereas before it replied with <code>Either[Throwable, ScrapedData]</code>. This allows library users to access the full capabilities of thrown objects. <em>This might break your app</em></li>
+  <li>Added URL validations</li>
+  <li>Better guessing of metadata</li>
+  <li>More relevant <code>User-Agent</code> out of the box</li>
+  <li>Better test coverage</li>
 </ul>
-
 
 <p>Relevent info:</p>
 
 <ul>
-<li><a href="https://github.com/lloydmeta/metascraper">Metascraper Github repo</a></li>
-<li>Add<code>libraryDependencies += "com.beachape.metascraper" %% "metascraper" % "0.1.1"</code> into <code>build.sbt</code> to install</li>
+  <li><a href="https://github.com/lloydmeta/metascraper">Metascraper Github repo</a></li>
+  <li>Add<code>libraryDependencies += "com.beachape.metascraper" %% "metascraper" % "0.1.1"</code> into <code>build.sbt</code> to install</li>
 </ul>
-
 ]]></content>
   </entry>
   
@@ -73,41 +68,38 @@
     <link href="https://beachape.com/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata/"/>
     <updated>2013-09-05T10:26:00+09:00</updated>
     <id>https://beachape.com/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata</id>
-    <content type="html"><![CDATA[<p>Scraping metadata (e.g. <code>title</code>, <code>description</code>, <code>url</code>, etc.) from a URL is something that <a href="https://www.facebook.com/">Facebook</a> currently does for you when you paste a URL into the "Update Status" box. For a service that I'm currently building out, we wanted to do this as well for our users. Thus <a href="https://github.com/lloydmeta/metascraper">Metascraper</a> was born.</p>
+    <content type="html"><![CDATA[<p>Scraping metadata (e.g. <code>title</code>, <code>description</code>, <code>url</code>, etc.) from a URL is something that <a href="https://www.facebook.com/">Facebook</a> currently does for you when you paste a URL into the “Update Status” box. For a service that I’m currently building out, we wanted to do this as well for our users. Thus <a href="https://github.com/lloydmeta/metascraper">Metascraper</a> was born.</p>
 
 <p>There was already a Ruby solution called <a href="https://github.com/gottfrois/link_thumbnailer">link_thumbnailer</a>, but since this is a I/O heavy operation, I knew I wanted to build a solution using tools that supported non-blocking I/O and could be used without getting caught in callback spaghetti. Scala, Akka, and the Play framework immediately came to mind.</p>
 
 <!-- more -->
 
-
-<h2>Existing solutions</h2>
+<h2 id="existing-solutions">Existing solutions</h2>
 
 <p>Before I started building my own solution, I did some research and found that there were already some web-scraping solutions written in Scala or Java, such as <a href="https://github.com/ofrasergreen/chafed">chafed</a>, and some more listed in <a href="http://stackoverflow.com/questions/14745634/web-scraping-with-scala">this StackOverflow question</a>.</p>
 
-<p>I wanted something more focused, something that would "intelligently" return a page's title, description, urls, and images back. I also wanted to make sure that if the page implemented the <a href="http://ogp.me/">Open Graph Protocol</a>, the information from those tags got prioritised. Since these requirements were not being fulfilled by existing Scala libraries, I set about creating my own Scala library.</p>
+<p>I wanted something more focused, something that would “intelligently” return a page’s title, description, urls, and images back. I also wanted to make sure that if the page implemented the <a href="http://ogp.me/">Open Graph Protocol</a>, the information from those tags got prioritised. Since these requirements were not being fulfilled by existing Scala libraries, I set about creating my own Scala library.</p>
 
-<h2>Metascraper Components</h2>
+<h2 id="metascraper-components">Metascraper Components</h2>
 
 <p>The main components of the Metascraper library include:</p>
 
 <ol>
-<li><a href="http://akka.io/">Akka actors</a></li>
-<li><a href="http://jsoup.org/">jsoup</a>: While there were Scala web scrapers, the Java solution, jsoup, was very mature and easy to use.</li>
+  <li><a href="http://akka.io/">Akka actors</a></li>
+  <li><a href="http://jsoup.org/">jsoup</a>: While there were Scala web scrapers, the Java solution, jsoup, was very mature and easy to use.</li>
 </ol>
 
+<h2 id="basic-workflow-aka-how-to-use">Basic workflow (a.k.a. how to use)</h2>
 
-<h2>Basic workflow (a.k.a. how to use)</h2>
-
-<p>This post won't go over in too much detail how to use the library because that stuff is available from the <a href="https://github.com/lloydmeta/metascraper">Metascraper Github page</a> and will probably change over time, but this is the basic workflow:</p>
+<p>This post won’t go over in too much detail how to use the library because that stuff is available from the <a href="https://github.com/lloydmeta/metascraper">Metascraper Github page</a> and will probably change over time, but this is the basic workflow:</p>
 
 <ol>
-<li>Instantiate a <code>ScraperActor</code></li>
-<li>Send a message to the scraper with <code>ScrapeUrl(url: String)</code></li>
-<li>When scraping is done, the actor will reply with a <code>Either[FailedToScrapeUrl,ScrapedData]</code></li>
+  <li>Instantiate a <code>ScraperActor</code></li>
+  <li>Send a message to the scraper with <code>ScrapeUrl(url: String)</code></li>
+  <li>When scraping is done, the actor will reply with a <code>Either[FailedToScrapeUrl,ScrapedData]</code></li>
 </ol>
 
-
-<p>The project is Mavenised and is availale from the Central Repository, so simply add the <code>libraryDependency</code> in your <code>build.sbt</code> (when you read this the versioning might be different so refer to the project's Github page):</p>
+<p>The project is Mavenised and is availale from the Central Repository, so simply add the <code>libraryDependency</code> in your <code>build.sbt</code> (when you read this the versioning might be different so refer to the project’s Github page):</p>
 
 <p><code>scala
 libraryDependencies += "com.beachape.metascraper" %% "metascraper" % "0.0.2"
@@ -155,7 +147,7 @@ libraryDependencies += "com.beachape.metascraper" %% "metascraper" % "0.0.2"
 <span class='line-number'>37</span>
 <span class='line-number'>38</span>
 <span class='line-number'>39</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
 </span><span class='line'><span class="k">import</span> <span class="nn">com.beachape.metascraper.Messages._</span>
 </span><span class='line'><span class="k">import</span> <span class="nn">com.beachape.metascraper.ScraperActor</span>
 </span><span class='line'><span class="k">import</span> <span class="nn">scala.concurrent.Await</span>
@@ -196,11 +188,11 @@ libraryDependencies += "com.beachape.metascraper" %% "metascraper" % "0.0.2"
 </span><span class='line'><span class="cm">*/</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<h2>Example application</h2>
+<h2 id="example-application">Example application</h2>
 
-<p>I've created an example Play2 application that integrates this library, called <a href="https://github.com/lloydmeta/metascraper-service">metascraper-service</a>. Feel free to take a look !</p>
+<p>I’ve created an example Play2 application that integrates this library, called <a href="https://github.com/lloydmeta/metascraper-service">metascraper-service</a>. Feel free to take a look !</p>
 
-<h2>Conclusion</h2>
+<h2 id="conclusion">Conclusion</h2>
 
 <p>Please give <a href="https://github.com/lloydmeta/metascraper">Metascraper</a> a test drive and submit issues and pull requests !</p>
 ]]></content>

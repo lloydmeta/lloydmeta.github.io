@@ -158,109 +158,104 @@
   </header>
 
 
-<div class="entry-content clearfix" itemprop="articleBody"><p>For the most part, I&#8217;m a very happy Heroku user. The platform allows me deploy my apps, be they Java, Scala or Ruby-based without having to think/worry about infrastructure, which is amazing. They also allow me to, for the most part, do this for free. For the most part, I love it, and so do many others. That said, sometimes you do run into problems that cause you to lose lots of time debugging &#8230; in the wrong direction.</p>
+<div class="entry-content clearfix" itemprop="articleBody"><p>For the most part, I’m a very happy Heroku user. The platform allows me deploy my apps, be they Java, Scala or Ruby-based without having to think/worry about infrastructure, which is amazing. They also allow me to, for the most part, do this for free. For the most part, I love it, and so do many others. That said, sometimes you do run into problems that cause you to lose lots of time debugging … in the wrong direction.</p>
 
 <p>Yesterday, after adding non-blocking I/O to my <a href="https://github.com/lloydmeta/metascraper">Metascraper library</a>, I load tested my deployed application and found it fatally crashing with <code>java.lang.OutOfMemoryError: unable to create new native thread</code> errors. <strong>Not Good</strong></p>
 
 <!-- more -->
 
+<h3 id="what-i-did-wrong">What I did wrong</h3>
 
-<h3>What I did wrong</h3>
+<p>Because of the error thrown, I immediately thought to myself: “there’s gotta be a memory leak. Good thing I’m monitoring the app with New Relic !”. For the most part, if you <a href="https://www.google.com/search?q=java+out+of+memory+error+unable+to+create+new+native+thread&amp;oq=java+out+of+memory+error+unable+to+create+new+native+thread&amp;aqs=chrome..69i57.273j0&amp;sourceid=chrome&amp;ie=UTF-8">Google the error</a>, you find a lot of posts suggesting that your app has a memory leak somewhere, you need to tweak your VM memory options, etc. <strong>All of this advice is valid.</strong></p>
 
-<p>Because of the error thrown, I immediately thought to myself: &#8220;there&#8217;s gotta be a memory leak. Good thing I&#8217;m monitoring the app with New Relic !&#8221;. For the most part, if you <a href="https://www.google.com/search?q=java+out+of+memory+error+unable+to+create+new+native+thread&amp;oq=java+out+of+memory+error+unable+to+create+new+native+thread&amp;aqs=chrome..69i57.273j0&amp;sourceid=chrome&amp;ie=UTF-8">Google the error</a>, you find a lot of posts suggesting that your app has a memory leak somewhere, you need to tweak your VM memory options, etc. <strong>All of this advice is valid.</strong></p>
+<p>After looking at my instance’s memory usage though, it didn’t seem like that was the problem; used heap, commited heap, etc all looked fine. I should have probably stopped looking at memory usage, but I didn’t and proceeded to spend a few hours going through the cycle of combing through code, tweaking memory options, and testing. To no avail.</p>
 
-<p>After looking at my instance&#8217;s memory usage though, it didn&#8217;t seem like that was the problem; used heap, commited heap, etc all looked fine. I should have probably stopped looking at memory usage, but I didn&#8217;t and proceeded to spend a few hours going through the cycle of combing through code, tweaking memory options, and testing. To no avail.</p>
+<h3 id="seeing-the-light">Seeing the light</h3>
 
-<h3>Seeing the light</h3>
+<p>Then, finally, I stumbled across <a href="http://devgrok.blogspot.jp/2012/03/resolving-outofmemoryerror-unable-to.html">this page</a>, talking about how to resolve said OOM error. In short, the JVM apparently throws the Java OOM error whenever it can’t allocate a new thread from the OS, regardless of the cause. Their solution was to up the max processes per user. Hmmmm.</p>
 
-<p>Then, finally, I stumbled across <a href="http://devgrok.blogspot.jp/2012/03/resolving-outofmemoryerror-unable-to.html">this page</a>, talking about how to resolve said OOM error. In short, the JVM apparently throws the Java OOM error whenever it can&#8217;t allocate a new thread from the OS, regardless of the cause. Their solution was to up the max processes per user. Hmmmm.</p>
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span>Where in jvm.cpp that the error is thrown</span><a href="http://hg.openjdk.java.net/jdk7/jdk7/hotspot/file/tip/src/share/vm/prims/jvm.cpp">link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+</pre></td><td class="code"><pre><code class="c"><span class="line"><span></span><span class="k">if</span> <span class="p">(</span><span class="n">native_thread</span><span class="o">-&gt;</span><span class="n">osthread</span><span class="p">()</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">  <span class="c1">// No one should hold a reference to the &#39;native_thread&#39;.</span>
+</span><span class="line">  <span class="n">delete</span> <span class="n">native_thread</span><span class="p">;</span>
+</span><span class="line">  <span class="k">if</span> <span class="p">(</span><span class="n">JvmtiExport</span><span class="o">::</span><span class="n">should_post_resource_exhausted</span><span class="p">())</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">JvmtiExport</span><span class="o">::</span><span class="n">post_resource_exhausted</span><span class="p">(</span>
+</span><span class="line">      <span class="n">JVMTI_RESOURCE_EXHAUSTED_OOM_ERROR</span> <span class="o">|</span> <span class="n">JVMTI_RESOURCE_EXHAUSTED_THREADS</span><span class="p">,</span>
+</span><span class="line">      <span class="s">&quot;unable to create new native thread&quot;</span><span class="p">);</span>
+</span><span class="line">  <span class="p">}</span>
+</span><span class="line">  <span class="n">THROW_MSG</span><span class="p">(</span><span class="n">vmSymbols</span><span class="o">::</span><span class="n">java_lang_OutOfMemoryError</span><span class="p">(),</span>
+</span><span class="line">            <span class="s">&quot;unable to create new native thread&quot;</span><span class="p">);</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
 
-<figure class='code'><figcaption><span>Where in jvm.cpp that the error is thrown</span><a href='http://hg.openjdk.java.net/jdk7/jdk7/hotspot/file/tip/src/share/vm/prims/jvm.cpp'>link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="n">native_thread</span><span class="o">-&gt;</span><span class="n">osthread</span><span class="p">()</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="c1">// No one should hold a reference to the &#39;native_thread&#39;.</span>
-</span><span class='line'>  <span class="n">delete</span> <span class="n">native_thread</span><span class="p">;</span>
-</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="n">JvmtiExport</span><span class="o">::</span><span class="n">should_post_resource_exhausted</span><span class="p">())</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">JvmtiExport</span><span class="o">::</span><span class="n">post_resource_exhausted</span><span class="p">(</span>
-</span><span class='line'>      <span class="n">JVMTI_RESOURCE_EXHAUSTED_OOM_ERROR</span> <span class="o">|</span> <span class="n">JVMTI_RESOURCE_EXHAUSTED_THREADS</span><span class="p">,</span>
-</span><span class='line'>      <span class="s">&quot;unable to create new native thread&quot;</span><span class="p">);</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'>  <span class="n">THROW_MSG</span><span class="p">(</span><span class="n">vmSymbols</span><span class="o">::</span><span class="n">java_lang_OutOfMemoryError</span><span class="p">(),</span>
-</span><span class='line'>            <span class="s">&quot;unable to create new native thread&quot;</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+<p>Since I had added non-blocking I/O, which inherently must be doing some kind of threading somewhere, I felt I was on to something. Googling “Heroku thread limits” brought me to <a href="https://devcenter.heroku.com/articles/limits#processes-threads">this page</a></p>
 
+<blockquote><p>1X Dynos are limited a combined sum of 256 processes and threads. 2X Dynos are limited to 512. This limit applies whether they are executing, sleeping, or in any other state.</p><footer><strong>Heroku</strong> <cite><a href="https://devcenter.heroku.com/articles/limits#processes-threads">devcenter.heroku.com/articles/&hellip;</a></cite></footer></blockquote>
 
-<p>Since I had added non-blocking I/O, which inherently must be doing some kind of threading somewhere, I felt I was on to something. Googling &#8220;Heroku thread limits&#8221; brought me to <a href="https://devcenter.heroku.com/articles/limits#processes-threads">this page</a></p>
+<p>Bingo, but because there was nothing I could do about Heroku’s thread+process limits, I decided to look at the code for <a href="https://github.com/dispatch/reboot">Dispatch</a>, the HTTP library I’m using for fetching pages from URLs to look at how it manages threads. This is where things get icky.</p>
 
-<blockquote><p>1X Dynos are limited a combined sum of 256 processes and threads. 2X Dynos are limited to 512. This limit applies whether they are executing, sleeping, or in any other state.</p><footer><strong>Heroku</strong> <cite><a href='https://devcenter.heroku.com/articles/limits#processes-threads'>devcenter.heroku.com/articles/&hellip;</a></cite></footer></blockquote>
+<h3 id="diving-in">Diving in</h3>
 
+<p>Apparently, in previous versions of Dispatch, one could configure the number of threads easily (I believe in 0.9.x, you had access to a <code>threads</code> method). However, in the version that I’m using (latest as of writing), version 0.11.0, you do not. Moreover, unless being called from <code>sbt</code>, the library now defaults to building clients using the default configuration for the underlying <code>async-http-client</code> (which does make sense). Unfortunately, <a href="https://github.com/AsyncHttpClient/async-http-client/blob/b9f1ca733d05530f19d66c4afbb9ee0aeafd05d1/api/src/main/java/org/asynchttpclient/AsyncHttpClientConfigBean.java#L81-L96">it appears that the default configuration therefore results in the use of</a> <code>Executor.newCachedThreadPool</code>, which some say is <a href="http://stackoverflow.com/questions/15058978/how-to-decide-whether-to-use-newcachedthreadpool-or-newfixedthreadpool">good</a> and <a href="http://paultyma.blogspot.jp/2008/03/writing-java-multithreaded-servers.html">bad</a>.</p>
 
-<p>Bingo, but because there was nothing I could do about Heroku&#8217;s thread+process limits, I decided to look at the code for <a href="https://github.com/dispatch/reboot">Dispatch</a>, the HTTP library I&#8217;m using for fetching pages from URLs to look at how it manages threads. This is where things get icky.</p>
+<h3 id="problem-identified">Problem identified</h3>
 
-<h3>Diving in</h3>
+<p>The main point is this: because of it’s use of <a href="http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/Executors.html#newCachedThreadPool">newCachedThreadPool</a>, <strong><code>aysnc-http-client</code>, and thus <code>Dispatch</code> is going to use as many threads as necessary to handle the workload that you give it and rely on the JVM clean up idle threads later</strong> . Usually, this might not be a problem, but when running on Heroku or any other environment where you might hit thread limit constraints, the cleanup might not happen quick enough to not crash your program.</p>
 
-<p>Apparently, in previous versions of Dispatch, one could configure the number of threads easily (I believe in 0.9.x, you had access to a <code>threads</code> method). However, in the version that I&#8217;m using (latest as of writing), version 0.11.0, you do not. Moreover, unless being called from <code>sbt</code>, the library now defaults to building clients using the default configuration for the underlying <code>async-http-client</code> (which does make sense). Unfortunately, <a href="https://github.com/AsyncHttpClient/async-http-client/blob/b9f1ca733d05530f19d66c4afbb9ee0aeafd05d1/api/src/main/java/org/asynchttpclient/AsyncHttpClientConfigBean.java#L81-L96">it appears that the default configuration therefore results in the use of</a> <code>Executor.newCachedThreadPool</code>, which some say is <a href="http://stackoverflow.com/questions/15058978/how-to-decide-whether-to-use-newcachedthreadpool-or-newfixedthreadpool">good</a> and <a href="http://paultyma.blogspot.jp/2008/03/writing-java-multithreaded-servers.html">bad</a>.</p>
+<h3 id="resolution">Resolution</h3>
 
-<h3>Problem identified</h3>
+<p>To fix the scary “OOM unable to create new thread” problem when an app using my library is running in such an environment, I did a bit of sleuthing to find out how I might limit the number of threads used by my HTTP library and came up with <a href="https://github.com/lloydmeta/metascraper/blob/master/src/main/scala/com/beachape/metascraper/ScraperActor.scala#L63-L77">this</a>.</p>
 
-<p>The main point is this: because of it&#8217;s use of <a href="http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/Executors.html#newCachedThreadPool">newCachedThreadPool</a>, <strong><code>aysnc-http-client</code>, and thus <code>Dispatch</code> is going to use as many threads as necessary to handle the workload that you give it and rely on the JVM clean up idle threads later</strong> . Usually, this might not be a problem, but when running on Heroku or any other environment where you might hit thread limit constraints, the cleanup might not happen quick enough to not crash your program.</p>
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="c1">// Http client</span>
+</span><span class="line"><span class="k">lazy</span> <span class="k">val</span> <span class="n">followRedirects</span> <span class="k">=</span> <span class="kc">true</span>
+</span><span class="line"><span class="k">lazy</span> <span class="k">val</span> <span class="n">connectionPooling</span> <span class="k">=</span> <span class="kc">true</span>
+</span><span class="line"><span class="k">lazy</span> <span class="k">val</span> <span class="n">httpExecutorService</span><span class="k">:</span> <span class="kt">ExecutorService</span> <span class="o">=</span> <span class="nc">Executors</span><span class="o">.</span><span class="n">newFixedThreadPool</span><span class="o">(</span><span class="n">httpExecutorThreads</span><span class="o">)</span>
+</span><span class="line"><span class="k">lazy</span> <span class="k">val</span> <span class="n">config</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">AsyncHttpClientConfig</span><span class="o">.</span><span class="nc">Builder</span><span class="o">()</span>
+</span><span class="line">  <span class="o">.</span><span class="n">setExecutorService</span><span class="o">(</span><span class="n">httpExecutorService</span><span class="o">)</span>
+</span><span class="line">  <span class="o">.</span><span class="n">setMaximumConnectionsPerHost</span><span class="o">(</span><span class="n">maxConnectionsPerHost</span><span class="o">)</span>
+</span><span class="line">  <span class="o">.</span><span class="n">setAllowPoolingConnection</span><span class="o">(</span><span class="n">connectionPooling</span><span class="o">)</span>
+</span><span class="line">  <span class="o">.</span><span class="n">setAllowSslConnectionPool</span><span class="o">(</span><span class="n">connectionPooling</span><span class="o">)</span>
+</span><span class="line">  <span class="o">.</span><span class="n">setConnectionTimeoutInMs</span><span class="o">(</span><span class="n">connectionTimeoutInMs</span><span class="o">)</span>
+</span><span class="line">  <span class="o">.</span><span class="n">setRequestTimeoutInMs</span><span class="o">(</span><span class="n">requestTimeoutInMs</span><span class="o">)</span>
+</span><span class="line">  <span class="o">.</span><span class="n">setCompressionEnabled</span><span class="o">(</span><span class="n">compressionEnabled</span><span class="o">)</span>
+</span><span class="line">  <span class="o">.</span><span class="n">setFollowRedirects</span><span class="o">(</span><span class="n">followRedirects</span><span class="o">).</span><span class="n">build</span>
+</span><span class="line"><span class="k">lazy</span> <span class="k">val</span> <span class="n">asyncHttpClient</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">AsyncHttpClient</span><span class="o">(</span><span class="n">config</span><span class="o">)</span>
+</span><span class="line"><span class="k">lazy</span> <span class="k">val</span> <span class="n">httpClient</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Http</span><span class="o">(</span><span class="n">asyncHttpClient</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
 
-<h3>Resolution</h3>
+<p>It makes more sense when you look at the entire Actor source, but in short, I instantiate an HTTP client, passing in an <code>ExecutorService</code> that uses a <strong>fixed</strong> threads pool. I then allow library users to configure the number of threads for the client when instantiating the actor (and other options). Of course, this means that an actor’s HTTP client will wait if all execution threads are busy, but since it’s a non-blocking call, the actor itself doesn’t care, and the only negative result is maybe slower operations under load. All in all, I think it’s a good tradeoff for not having your app die.</p>
 
-<p>To fix the scary &#8220;OOM unable to create new thread&#8221; problem when an app using my library is running in such an environment, I did a bit of sleuthing to find out how I might limit the number of threads used by my HTTP library and came up with <a href="https://github.com/lloydmeta/metascraper/blob/master/src/main/scala/com/beachape/metascraper/ScraperActor.scala#L63-L77">this</a>.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="c1">// Http client</span>
-</span><span class='line'><span class="k">lazy</span> <span class="k">val</span> <span class="n">followRedirects</span> <span class="k">=</span> <span class="kc">true</span>
-</span><span class='line'><span class="k">lazy</span> <span class="k">val</span> <span class="n">connectionPooling</span> <span class="k">=</span> <span class="kc">true</span>
-</span><span class='line'><span class="k">lazy</span> <span class="k">val</span> <span class="n">httpExecutorService</span><span class="k">:</span> <span class="kt">ExecutorService</span> <span class="o">=</span> <span class="nc">Executors</span><span class="o">.</span><span class="n">newFixedThreadPool</span><span class="o">(</span><span class="n">httpExecutorThreads</span><span class="o">)</span>
-</span><span class='line'><span class="k">lazy</span> <span class="k">val</span> <span class="n">config</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">AsyncHttpClientConfig</span><span class="o">.</span><span class="nc">Builder</span><span class="o">()</span>
-</span><span class='line'>  <span class="o">.</span><span class="n">setExecutorService</span><span class="o">(</span><span class="n">httpExecutorService</span><span class="o">)</span>
-</span><span class='line'>  <span class="o">.</span><span class="n">setMaximumConnectionsPerHost</span><span class="o">(</span><span class="n">maxConnectionsPerHost</span><span class="o">)</span>
-</span><span class='line'>  <span class="o">.</span><span class="n">setAllowPoolingConnection</span><span class="o">(</span><span class="n">connectionPooling</span><span class="o">)</span>
-</span><span class='line'>  <span class="o">.</span><span class="n">setAllowSslConnectionPool</span><span class="o">(</span><span class="n">connectionPooling</span><span class="o">)</span>
-</span><span class='line'>  <span class="o">.</span><span class="n">setConnectionTimeoutInMs</span><span class="o">(</span><span class="n">connectionTimeoutInMs</span><span class="o">)</span>
-</span><span class='line'>  <span class="o">.</span><span class="n">setRequestTimeoutInMs</span><span class="o">(</span><span class="n">requestTimeoutInMs</span><span class="o">)</span>
-</span><span class='line'>  <span class="o">.</span><span class="n">setCompressionEnabled</span><span class="o">(</span><span class="n">compressionEnabled</span><span class="o">)</span>
-</span><span class='line'>  <span class="o">.</span><span class="n">setFollowRedirects</span><span class="o">(</span><span class="n">followRedirects</span><span class="o">).</span><span class="n">build</span>
-</span><span class='line'><span class="k">lazy</span> <span class="k">val</span> <span class="n">asyncHttpClient</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">AsyncHttpClient</span><span class="o">(</span><span class="n">config</span><span class="o">)</span>
-</span><span class='line'><span class="k">lazy</span> <span class="k">val</span> <span class="n">httpClient</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Http</span><span class="o">(</span><span class="n">asyncHttpClient</span><span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It makes more sense when you look at the entire Actor source, but in short, I instantiate an HTTP client, passing in an <code>ExecutorService</code> that uses a <strong>fixed</strong> threads pool. I then allow library users to configure the number of threads for the client when instantiating the actor (and other options). Of course, this means that an actor&#8217;s HTTP client will wait if all execution threads are busy, but since it&#8217;s a non-blocking call, the actor itself doesn&#8217;t care, and the only negative result is maybe slower operations under load. All in all, I think it&#8217;s a good tradeoff for not having your app die.</p>
-
-<h3>Lessons learned</h3>
+<h3 id="lessons-learned">Lessons learned</h3>
 
 <ol>
-<li>Don&#8217;t take an error message at face value. Know exactly when it gets thrown and if there are multiple possible causes, go for the most likely one first.</li>
-<li>Know your environment and its constraints.</li>
+  <li>Don’t take an error message at face value. Know exactly when it gets thrown and if there are multiple possible causes, go for the most likely one first.</li>
+  <li>Know your environment and its constraints.</li>
 </ol>
-
 
 <p>Hoped this post helped you !</p>
 </div>
@@ -343,6 +338,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric in Rust: What, Why, How?</a>
+    
     <a class="list-group-item " href="/blog/2017/02/04/rust-generic-not-generics/">Rust Generic (Not Generics)</a>
     
     <a class="list-group-item " href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/">Rust Performance Testing on Travis CI</a>
@@ -350,8 +347,6 @@
     <a class="list-group-item " href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Accumulating Results in Rust With Validated</a>
     
     <a class="list-group-item " href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">Rust HLists (Heterogenous List)</a>
-    
-    <a class="list-group-item " href="/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe/">Enumeratum 1.4: ValueEnums + Circe</a>
     
   </div>
 </section>

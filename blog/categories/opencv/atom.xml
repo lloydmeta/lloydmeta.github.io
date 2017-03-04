@@ -4,7 +4,7 @@
   <title><![CDATA[Category: OpenCV | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/opencv/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-17T12:19:45+09:00</updated>
+  <updated>2017-03-05T02:10:04+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -20,116 +20,102 @@
     <id>https://beachape.com/blog/2016/03/14/scala-and-opencv-ep-2-akka-face-detector</id>
     <content type="html"><![CDATA[<p>In <a href="/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/">Episode 1</a> of this series on Scala and computer vision, we created a basic Akka-Streams-powered webcam feed app.  To bring it to the next level, we will dig a little deeper into the OpenCV toolset and bring in feature detection as well as video stream editing.</p>
 
-<p><img class="center" src="/images/ape-detected.png" width="400" height="400" title="'Beachape face detected'" ></p>
+<p><img class="center" src="/images/ape-detected.png" width="400" height="400" title="‘Beachape face detected’" ></p>
 
 <p>We will build on the foundations from the <a href="/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/">previous post</a> and continue with the usage of Akka Streams, modeling our application as a series of small transformations that are run asynchronously, with backpressure handled automatically.</p>
 
 <!-- more -->
 
-
-<h3>Flow chart</h3>
+<h3 id="flow-chart">Flow chart</h3>
 
 <p>Previously, our app could be represented by a somewhat trivial <a href="/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/#flow-chart">flow chart</a> that nonetheless had all the elements of a useful Akka stream: a <code>Source</code>, multiple transformations, and controlled side-effecting.</p>
 
 <p>To build our face detector, we will add the following:</p>
 
 <ol>
-<li><strong>Conversion to grey scale</strong>: Many image analysis tools need to be run on greyscale images, both for simplicity and efficiency.</li>
-<li><strong>Facial features detector</strong>: We will make use of OpenCV's Haar Cascade feature detection API to detect and identify faces in our video feed.</li>
-<li><strong>Video editing</strong>: We want to draw rectangles around the faces that have been identified into the image.</li>
+  <li><strong>Conversion to grey scale</strong>: Many image analysis tools need to be run on greyscale images, both for simplicity and efficiency.</li>
+  <li><strong>Facial features detector</strong>: We will make use of OpenCV’s Haar Cascade feature detection API to detect and identify faces in our video feed.</li>
+  <li><strong>Video editing</strong>: We want to draw rectangles around the faces that have been identified into the image.</li>
 </ol>
-
 
 <p>Our updated flow chart is as follows (new transformations are highlighted by a light green rectangle):</p>
 
 <div id="flow-chart"><img class="center" src="/images/opencv-flowchart-part-2.png" title="'Simple wecam feed flow'" ></div>
 
+<h3 id="greyscale">Greyscale</h3>
 
-<h3>Greyscale</h3>
+<p>To convert a given <code>Mat</code> to a greyscale <code>Mat</code>, we can make use of the OpenCV method <a href="http://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html"><code>cvtColor</code></a>. The only slight niggle is that the method isn’t idempotent: if you try to convert a greyscale image to greyscale, the method will throw. No matter, we can try handle that scenario ourselves by detecting the number of channels in the matrix.</p>
 
-<p>To convert a given <code>Mat</code> to a greyscale <code>Mat</code>, we can make use of the OpenCV method <a href="http://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html"><code>cvtColor</code></a>. The only slight niggle is that the method isn't idempotent: if you try to convert a greyscale image to greyscale, the method will throw. No matter, we can try handle that scenario ourselves by detecting the number of channels in the matrix.</p>
-
-<p>```scala
+<p><code>scala
 def toGreyScale(mat: Mat): Mat = {
-  if (mat.channels() == 1) {</p>
-
-<pre><code>mat // just hand back the matrix as is; it is already grey
-</code></pre>
-
-<p>  } else {</p>
-
-<pre><code>// allocate a new Matrix with the same dimensions
-val greyMat = {
-  val (rows, cols) = (mat.rows(), mat.cols())
-  new Mat(rows, cols, CV_8U)
+  if (mat.channels() == 1) {
+    mat // just hand back the matrix as is; it is already grey
+  } else {
+    // allocate a new Matrix with the same dimensions
+    val greyMat = {
+      val (rows, cols) = (mat.rows(), mat.cols())
+      new Mat(rows, cols, CV_8U)
+    }
+    opencv_imgproc.cvtColor(mat, greyMat, COLOR_BGR2GRAY, 1)
+    greyMat
+  }
 }
-opencv_imgproc.cvtColor(mat, greyMat, COLOR_BGR2GRAY, 1)
-greyMat
-</code></pre>
+</code></p>
 
-<p>  }
-}
-```</p>
-
-<p>However, since we want to pass the original <em>colour</em> image and the new greyscale image down the pipeline, we'll make things a bit easier for ourselves by defining a simple <code>WithGreyscale</code> case class to hold both:</p>
+<p>However, since we want to pass the original <em>colour</em> image and the new greyscale image down the pipeline, we’ll make things a bit easier for ourselves by defining a simple <code>WithGreyscale</code> case class to hold both:</p>
 
 <p>```scala
 object WithGrey {</p>
 
-<p>  /<em>*
+<p>/**
    * Simple transformer method that produces a [[WithGrey]]
-   </em>/
-  def build(orig: Mat): WithGrey = {</p>
+   */
+  def build(orig: Mat): WithGrey = {
+    val grey = toGreyScale(orig)
+    WithGrey(orig = orig, grey = grey)
+  }</p>
 
-<pre><code>val grey = toGreyScale(orig)
-WithGrey(orig = orig, grey = grey)
-</code></pre>
-
-<p>  }</p>
-
-<p>  // toGreyScale is in here too
+<p>// toGreyScale is in here too
 }</p>
 
-<p>/<em>*
+<p>/**
  * Original Matrix with a Grey image. Useful because almost all analysis processing requires a greyscale image instead of
  * a colour image.
  *
- * The constructor is private to make sure we don't mix up the two references
+ * The constructor is private to make sure we don’t mix up the two references
  *
  * Passing [[WithGrey]] images along with the original saves us from having to process to grey scale over and over again.
- </em>/
+ */
 final case class WithGrey private (orig: Mat, grey: Mat)
 ```</p>
 
-<h3>Face detection</h3>
+<h3 id="face-detection">Face detection</h3>
 
 <p>To find faces in the images in our video feed, we will make use of Haar feature-based cascade classifiers, which are supported directly by OpenCV.  Haar Cascade classifers define how to look at an image and quickly identify any areas in it that are of interest to us.  A given classifier definition will usually contain multiple stages, so that a region is considered to test positive if all features in all stages of the definition return positive (thus <em>cascade</em>).</p>
 
 <p>In actual usage, this relies on careful training and tuning of classifier defintions, as well as a combination of clever mathematics and pragmatic optimisation for detection.  I will not cover exactly how they work in this tutorial (my understanding is dubious and there is a wealth of information online about them), but the following are a couple links that really helped me understand the theory behind them and how they work in practice:</p>
 
 <ol>
-<li><a href="http://docs.opencv.org/3.1.0/d7/d8b/tutorial_py_face_detection.html#gsc.tab=0">OpenCV documentation on using Haar Cascades for face detection</a></li>
-<li><a href="https://www.youtube.com/watch?v=sWTvK72-SPU">Youtube video covering Haar Cascades with a really good explanation of summed area tables</a></li>
+  <li><a href="http://docs.opencv.org/3.1.0/d7/d8b/tutorial_py_face_detection.html#gsc.tab=0">OpenCV documentation on using Haar Cascades for face detection</a></li>
+  <li><a href="https://www.youtube.com/watch?v=sWTvK72-SPU">Youtube video covering Haar Cascades with a really good explanation of summed area tables</a></li>
 </ol>
 
-
-<p>OpenCV's Haar Classifier API (or perhaps JavaCV's wrapping of it) is fairly straight forward and boils down to:</p>
+<p>OpenCV’s Haar Classifier API (or perhaps JavaCV’s wrapping of it) is fairly straight forward and boils down to:</p>
 
 <ol>
-<li>Instantiating a <code>CascadeClassifier</code>, passing in a path to a classifier definition (you can find some <a href="https://github.com/Itseez/opencv/tree/master/data/haarcascades">here</a>) as a constructor argument</li>
-<li>Instantiating an instance of <code>RectVector</code>, which is aptly named because it is a wrapper for a native vector of rectangles.</li>
-<li>Pass the allocated instance of <code>RectVector</code> to the <code>CascadeClassifier</code>'s detectMultiScale along with a greyscale image and some other options (yes, OpenCV will mutate the <code>RectVector</code> you pass in by adding in <code>Rect</code>s)</li>
+  <li>Instantiating a <code>CascadeClassifier</code>, passing in a path to a classifier definition (you can find some <a href="https://github.com/Itseez/opencv/tree/master/data/haarcascades">here</a>) as a constructor argument</li>
+  <li>Instantiating an instance of <code>RectVector</code>, which is aptly named because it is a wrapper for a native vector of rectangles.</li>
+  <li>Pass the allocated instance of <code>RectVector</code> to the <code>CascadeClassifier</code>’s detectMultiScale along with a greyscale image and some other options (yes, OpenCV will mutate the <code>RectVector</code> you pass in by adding in <code>Rect</code>s)</li>
 </ol>
 
-
-<p>In our implementation of a face detector, we'll wrap a few raw (but aliased) primitives that serve as option flags in OpenCV, just for our own sanity.  We'll also create a delegator class that  has a <code>detect(withGrey: WithGrey): (WithGrey, Seq[Face])</code> method and wraps the classifier to hold constant values for the classifier options because for our purposes, those won't be changing on the fly.</p>
+<p>In our implementation of a face detector, we’ll wrap a few raw (but aliased) primitives that serve as option flags in OpenCV, just for our own sanity.  We’ll also create a delegator class that  has a <code>detect(withGrey: WithGrey): (WithGrey, Seq[Face])</code> method and wraps the classifier to hold constant values for the classifier options because for our purposes, those won’t be changing on the fly.</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Tuple-like class for holding width and height in pixels (Dimensions.scala)</span> <a href='/downloads/code/scala/Dimensions.scala'>download</a></figcaption>
  <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="cm">/**</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="cm">/**</span>
 </span><span class='line'><span class="cm"> * Tuple-like class for holding width and height in pixels</span>
 </span><span class='line'><span class="cm"> */</span>
 </span><span class='line'><span class="k">case</span> <span class="k">class</span> <span class="nc">Dimensions</span><span class="o">(</span><span class="n">width</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">height</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
@@ -143,7 +129,7 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="cm">/**</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="cm">/**</span>
 </span><span class='line'><span class="cm">  * Holds an id and an OpenCV Rect defining the corners of a rectangle.</span>
 </span><span class='line'><span class="cm">  *</span>
 </span><span class='line'><span class="cm">  * There is nothing *face* specific in this class per say; it can hold ids and Rects for any detected</span>
@@ -163,7 +149,7 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">sealed</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">HaarDetectorFlag</span><span class="o">(</span><span class="k">val</span> <span class="n">flag</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">sealed</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">HaarDetectorFlag</span><span class="o">(</span><span class="k">val</span> <span class="n">flag</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">case</span> <span class="k">object</span> <span class="nc">HaarDetectorFlag</span> <span class="o">{</span>
 </span><span class='line'>
@@ -238,7 +224,7 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 <span class='line-number'>60</span>
 <span class='line-number'>61</span>
 <span class='line-number'>62</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">FaceDetector</span> <span class="o">{</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">object</span> <span class="nc">FaceDetector</span> <span class="o">{</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="cm">/**</span>
 </span><span class='line'><span class="cm">   * Builds a FaceDetector with the default Haar Cascade classifier in the resource directory</span>
@@ -304,7 +290,7 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 
 <p>To be clear, there is really nothing <em>face-specific</em> in our classifier because what it detects is entirely dependent on the Haar cascade XML file passed to it on construction.</p>
 
-<h3>Drawing rectangles</h3>
+<h3 id="drawing-rectangles">Drawing rectangles</h3>
 
 <p>Once we have a list of rectangles that denote where our objects are in the image matrix, the last thing we need to do is draw the rectangles on the original image matrix. OpenCV provides a <code>rectangle</code> method that takes a <code>Mat</code> and two points denoting the top left and bottom right corners of a rectangle and draws the rectangle to the matrix it in-place.  Here again, our implementation will clone the matrix first before calling the OpenCV method so as to keep our code easy to reason about.</p>
 
@@ -339,7 +325,7 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 <span class='line-number'>28</span>
 <span class='line-number'>29</span>
 <span class='line-number'>30</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">class</span> <span class="nc">FaceDrawer</span><span class="o">(</span><span class="n">fontScale</span><span class="k">:</span> <span class="kt">Float</span> <span class="o">=</span> <span class="mf">0.6f</span><span class="o">)</span> <span class="o">{</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">class</span> <span class="nc">FaceDrawer</span><span class="o">(</span><span class="n">fontScale</span><span class="k">:</span> <span class="kt">Float</span> <span class="o">=</span> <span class="mf">0.6f</span><span class="o">)</span> <span class="o">{</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="k">private</span> <span class="k">val</span> <span class="nc">RedColour</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Scalar</span><span class="o">(</span><span class="nc">AbstractCvScalar</span><span class="o">.</span><span class="nc">RED</span><span class="o">)</span>
 </span><span class='line'>
@@ -365,23 +351,22 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 </span><span class='line'>
 </span><span class='line'>    <span class="c1">// draw the face number</span>
 </span><span class='line'>    <span class="k">val</span> <span class="n">cvPoint</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Point</span><span class="o">(</span><span class="n">f</span><span class="o">.</span><span class="n">faceRect</span><span class="o">.</span><span class="n">x</span><span class="o">,</span> <span class="n">f</span><span class="o">.</span><span class="n">faceRect</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="mi">20</span><span class="o">)</span>
-</span><span class='line'>    <span class="n">putText</span><span class="o">(</span><span class="n">clonedMat</span><span class="o">,</span> <span class="n">s</span><span class="s">&quot;Face ${f.id}&quot;</span><span class="o">,</span> <span class="n">cvPoint</span><span class="o">,</span> <span class="nc">FONT_HERSHEY_SIMPLEX</span><span class="o">,</span> <span class="n">fontScale</span><span class="o">,</span> <span class="nc">RedColour</span><span class="o">)</span>
+</span><span class='line'>    <span class="n">putText</span><span class="o">(</span><span class="n">clonedMat</span><span class="o">,</span> <span class="s">s&quot;Face </span><span class="si">${</span><span class="n">f</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s">&quot;</span><span class="o">,</span> <span class="n">cvPoint</span><span class="o">,</span> <span class="nc">FONT_HERSHEY_SIMPLEX</span><span class="o">,</span> <span class="n">fontScale</span><span class="o">,</span> <span class="nc">RedColour</span><span class="o">)</span>
 </span><span class='line'>  <span class="o">}</span>
 </span><span class='line'>
 </span><span class='line'><span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>Our <code>FaceDrawer</code> will expose a<code>drawFaces</code> method that takes a <code>WithGrey</code> with a list of detected <code>Face</code>s and use the above method to draw rectanges around each face. We'll also make use of OpenCV's <code>putText</code> method to write the word "Face" along with a number right on top of the rectangle.</p>
+<p>Our <code>FaceDrawer</code> will expose a<code>drawFaces</code> method that takes a <code>WithGrey</code> with a list of detected <code>Face</code>s and use the above method to draw rectanges around each face. We’ll also make use of OpenCV’s <code>putText</code> method to write the word “Face” along with a number right on top of the rectangle.</p>
 
-<h3>UI</h3>
+<h3 id="ui">UI</h3>
 
-<p>We'll hook up all our components in a simple Swing app. To make things a little more interesting, the app will consist of 2 frames:</p>
+<p>We’ll hook up all our components in a simple Swing app. To make things a little more interesting, the app will consist of 2 frames:</p>
 
 <ol>
-<li>An initial frame to allow the user to choose between loading a custom Haar cascade classifier file or to load the default one that's packaged in <code>resources</code></li>
-<li>The actual CanvasFrame shows our feed along with rectangles around detected objects</li>
+  <li>An initial frame to allow the user to choose between loading a custom Haar cascade classifier file or to load the default one that’s packaged in <code>resources</code></li>
+  <li>The actual CanvasFrame shows our feed along with rectangles around detected objects</li>
 </ol>
-
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>WebcamFaceDetector UI (WebcamFaceDetector.scala)</span> <a href='/downloads/code/scala/WebcamFaceDetector.scala'>download</a></figcaption>
  <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -463,7 +448,7 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 <span class='line-number'>77</span>
 <span class='line-number'>78</span>
 <span class='line-number'>79</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">WebcamFaceDetector</span> <span class="k">extends</span> <span class="nc">SimpleSwingApplication</span> <span class="o">{</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">object</span> <span class="nc">WebcamFaceDetector</span> <span class="k">extends</span> <span class="nc">SimpleSwingApplication</span> <span class="o">{</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="k">def</span> <span class="n">top</span><span class="k">:</span> <span class="kt">Frame</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">OptionsFrame</span>
 </span><span class='line'>
@@ -546,18 +531,17 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 
 <p>Notice that once again, the code defining the Akka Flow Graph maps almost one to one to our flow chart.</p>
 
-<h2>Conclusion</h2>
+<h2 id="conclusion">Conclusion</h2>
 
-<p>We now have a face detector that uses  OpenCV's Haar cascade classifier toolbelt and draws rectangles around any identified faces, and we made it by expanding on the Akka Stream foundations laid in the <a href="/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/">previous post</a>. As before, the code for this tutorial can be found <a href="https://github.com/lloydmeta/scala-akka-cv-part2">on Github</a>.</p>
+<p>We now have a face detector that uses  OpenCV’s Haar cascade classifier toolbelt and draws rectangles around any identified faces, and we made it by expanding on the Akka Stream foundations laid in the <a href="/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/">previous post</a>. As before, the code for this tutorial can be found <a href="https://github.com/lloydmeta/scala-akka-cv-part2">on Github</a>.</p>
 
-<p>In the next post, we'll expand this further by classifying the faces that we've detected as smiling or not using a supervised machine-learning model. We could of course continue to use Haar cascades to identify smiles in our feed (we can simply choose to load a smile Haar cascade classifier file), but what would be the fun in that ? :)</p>
+<p>In the next post, we’ll expand this further by classifying the faces that we’ve detected as smiling or not using a supervised machine-learning model. We could of course continue to use Haar cascades to identify smiles in our feed (we can simply choose to load a smile Haar cascade classifier file), but what would be the fun in that ? :)</p>
 
-<h3>Credits</h3>
+<h3 id="credits">Credits</h3>
 
 <ol>
-<li><a href="https://chimpler.wordpress.com/2014/11/18/playing-with-opencv-in-scala-to-do-face-detection-with-haarcascade-classifier-using-a-webcam/">Playing with OpenCV in Scala to do face detection with Haarcascade classifier using a webcam</a></li>
+  <li><a href="https://chimpler.wordpress.com/2014/11/18/playing-with-opencv-in-scala-to-do-face-detection-with-haarcascade-classifier-using-a-webcam/">Playing with OpenCV in Scala to do face detection with Haarcascade classifier using a webcam</a></li>
 </ol>
-
 ]]></content>
   </entry>
   
@@ -574,19 +558,23 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 
 <!-- more -->
 
-
-<h2>Akka Streams</h2>
+<h2 id="akka-streams">Akka Streams</h2>
 
 <p>Many of the OpenCV tutorials floating around on the interwebs use a procedural approach; perhaps because it better fits the programming language of the tutorial, or for performance. In this series of posts, we will instead adopt a stream processing model, specifically in the manner of <a href="http://www.reactive-streams.org/">Reactive Streams</a>.</p>
 
 <p>There are many benefits of using the Reactive Stream model (<a href="https://medium.com/@kvnwbbr/a-journey-into-reactive-streams-5ee2a9cd7e29#.am5eyvz5x">this blog post</a>, and <a href="http://www.slideshare.net/rolandkuhn/reactive-streams">this slide deck by Roland Kuhn</a> are great places to start reading), but the main ones I feel are relevant for us are:</p>
 
 <ol>
-<li><p><strong>Simplicity</strong>: by turning data processing into a series of simple stateless transformations, your code is easy to maintain, easy to change, and easy to understand: in other words, it becomes agile (<em>relax</em>: your code, not your team...).</p></li>
-<li><p><strong>Backpressure</strong>: Reactive Streams implementations ensure that backpressure (when downstream transforms take too long, upstream is informed so as to not overload your system) is handled automatically</p></li>
-<li><p><strong>Asynchronous</strong>: Reactive Streams are run asynchronously by default, leaving your main thread(s) responsive</p></li>
+  <li>
+    <p><strong>Simplicity</strong>: by turning data processing into a series of simple stateless transformations, your code is easy to maintain, easy to change, and easy to understand: in other words, it becomes agile (<em>relax</em>: your code, not your team…).</p>
+  </li>
+  <li>
+    <p><strong>Backpressure</strong>: Reactive Streams implementations ensure that backpressure (when downstream transforms take too long, upstream is informed so as to not overload your system) is handled automatically</p>
+  </li>
+  <li>
+    <p><strong>Asynchronous</strong>: Reactive Streams are run asynchronously by default, leaving your main thread(s) responsive</p>
+  </li>
 </ol>
-
 
 <p>In Scala, <a href="http://doc.akka.io/docs/akka-stream-and-http-experimental/snapshot/scala.html">Akka-Streams</a> is the defacto implementation of the Reactive Streams spec, and although it is labelled experimental, its adoption looks imminent (for example, <a href="https://www.playframework.com/documentation/2.4.x/ReactiveStreamsIntegration">there is already a Play integration</a> and the innards of Play are being rewritten to use Akka-Http, which is based on Akka-Streams).  Another nice Reactive Streams implementation in Scala is <a href="https://github.com/monixio/monix">Monix</a>, which offers a (subjectively) cleaner interface that is more familiar for people who come from RxScala/RxJava.</p>
 
@@ -594,18 +582,17 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 
 <p><em>Note that this tutorial was written based on an <strong>experimental</strong> version of Akka streams.</em></p>
 
-<h3>Flow chart</h3>
+<h3 id="flow-chart">Flow chart</h3>
 
-<p>Asides from wrapping OpenCV, JavaCV comes with a number of useful classes. One such class is <code>CanvasFrame</code>, which is a hardware-accelerated Swing Frame implementation for showing images.  <code>CanvasFrame</code>'s <code>.showImage</code> method accepts a <code>Frame</code>, which is the exact same type that <code>OpenCVFrameGrabber</code> (another useful JavaCV class) returns from its <code>.grabh()</code> method.</p>
+<p>Asides from wrapping OpenCV, JavaCV comes with a number of useful classes. One such class is <code>CanvasFrame</code>, which is a hardware-accelerated Swing Frame implementation for showing images.  <code>CanvasFrame</code>’s <code>.showImage</code> method accepts a <code>Frame</code>, which is the exact same type that <code>OpenCVFrameGrabber</code> (another useful JavaCV class) returns from its <code>.grabh()</code> method.</p>
 
-<p>Before showing the image, we will flip the image so that the feed we see on screen moves in the direction we expect. This requires us to do a simple transformation to a <code>Mat</code>, a wrapper type for OpenCV's native matrix, do the actual flipping of the matrix, convert the <code>Mat</code> back into a <code>Frame</code>, and then show it on the <code>CanvasFrame</code>.</p>
+<p>Before showing the image, we will flip the image so that the feed we see on screen moves in the direction we expect. This requires us to do a simple transformation to a <code>Mat</code>, a wrapper type for OpenCV’s native matrix, do the actual flipping of the matrix, convert the <code>Mat</code> back into a <code>Frame</code>, and then show it on the <code>CanvasFrame</code>.</p>
 
 <p>In short, our pipeline looks something like this:</p>
 
 <div id="flow-chart"><img class="center" src="/images/opencv-flowchart-part-1.png" title="'Simple wecam feed flow'" ></div>
 
-
-<h3>The Source</h3>
+<h3 id="the-source">The Source</h3>
 
 <p>As the diagram suggests, the first thing we need is a <code>Source</code> that produces <code>Frames</code>; in other words, a <code>Source[Frame]</code>.</p>
 
@@ -619,22 +606,21 @@ grabber.setBitsPerPixel(bitsPerPixel)
 grabber.setImageMode(imageMode)
 grabber.start()</p>
 
-<p>//...</p>
+<p>//…</p>
 
 <p>grabber.grab() // returns a Frame
-<code>``
-In order to create an Akka</code>Source[Frame]<code>, we will make use of the Akka-provided</code>ActorPublisher` class, which provides helper methods that specifically make it easy to send data only when there is downstream demand (this is how backpressure is automagically handled).</p>
+```
+In order to create an Akka <code>Source[Frame]</code>, we will make use of the Akka-provided <code>ActorPublisher</code> class, which provides helper methods that specifically make it easy to send data only when there is downstream demand (this is how backpressure is automagically handled).</p>
 
-<p>In the actor's <code>receive</code> method, we match on</p>
+<p>In the actor’s <code>receive</code> method, we match on</p>
 
 <ul>
-<li><code>Request</code> message type, which use to then call <code>emitFrames()</code></li>
-<li>A custom <code>Continue</code> object, which also calls <code>emitFrames()</code></li>
-<li><code>Cancel</code> in order to know when to stop the actor.</li>
+  <li><code>Request</code> message type, which use to then call <code>emitFrames()</code></li>
+  <li>A custom <code>Continue</code> object, which also calls <code>emitFrames()</code></li>
+  <li><code>Cancel</code> in order to know when to stop the actor.</li>
 </ul>
 
-
-<p>The <code>emitFrames()</code> method is a method that checks to see if the Actor is currently active (whether it has any subscribers), and if it is, grabs a frame and sends it to the <code>onNext</code> helper method from <code>ActorPublisher</code> to send a piece of data. It then checks if <code>totalDemand</code> (another <code>ActorPublisher</code> method) is greater than 0, and sends <em>itself</em> a <code>Continue</code> message, which invokes <code>emitFrames()</code> again. This somewhat convoluted way of sending data downstream is required because <code>grabber.grab()</code> is a blocking call, and we don't want to block the Actor threadpool for too long at a time (this pattern is used by the built-in <a href="https://github.com/akka/akka/blob/master/akka-stream/src/main/scala/akka/stream/impl/io/InputStreamPublisher.scala#L43"><code>InputStreamPublisher</code></a>).</p>
+<p>The <code>emitFrames()</code> method is a method that checks to see if the Actor is currently active (whether it has any subscribers), and if it is, grabs a frame and sends it to the <code>onNext</code> helper method from <code>ActorPublisher</code> to send a piece of data. It then checks if <code>totalDemand</code> (another <code>ActorPublisher</code> method) is greater than 0, and sends <em>itself</em> a <code>Continue</code> message, which invokes <code>emitFrames()</code> again. This somewhat convoluted way of sending data downstream is required because <code>grabber.grab()</code> is a blocking call, and we don’t want to block the Actor threadpool for too long at a time (this pattern is used by the built-in <a href="https://github.com/akka/akka/blob/master/akka-stream/src/main/scala/akka/stream/impl/io/InputStreamPublisher.scala#L43"><code>InputStreamPublisher</code></a>).</p>
 
 <p>In order to make a <code>Source[Frame]</code>, we instantiate an instance of our actor, pass its <code>ActorRef</code> to a method that creates a <code>Publisher[Frame]</code>, and then pass the publisher to a method that makes a <code>Source[Frame]</code>.</p>
 
@@ -754,7 +740,7 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
 <span class='line-number'>111</span>
 <span class='line-number'>112</span>
 <span class='line-number'>113</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">package</span> <span class="nn">com.beachape.video</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">package</span> <span class="nn">com.beachape.video</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">import</span> <span class="nn">akka.actor.</span><span class="o">{</span> <span class="nc">DeadLetterSuppression</span><span class="o">,</span> <span class="nc">Props</span><span class="o">,</span> <span class="nc">ActorSystem</span><span class="o">,</span> <span class="nc">ActorLogging</span> <span class="o">}</span>
 </span><span class='line'><span class="k">import</span> <span class="nn">akka.stream.actor.ActorPublisher</span>
@@ -844,7 +830,7 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
 </span><span class='line'>      <span class="k">case</span> <span class="k">_:</span> <span class="kt">Request</span> <span class="o">=&gt;</span> <span class="n">emitFrames</span><span class="o">()</span>
 </span><span class='line'>      <span class="k">case</span> <span class="nc">Continue</span> <span class="k">=&gt;</span> <span class="n">emitFrames</span><span class="o">()</span>
 </span><span class='line'>      <span class="k">case</span> <span class="nc">Cancel</span> <span class="k">=&gt;</span> <span class="n">onCompleteThenStop</span><span class="o">()</span>
-</span><span class='line'>      <span class="k">case</span> <span class="n">unexpectedMsg</span> <span class="k">=&gt;</span> <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Unexpected message: $unexpectedMsg&quot;</span><span class="o">)</span>
+</span><span class='line'>      <span class="k">case</span> <span class="n">unexpectedMsg</span> <span class="k">=&gt;</span> <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="o">(</span><span class="s">s&quot;Unexpected message: </span><span class="si">$unexpectedMsg</span><span class="s">&quot;</span><span class="o">)</span>
 </span><span class='line'>    <span class="o">}</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="k">private</span> <span class="k">def</span> <span class="n">emitFrames</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
@@ -869,22 +855,22 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
 </span><span class='line'><span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>We'll also define a simple <code>Dimensions</code> case class to make things a bit clearer (keyword arguments FTW)</p>
+<p>We’ll also define a simple <code>Dimensions</code> case class to make things a bit clearer (keyword arguments FTW)</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Tuple-like class for holding dimensions (Dimensions.scala)</span> <a href='/downloads/code/scala/Dimensions.scala'>download</a></figcaption>
  <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="cm">/**</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="cm">/**</span>
 </span><span class='line'><span class="cm"> * Tuple-like class for holding width and height in pixels</span>
 </span><span class='line'><span class="cm"> */</span>
 </span><span class='line'><span class="k">case</span> <span class="k">class</span> <span class="nc">Dimensions</span><span class="o">(</span><span class="n">width</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">height</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<h3>Conversion</h3>
+<h3 id="conversion">Conversion</h3>
 
-<p>In order to begin processing our feed with OpenCV, we first need to transform our <code>Frame</code>, which is a JavaCV type, into a type that works with JavaCV's wrapping of OpenCV's main representation of images, the matrix, aka <code>Mat</code>.  Fortunately, JavaCV has a <code>OpenCVFrameConverter.ToMat</code> helper class that helps us do this.  Since the class uses a mutable private field for holding on to temporary results, it normally isn't advisable to use it in multithreaded code unless we make new copies of it each time, but we can make it thread safe by binding it to a <code>ThreadLocal</code>.</p>
+<p>In order to begin processing our feed with OpenCV, we first need to transform our <code>Frame</code>, which is a JavaCV type, into a type that works with JavaCV’s wrapping of OpenCV’s main representation of images, the matrix, aka <code>Mat</code>.  Fortunately, JavaCV has a <code>OpenCVFrameConverter.ToMat</code> helper class that helps us do this.  Since the class uses a mutable private field for holding on to temporary results, it normally isn’t advisable to use it in multithreaded code unless we make new copies of it each time, but we can make it thread safe by binding it to a <code>ThreadLocal</code>.</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Media conversion utility methods (MediaConversion.scala)</span> <a href='/downloads/code/scala/MediaConversion.scala'>download</a></figcaption>
  <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -908,7 +894,7 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
 <span class='line-number'>19</span>
 <span class='line-number'>20</span>
 <span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="cm">/**</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="cm">/**</span>
 </span><span class='line'><span class="cm"> * Holds conversion and transformation methods for media types</span>
 </span><span class='line'><span class="cm"> */</span>
 </span><span class='line'><span class="k">object</span> <span class="nc">MediaConversion</span> <span class="o">{</span>
@@ -931,7 +917,7 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
 </span><span class='line'><span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<h3>Manipulation</h3>
+<h3 id="manipulation">Manipulation</h3>
 
 <p>Once we have our <code>Mat</code>, we can use OpenCV methods to do manipulation.  One thing though, is that (perhaps for efficiency) by default, these methods mutate the original object. This can cause strange issues in a multi-threaded, multi-path Flow graph, so instead of using them as is, we make use of the convenient <code>clone</code> method before doing our flip so that the original matrix remains as-is.</p>
 
@@ -948,7 +934,7 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
 <span class='line-number'>10</span>
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">Flip</span> <span class="o">{</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">object</span> <span class="nc">Flip</span> <span class="o">{</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="cm">/**</span>
 </span><span class='line'><span class="cm">   * Clones the image and returns a flipped version of the given image matrix along the y axis (horizontally)</span>
@@ -962,18 +948,17 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
 </span><span class='line'><span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<h3>Hooking things up</h3>
+<h3 id="hooking-things-up">Hooking things up</h3>
 
 <p>Now that we have all our components, all we need to do is create a simple application that instantiates all our components and hooks them all together:</p>
 
 <ol>
-<li>Instantiate our <code>ActorSystem</code> and <code>Materializer</code></li>
-<li>Instantiate a <code>CanvasFrame</code></li>
-<li>Instantiate our <code>Source[Frame]</code></li>
-<li>Define our <code>Graph</code> by using our components to transform it</li>
-<li>Run the graph</li>
+  <li>Instantiate our <code>ActorSystem</code> and <code>Materializer</code></li>
+  <li>Instantiate a <code>CanvasFrame</code></li>
+  <li>Instantiate our <code>Source[Frame]</code></li>
+  <li>Define our <code>Graph</code> by using our components to transform it</li>
+  <li>Run the graph</li>
 </ol>
-
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Webcam feed app (WebcamWindow.scala)</span> <a href='/downloads/code/scala/WebcamWindow.scala'>download</a></figcaption>
  <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -998,7 +983,7 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
 <span class='line-number'>20</span>
 <span class='line-number'>21</span>
 <span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">WebcamWindow</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">object</span> <span class="nc">WebcamWindow</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="k">implicit</span> <span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">()</span>
 </span><span class='line'>  <span class="k">implicit</span> <span class="k">val</span> <span class="n">materializer</span> <span class="k">=</span> <span class="nc">ActorMaterializer</span><span class="o">()</span>
@@ -1024,20 +1009,19 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
 
 <p>Looking at the code, one of the rewards of using the stream processing model over the procedureal approach might jump out at you: the near 1 to 1 correspondence that the graph definition has with our earlier diagram.</p>
 
-<h2>Conclusion</h2>
+<h2 id="conclusion">Conclusion</h2>
 
-<p>So, with that we should now have a very simple app shows what your webcam sees, flipped so that when you move left, the image moves with you.  We've done it by declaring a custom Akka Stream <code>Source</code> and transforming it a little bit before shoving it onto the screen.</p>
+<p>So, with that we should now have a very simple app shows what your webcam sees, flipped so that when you move left, the image moves with you.  We’ve done it by declaring a custom Akka Stream <code>Source</code> and transforming it a little bit before shoving it onto the screen.</p>
 
 <p>In the next post, we will look at how to do something a bit more complex: face detection using OpenCV.</p>
 
 <p><strong>Note</strong> the code for this post is <a href="https://github.com/lloydmeta/scala-akka-cv-part1">on Github</a></p>
 
-<h3>Credits</h3>
+<h3 id="credits">Credits</h3>
 
 <ol>
-<li><a href="https://chimpler.wordpress.com/2014/11/18/playing-with-opencv-in-scala-to-do-face-detection-with-haarcascade-classifier-using-a-webcam/">Playing with OpenCV in Scala to do face detection with Haarcascade classifier using a webcam</a></li>
+  <li><a href="https://chimpler.wordpress.com/2014/11/18/playing-with-opencv-in-scala-to-do-face-detection-with-haarcascade-classifier-using-a-webcam/">Playing with OpenCV in Scala to do face detection with Haarcascade classifier using a webcam</a></li>
 </ol>
-
 ]]></content>
   </entry>
   
@@ -1046,13 +1030,13 @@ In order to create an Akka</code>Source[Frame]<code>, we will make use of the Ak
     <link href="https://beachape.com/blog/2016/03/05/opencv-sbt-plugin/"/>
     <updated>2016-03-05T00:30:00+09:00</updated>
     <id>https://beachape.com/blog/2016/03/05/opencv-sbt-plugin</id>
-    <content type="html"><![CDATA[<p> OpenCV is arguably the defacto free, open-source computer vision library, but setting it up for usage in a JVM project can be hard because OpenCV itself is written in C++, so there are a bunch of system-dependent things that you need to download/compile/install before you can use it.</p>
+    <content type="html"><![CDATA[<p>OpenCV is arguably the defacto free, open-source computer vision library, but setting it up for usage in a JVM project can be hard because OpenCV itself is written in C++, so there are a bunch of system-dependent things that you need to download/compile/install before you can use it.</p>
 
-<p> <a href="https://github.com/bytedeco/javacv">JavaCV</a>, written by <a href="http://bytedeco.org/">Bytedeco</a> is a library that makes it more bearable to use OpenCV from JVM projects by providing a bunch of wrapper classes and logic around OpenCV (there's a lot more to it, see their page for details).</p>
+<p><a href="https://github.com/bytedeco/javacv">JavaCV</a>, written by <a href="http://bytedeco.org/">Bytedeco</a> is a library that makes it more bearable to use OpenCV from JVM projects by providing a bunch of wrapper classes and logic around OpenCV (there’s a lot more to it, see their page for details).</p>
 
-<p> Still, because JavaCV depends on <a href="https://github.com/bytedeco/javacpp-presets">JavaCPP</a> for common and OpenCV C++ wrappers, and JavaCPP requires you to set your target platform (what platform you want to run on), I thought getting started could be easier still.</p>
+<p>Still, because JavaCV depends on <a href="https://github.com/bytedeco/javacpp-presets">JavaCPP</a> for common and OpenCV C++ wrappers, and JavaCPP requires you to set your target platform (what platform you want to run on), I thought getting started could be easier still.</p>
 
-<p> <!-- more --></p>
+<p><!-- more --></p>
 
 <p>After taking a look at <a href="https://github.com/chimpler/blog-scala-javacv/blob/master/build.sbt#L19">this Github project</a>, I created an SBT plugin, <a href="https://github.com/lloydmeta/sbt-opencv">SBT-OpenCV</a>, that allows you to add just one line to your <code>project/plugins.sbt</code> to begin playing around with OpenCV:</p>
 

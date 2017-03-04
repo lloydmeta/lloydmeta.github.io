@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Non-blocking | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/non-blocking/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-17T12:19:45+09:00</updated>
+  <updated>2017-03-05T02:10:04+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -18,25 +18,24 @@
     <link href="https://beachape.com/blog/2015/07/25/slim-play-app/"/>
     <updated>2015-07-25T20:50:00+09:00</updated>
     <id>https://beachape.com/blog/2015/07/25/slim-play-app</id>
-    <content type="html"><![CDATA[<p><a href="https://www.playframework.com/">Play</a> is one of two officially-supported web frameworks from Typesafe, the company behind Scala (the other is <a href="http://spray.io/">Spray</a>). It runs on its own webserver, is non-blocking, and encourages the use of idiomatic Scala. It is often compared with Rails because of its emphasis on convention over configuration and because it's a full-on framework that comes with most of the bells and whistles needed to build a full-featured webapp. Spray is considered by many to be the defacto API-centric alternative to Play, offering a Sinatra-esque DSL for routing and being slimmer to boot (from a files + LOC perspective).</p>
+    <content type="html"><![CDATA[<p><a href="https://www.playframework.com/">Play</a> is one of two officially-supported web frameworks from Typesafe, the company behind Scala (the other is <a href="http://spray.io/">Spray</a>). It runs on its own webserver, is non-blocking, and encourages the use of idiomatic Scala. It is often compared with Rails because of its emphasis on convention over configuration and because it’s a full-on framework that comes with most of the bells and whistles needed to build a full-featured webapp. Spray is considered by many to be the defacto API-centric alternative to Play, offering a Sinatra-esque DSL for routing and being slimmer to boot (from a files + LOC perspective).</p>
 
 <p>After looking around  I began suspecting that Play comes with the ability to be slimmed down. By combining the <a href="https://www.playframework.com/documentation/2.4.x/ScalaSirdRouter">String Interpolating Routing DSL</a> and <a href="https://www.playframework.com/documentation/2.4.x/ScalaCompileTimeDependencyInjection">Compile-time dependency injection</a> of Play 2.4, I was able to build a Scala app that would give Sinatra a run for its money in terms of the whole brevity thing.</p>
 
-<p><img class="center" src="/images/duderino.jpeg" width="350" height="350" title="'The Dude is focused on the whole brevity thing'" ></p>
+<p><img class="center" src="/images/duderino.jpeg" width="350" height="350" title="‘The Dude is focused on the whole brevity thing’" ></p>
 
 <!-- more -->
 
-
-<h3>Methodology</h3>
+<h3 id="methodology">Methodology</h3>
 
 <p>All I did was:</p>
 
 <ol>
-<li>Use activator to generate a new Play app (<code>$ activator new slim-play play-scala</code>)</li>
-<li>Delete the auto-generated controller, public, and view directories (won't be using them)</li>
-<li>Create a <code>AppLoader.scala</code> file in the <code>./app</code> directory, which holds an ApplicationLoader and the router, which is
-super simple:
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Play app in 38 lines including imports and comments (AppLoader.scala)</span> <a href='/downloads/code/scala/AppLoader.scala'>download</a></figcaption>
+  <li>Use activator to generate a new Play app (<code>$ activator new slim-play play-scala</code>)</li>
+  <li>Delete the auto-generated controller, public, and view directories (won’t be using them)</li>
+  <li>Create a <code>AppLoader.scala</code> file in the <code>./app</code> directory, which holds an ApplicationLoader and the router, which is
+  super simple:
+  <div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Play app in 38 lines including imports and comments (AppLoader.scala)</span> <a href='/downloads/code/scala/AppLoader.scala'>download</a></figcaption>
  <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -75,7 +74,7 @@ super simple:
 <span class='line-number'>36</span>
 <span class='line-number'>37</span>
 <span class='line-number'>38</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">play.api.ApplicationLoader.Context</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">import</span> <span class="nn">play.api.ApplicationLoader.Context</span>
 </span><span class='line'><span class="k">import</span> <span class="nn">play.api._</span>
 </span><span class='line'><span class="k">import</span> <span class="nn">play.api.libs.concurrent.Execution.Implicits._</span>
 </span><span class='line'><span class="k">import</span> <span class="nn">play.api.mvc.Results._</span>
@@ -96,7 +95,7 @@ super simple:
 </span><span class='line'>
 </span><span class='line'>      <span class="c1">// Essentially copied verbatim from the SIRD example</span>
 </span><span class='line'>      <span class="k">case</span> <span class="nc">GET</span><span class="o">(</span><span class="n">p</span><span class="s">&quot;/hello/$to&quot;</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Action</span> <span class="o">{</span>
-</span><span class='line'>        <span class="nc">Ok</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Hello $to&quot;</span><span class="o">)</span>
+</span><span class='line'>        <span class="nc">Ok</span><span class="o">(</span><span class="s">s&quot;Hello </span><span class="si">$to</span><span class="s">&quot;</span><span class="o">)</span>
 </span><span class='line'>      <span class="o">}</span>
 </span><span class='line'>
 </span><span class='line'>      <span class="cm">/*</span>
@@ -114,32 +113,30 @@ super simple:
 </span><span class='line'>
 </span><span class='line'><span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></li>
-<li>Add <code>play.application.loader=AppLoader</code> to <code>./conf/application.conf</code> so that Play knows to load our custom app (that
-contains our simple router)</li>
+  <li>Add <code>play.application.loader=AppLoader</code> to <code>./conf/application.conf</code> so that Play knows to load our custom app (that
+  contains our simple router)</li>
 </ol>
-
 
 <p>The end result is a small, one-file Play app powered by a custom router and compile-time dependency injection. For more information, take a look at the <a href="https://github.com/lloydmeta/slim-play">slim-play</a> repo on Github.</p>
 
-<h3>Conclusion</h3>
+<h3 id="conclusion">Conclusion</h3>
 
-<p>Play is an awesome framework; scalable, idiomatic (type-safe, threadsafe), well documented, and well supported by Typesafe and a great community. I've been happily using it to build various-sized apps for the better part of 2.5 years. If you want to have a well-structured app, it comes out of the box configured to provide that. However, it also has the surprising ability to shed weight and turn into a slim API-focused engine.</p>
+<p>Play is an awesome framework; scalable, idiomatic (type-safe, threadsafe), well documented, and well supported by Typesafe and a great community. I’ve been happily using it to build various-sized apps for the better part of 2.5 years. If you want to have a well-structured app, it comes out of the box configured to provide that. However, it also has the surprising ability to shed weight and turn into a slim API-focused engine.</p>
 
-<h3>A word Sinatra-clones in Scala</h3>
+<h3 id="a-word-sinatra-clones-in-scala">A word Sinatra-clones in Scala</h3>
 
-<p>Ruby is fairly ubiquitous when it comes to server-side web programming.  Rails aside, <a href="http://www.sinatrarb.com/">Sinatra</a> has made its mark on the world and made a name for itself as <em>the</em> DSL to mimic, with imitators in Ruby (Cuba), Python (Bottle, Flask), PHP (Laravel), Scala (Scalatra and its wrapper Skinny), and Javascript (Express).  Thanks to its simple and easy to follow DSL routing, it's gained a large following as well.</p>
+<p>Ruby is fairly ubiquitous when it comes to server-side web programming.  Rails aside, <a href="http://www.sinatrarb.com/">Sinatra</a> has made its mark on the world and made a name for itself as <em>the</em> DSL to mimic, with imitators in Ruby (Cuba), Python (Bottle, Flask), PHP (Laravel), Scala (Scalatra and its wrapper Skinny), and Javascript (Express).  Thanks to its simple and easy to follow DSL routing, it’s gained a large following as well.</p>
 
-<p>That said, blindly copying Sinatra's DSL in other languages may be problematic, because Sinatra's DSL relies on the Rack execution model (one request at a time per process/thread), and embraces Ruby's spirit of developer happiness at the cost of performance.  This is especially true in Scala, where the language was designed for concurrency and the community places heavy emphasis on adhering to a non-blocking execution model, eschewing mutation of data.</p>
+<p>That said, blindly copying Sinatra’s DSL in other languages may be problematic, because Sinatra’s DSL relies on the Rack execution model (one request at a time per process/thread), and embraces Ruby’s spirit of developer happiness at the cost of performance.  This is especially true in Scala, where the language was designed for concurrency and the community places heavy emphasis on adhering to a non-blocking execution model, eschewing mutation of data.</p>
 
-<p>For example, I filed an issue with <a href="https://github.com/scalatra/scalatra/issues/513">Scalatra</a> a few months ago that was largely caused by indiscriminate copying of Sinatra's DSL, as well being based on the Servlet async API (an intro to <a href="http://petercipov.com/not-only-servlet/">why we should move away from Servlets</a>).  Among other things, it led to:</p>
+<p>For example, I filed an issue with <a href="https://github.com/scalatra/scalatra/issues/513">Scalatra</a> a few months ago that was largely caused by indiscriminate copying of Sinatra’s DSL, as well being based on the Servlet async API (an intro to <a href="http://petercipov.com/not-only-servlet/">why we should move away from Servlets</a>).  Among other things, it led to:</p>
 
 <ul>
-<li>Loss of thread-safety, meaning you can no longer take advantage of Scala's strength in concurrency for scaling purposes (a lot of Scala libraries also return Futures when dealing with I/O, as they should).</li>
-<li>Loss of static typing, which is  terrible at design-time (IDE assistence and refactoring perspective), as well as runtime (performance).  Scalatra apps are written in non-idiomatic Scala because the routing implementation takes an <code>Any</code> as the result of a route definition, including...yes, shutting down the Servlet container. In addition, it encourages you to mutate existing data (setting statuses on responses).</li>
+  <li>Loss of thread-safety, meaning you can no longer take advantage of Scala’s strength in concurrency for scaling purposes (a lot of Scala libraries also return Futures when dealing with I/O, as they should).</li>
+  <li>Loss of static typing, which is  terrible at design-time (IDE assistence and refactoring perspective), as well as runtime (performance).  Scalatra apps are written in non-idiomatic Scala because the routing implementation takes an <code>Any</code> as the result of a route definition, including…yes, shutting down the Servlet container. In addition, it encourages you to mutate existing data (setting statuses on responses).</li>
 </ul>
 
-
-<p>If you're coming to Scala from Ruby and what you want is to build a small app using Sinatra-esque DSL in Scala, I would highly suggest evaluating Spray or slim-Play (as presented here) before choosing to go with Scalatra and friends: "Thar be dragons" in the long-run.</p>
+<p>If you’re coming to Scala from Ruby and what you want is to build a small app using Sinatra-esque DSL in Scala, I would highly suggest evaluating Spray or slim-Play (as presented here) before choosing to go with Scalatra and friends: “Thar be dragons” in the long-run.</p>
 ]]></content>
   </entry>
   

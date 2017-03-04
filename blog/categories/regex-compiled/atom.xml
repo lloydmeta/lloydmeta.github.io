@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Regex Compiled | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/regex-compiled/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-17T12:19:45+09:00</updated>
+  <updated>2017-03-05T02:10:04+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -20,12 +20,11 @@
     <id>https://beachape.com/blog/2013/04/06/simple-string-pattern-checking-in-ruby-benchmark</id>
     <content type="html"><![CDATA[<p>Often times, as programmers, we need to check to see if a substring exists in a bigger string. Many programmers will instinctively reach out for Regex matching, but I often wondered if this was really the best way to do things, particularly in Ruby.</p>
 
-<p>One day, in a Ruby-focused Skype group chat, a friend of mine asked the other members to give him a snippet of code that would allow him to take a hostname, check if the substring 'qa' was in it and if it did, return 'qa', else 'prod' (for production). My knee-jerk reaction was the same as the other members: use Regex. But I wondered if it would be better to use compiled Regex, or interpreted Regex, or perhaps maybe even the built in String method <a href="http://www.ruby-doc.org/core-1.9.3/String.html#method-i-include-3F">include?</a>. So I decided to do some benchmarking.</p>
+<p>One day, in a Ruby-focused Skype group chat, a friend of mine asked the other members to give him a snippet of code that would allow him to take a hostname, check if the substring ‘qa’ was in it and if it did, return ‘qa’, else ‘prod’ (for production). My knee-jerk reaction was the same as the other members: use Regex. But I wondered if it would be better to use compiled Regex, or interpreted Regex, or perhaps maybe even the built in String method <a href="http://www.ruby-doc.org/core-1.9.3/String.html#method-i-include-3F">include?</a>. So I decided to do some benchmarking.</p>
 
 <!-- more -->
 
-
-<p>Ruby has a great module built in that makes benchmarking very simple: <a href="http://www.ruby-doc.org/stdlib-1.9.3/libdoc/benchmark/rdoc/Benchmark.html">Benchmark</a>. A lot of the time I use it to check if something is performant or not, even on the Rails level! In this session, I make use of a very small subset of this module's functionality, but if you're interested, please be sure to check out the above link to see other options.</p>
+<p>Ruby has a great module built in that makes benchmarking very simple: <a href="http://www.ruby-doc.org/stdlib-1.9.3/libdoc/benchmark/rdoc/Benchmark.html">Benchmark</a>. A lot of the time I use it to check if something is performant or not, even on the Rails level! In this session, I make use of a very small subset of this module’s functionality, but if you’re interested, please be sure to check out the above link to see other options.</p>
 
 <p>Anyways, my goal was to benchmark a simple string pattern check using compiled Regex, interpreted Regex, and the String #include? method. As a result, I wrote the following ruby script:</p>
 
@@ -61,7 +60,7 @@
 <span class='line-number'>29</span>
 <span class='line-number'>30</span>
 <span class='line-number'>31</span>
-</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">require</span> <span class="s2">&quot;benchmark&quot;</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span></span><span class="nb">require</span> <span class="s2">&quot;benchmark&quot;</span>
 </span><span class='line'>
 </span><span class='line'><span class="n">regex_compiled</span> <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;qa&quot;</span><span class="p">)</span>
 </span><span class='line'><span class="n">regex_compiled</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;qa&quot;</span><span class="p">)</span>
@@ -99,28 +98,19 @@
 <p>The results were as follows:</p>
 
 <p>```
-Rehearsal -------------------------------------------------------------------------
+Rehearsal ————————————————————————-
 1000000 times positive regex            0.400000   0.000000   0.400000 (  0.398280)
 1000000 times negative regex            0.420000   0.000000   0.420000 (  0.424669)
 1000000 times positive regex compiled   0.990000   0.020000   1.010000 (  1.005177)
 1000000 times negative regex compiled   0.500000   0.000000   0.500000 (  0.496037)
 1000000 times positive #include?        0.280000   0.000000   0.280000 (  0.277431)
 1000000 times negative #include?        0.240000   0.000000   0.240000 (  0.248257)
----------------------------------------------------------------- total: 2.850000sec</p>
+—————————————————————- total: 2.850000sec</p>
 
-<pre><code>                                        user     system      total        real
+<pre><code>                                        user     system      total        real 1000000 times positive regex            0.400000   0.000000   0.400000 (  0.408893) 1000000 times negative regex            0.450000   0.000000   0.450000 (  0.447820) 1000000 times positive regex compiled   1.010000   0.000000   1.010000 (  1.009081) 1000000 times negative regex compiled   0.500000   0.000000   0.500000 (  0.502232) 1000000 times positive #include?        0.280000   0.000000   0.280000 (  0.275711) 1000000 times negative #include?        0.250000   0.000000   0.250000 (  0.247974) ```
 </code></pre>
 
-<p>1000000 times positive regex            0.400000   0.000000   0.400000 (  0.408893)
-1000000 times negative regex            0.450000   0.000000   0.450000 (  0.447820)
-1000000 times positive regex compiled   1.010000   0.000000   1.010000 (  1.009081)
-1000000 times negative regex compiled   0.500000   0.000000   0.500000 (  0.502232)
-1000000 times positive #include?        0.280000   0.000000   0.280000 (  0.275711)
-1000000 times negative #include?        0.250000   0.000000   0.250000 (  0.247974)
-```</p>
-
-<h2>Conclusion</h2>
-
+<h2 id="conclusion">Conclusion</h2>
 <p>Turned out in the case of simple string presence checking, #include? was faster than everything else by almost half. More surprising was the fact that Regex compiled was even slower than Regex interpreted.</p>
 ]]></content>
   </entry>

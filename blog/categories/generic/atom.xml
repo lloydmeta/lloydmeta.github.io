@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Generic | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/generic/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-17T12:19:45+09:00</updated>
+  <updated>2017-03-05T02:10:04+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -20,16 +20,15 @@
     <id>https://beachape.com/blog/2017/02/04/rust-generic-not-generics</id>
     <content type="html"><![CDATA[<p>Have you ever wanted to convert <code>Hlist</code>s into Structs or to reuse logic across different types that are structurally identical or very similar (e.g. same data across different domains)? <code>Generic</code> can help you do that with minimal boilerplate.</p>
 
-<p><img class="center" src="/images/generic_example.png" width="350" height="350" title="'From Hlist to Struct, no boilerplate'" ></p>
+<p><img class="center" src="/images/generic_example.png" width="350" height="350" title="‘From Hlist to Struct, no boilerplate’" ></p>
 
-<p><code>Generic</code> is a way of representing a type in ... a generic way. By coding around <code>Generic</code>, you can write functions that abstract over types and arity, but still have the ability to recover your original type afterwards. This can be a fairly powerful thing.</p>
+<p><code>Generic</code> is a way of representing a type in … a generic way. By coding around <code>Generic</code>, you can write functions that abstract over types and arity, but still have the ability to recover your original type afterwards. This can be a fairly powerful thing.</p>
 
 <!-- more -->
 
+<p>Thanks to the new Macros 1.1 infrastructure added in Rust 1.15, Frunk comes out of the box with a custom <code>Generic</code> derivation so that boilerplate is kept to a minimum. Without further ado, let’s dive in to see what Generic can do for us.</p>
 
-<p>Thanks to the new Macros 1.1 infrastructure added in Rust 1.15, Frunk comes out of the box with a custom <code>Generic</code> derivation so that boilerplate is kept to a minimum. Without further ado, let's dive in to see what Generic can do for us.</p>
-
-<h2>Add Frunk to your project</h2>
+<h2 id="add-frunk-to-your-project">Add Frunk to your project</h2>
 
 <p><a href="https://github.com/lloydmeta/frunk">Frunk</a> is published to <a href="//crates.io/crates/frust">Crates.io</a>, so to begin, add the crate to your list of dependencies:</p>
 
@@ -38,153 +37,126 @@
 frunk = "0.1.9"
 </code></p>
 
-<h2>Examples</h2>
+<h2 id="examples">Examples</h2>
 
-<h3>HList ⇄ Struct</h3>
+<h3 id="hlist--struct">HList ⇄ Struct</h3>
 
-<p>Have an <code>HList</code> lying around and want to turn it into a Struct with the same shape (maybe you're using <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Validated</a>)?</p>
+<p>Have an <code>HList</code> lying around and want to turn it into a Struct with the same shape (maybe you’re using <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Validated</a>)?</p>
 
 <p>```rust
-extern crate frunk;</p>
-
-<h1>[macro_use] // for the hlist macro</h1>
-
-<p>extern crate frunk_core;
+extern crate frunk;
+#[macro_use] // for the hlist macro
+extern crate frunk_core;
 use frunk::*; // for the Generic trait and HList</p>
 
-<h1>[derive(Generic, Debug, PartialEq)]</h1>
+<h1 id="derivegeneric-debug-partialeq">[derive(Generic, Debug, PartialEq)]</h1>
+<p>struct Person&lt;’a&gt; {
+    first_name: &amp;’a str,
+    last_name: &amp;’a str,
+    age: usize,
+}</p>
 
-<p>struct Person&lt;'a> {</p>
-
-<pre><code>first_name: &amp;'a str,
-last_name: &amp;'a str,
-age: usize,
-</code></pre>
-
-<p>}</p>
-
-<p>let h = hlist!("Joe", "Blow", 30);
+<p>let h = hlist!(“Joe”, “Blow”, 30);
 let p: Person = from_generic(h);
-assert_eq!(p,</p>
-
-<pre><code>       Person {
-           first_name: "Joe",
-           last_name: "Blow",
-           age: 30,
-       });
-</code></pre>
-
-<p>```</p>
+assert_eq!(p,
+           Person {
+               first_name: “Joe”,
+               last_name: “Blow”,
+               age: 30,
+           });
+```</p>
 
 <p>This also works the other way too; just pass a struct to <code>into_generic</code> and get its generic representation.</p>
 
-<p>One usecase for something like this is if you have a bunch of fields that you want to validate "simultaneously", and you want to transform the end result into a single Struct; this is often the case when you want to turn external input (e.g. coming into your API, a web form, or fields read from a database), and in a previous post I introduced <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Validated</a> as a way of doing that.</p>
+<p>One usecase for something like this is if you have a bunch of fields that you want to validate “simultaneously”, and you want to transform the end result into a single Struct; this is often the case when you want to turn external input (e.g. coming into your API, a web form, or fields read from a database), and in a previous post I introduced <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Validated</a> as a way of doing that.</p>
 
 <p>With the introduction of <code>Generic</code>, that last step of transforming an <code>HList</code> into your struct gets much simpler:</p>
 
-<p><code>rust
-let validated = get_first_name().into_validated() + get_last_name() + get_age();
-let person: Result&lt;Person, _&gt; = validated
-  .into_result()
-  .map(|h| from_generic(h)); // &lt;-- much simpler !
-</code></p>
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span></span><span class="kd">let</span><span class="w"> </span><span class="n">validated</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_first_name</span><span class="p">().</span><span class="n">into_validated</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">get_last_name</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">get_age</span><span class="p">();</span><span class="w"></span>
+</span><span class='line'><span class="kd">let</span><span class="w"> </span><span class="n">person</span><span class="o">:</span><span class="w"> </span><span class="nb">Result</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">Person</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">validated</span><span class="w"></span>
+</span><span class='line'><span class="w">  </span><span class="p">.</span><span class="n">into_result</span><span class="p">()</span><span class="w"></span>
+</span><span class='line'><span class="w">  </span><span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">h</span><span class="o">|</span><span class="w"> </span><span class="n">from_generic</span><span class="p">(</span><span class="n">h</span><span class="p">));</span><span class="w"> </span><span class="c1">// &amp;lt;– much simpler !</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<h3>Converting between Structs</h3>
+<h3 id="converting-between-structs">Converting between Structs</h3>
 
-<p>Sometimes you might have 2 or more types that are structurally the same (e.g. different domains but the same data) and you'd like to convert between them. An example of this might be when you have a model for deserialising from an external API and another one for internal application business logic, and yet another for persistence.</p>
+<p>Sometimes you might have 2 or more types that are structurally the same (e.g. different domains but the same data) and you’d like to convert between them. An example of this might be when you have a model for deserialising from an external API and another one for internal application business logic, and yet another for persistence.</p>
 
 <p>Generic comes with a handy <code>convert_from</code> method that helps here:</p>
 
 <p>```rust
 // Assume we have all the imports needed</p>
 
-<h1>[derive(Generic)]</h1>
+<h1 id="derivegeneric">[derive(Generic)]</h1>
+<p>struct ApiPerson&lt;’a&gt; {
+    FirstName: &amp;’a str,
+    LastName: &amp;’a str,
+    Age: usize,
+}</p>
 
-<p>struct ApiPerson&lt;'a> {</p>
+<h1 id="derivegeneric-1">[derive(Generic)]</h1>
+<p>struct DomainPerson&lt;’a&gt; {
+    first_name: &amp;’a str,
+    last_name: &amp;’a str,
+    age: usize,
+}</p>
 
-<pre><code>FirstName: &amp;'a str,
-LastName: &amp;'a str,
-Age: usize,
-</code></pre>
-
-<p>}</p>
-
-<h1>[derive(Generic)]</h1>
-
-<p>struct DomainPerson&lt;'a> {</p>
-
-<pre><code>first_name: &amp;'a str,
-last_name: &amp;'a str,
-age: usize,
-</code></pre>
-
-<p>}</p>
-
-<p>let a_person = ApiPersion {</p>
-
-<pre><code>               first_name: "Joe",
-               last_name: "Blow",
-               age: 30,
-</code></pre>
-
-<p>};
+<p>let a_person = ApiPersion {
+                   first_name: “Joe”,
+                   last_name: “Blow”,
+                   age: 30,
+};
 let d_person: DomainPersion = convert_from(a_person); // done
 ```</p>
 
 <p>Another example of where this might be useful is if you want to use different types to represent the same data at different stages (see <a href="http://stackoverflow.com/questions/31949455/transform-one-case-class-into-another-when-the-argument-list-is-the-same">this post on StackOverflow</a>).</p>
 
-<h2>How it works (what is going on ? is it safe ?)</h2>
+<h2 id="how-it-works-what-is-going-on--is-it-safe-">How it works (what is going on ? is it safe ?)</h2>
 
-<p>At a glance, <code>Generic</code> might look magical and dangerous, but really it is no more mysterious than the <code>From</code> trait in the standard lib; the only difference (for now) is that every <code>Generic</code> instance is bidirectional (can turn an <code>A</code> into a <code>Repr</code> and a <code>Repr</code> into an <code>A</code>). If you don't believe me, just look at the type signatures.</p>
+<p>At a glance, <code>Generic</code> might look magical and dangerous, but really it is no more mysterious than the <code>From</code> trait in the standard lib; the only difference (for now) is that every <code>Generic</code> instance is bidirectional (can turn an <code>A</code> into a <code>Repr</code> and a <code>Repr</code> into an <code>A</code>). If you don’t believe me, just look at the type signatures.</p>
 
 <p>```rust
-pub trait Generic<Repr> {</p>
+pub trait Generic<Repr> {</Repr></p>
 
 <pre><code>/// Go from something to Repr
 fn into(self) -&gt; Repr;
 
 /// Go from Repr to something
-fn from(r: Repr) -&gt; Self;
+fn from(r: Repr) -&gt; Self; }
 </code></pre>
-
-<p>}</p>
 
 <p>/// Given a generic Representation of an A, returns A
-pub fn from_generic&lt;A, Repr>(gen: Repr) -> A where A: Generic<Repr></p>
+pub fn from_generic&lt;A, Repr&gt;(gen: Repr) -&gt; A where A: Generic<Repr></Repr></p>
 
 <p>/// Given an A, returns its generic Representation
-pub fn into_generic&lt;A, Repr>(a: A) -> Repr where A: Generic<Repr></p>
+pub fn into_generic&lt;A, Repr&gt;(a: A) -&gt; Repr where A: Generic<Repr></Repr></p>
 
 <p>/// Converts one type into another assuming they have the same generic Representation
-pub fn convert_from&lt;A, B, Repr>(a: A) -> B
-  where</p>
-
-<pre><code>A: Generic&lt;Repr&gt;,
-B: Generic&lt;Repr&gt;
-</code></pre>
-
-<p>```</p>
+pub fn convert_from&lt;A, B, Repr&gt;(a: A) -&gt; B
+  where
+    A: Generic<Repr>,
+    B: Generic<Repr>
+```</Repr></Repr></p>
 
 <p>Most of the magic resides in how the custom derive of Generic, made possible by the 1.15 release of Rust, is implemented. If you want to find out more, take a look at the <code>derives</code> directory of Frunk <a href="https://github.com/lloydmeta/frunk/tree/master/derives/src">on Github</a>. In regards to the end-result though, the following:</p>
 
-<p>```rust</p>
-
-<h1>[derive(Generic)]</h1>
-
-<p>struct Person&lt;'a> {</p>
-
-<pre><code>first_name: &amp;'a str,
-last_name: &amp;'a str,
-age: usize,
-</code></pre>
-
-<p>}
-```</p>
+<p><code>rust
+#[derive(Generic)]
+struct Person&lt;'a&gt; {
+    first_name: &amp;'a str,
+    last_name: &amp;'a str,
+    age: usize,
+}
+</code></p>
 
 <p>Gets expanded at compile-time to something resembling:</p>
 
 <p>```rust
-impl&lt;'a> Generic&lt;Hlist!(&amp;'a str, &amp;'a str, usize)> for Person&lt;'a> {</p>
+impl&lt;’a&gt; Generic&lt;Hlist!(&amp;’a str, &amp;’a str, usize)&gt; for Person&lt;’a&gt; {</p>
 
 <pre><code>fn into(self) -&gt; Hlist!(&amp;'a str, &amp;'a str, usize) {
     let Person { first_name, last_name, age } = self;
@@ -194,38 +166,33 @@ impl&lt;'a> Generic&lt;Hlist!(&amp;'a str, &amp;'a str, usize)> for Person&lt;'a
 fn from(r: Hlist!(&amp;'a str, &amp;'a str, usize)) -&gt; Self {
     let hlist_pat! [ first_name, last_name, age ] = r;
     Person { first_name: first_name, last_name: last_name, age: age }
-}
+} } ```
 </code></pre>
 
-<p>}
-```</p>
+<p>To be clear, the actual expanded coded is much gnarlier because we use fully qualified names for the sake of hygiene and I’ve sugared some things up with their macro-powered equivalents to cut down on noise (namely the HList type signature, pattern matching, and construction).</p>
 
-<p>To be clear, the actual expanded coded is much gnarlier because we use fully qualified names for the sake of hygiene and I've sugared some things up with their macro-powered equivalents to cut down on noise (namely the HList type signature, pattern matching, and construction).</p>
+<p>Someone on Twitter raised the point that if you had mixed up the ordering of the fields in your struct declaration (e.g. last name and first name are swapped between structs), then <code>Generic</code> would cause silent errors at runtime because the Structs’ shape would be the same, and that implementing <code>From</code> was more typesafe. With all due respect to that individual, the same could happen even if you hand-wrote your <code>From</code> implementation and got your field assignments crossed. In the worst case; you’ve now got fields that are not ordered correctly, your <code>From</code> is wrong, and you’ve got more boilerplate to maintain.</p>
 
-<p>Someone on Twitter raised the point that if you had mixed up the ordering of the fields in your struct declaration (e.g. last name and first name are swapped between structs), then <code>Generic</code> would cause silent errors at runtime because the Structs' shape would be the same, and that implementing <code>From</code> was more typesafe. With all due respect to that individual, the same could happen even if you hand-wrote your <code>From</code> implementation and got your field assignments crossed. In the worst case; you've now got fields that are not ordered correctly, your <code>From</code> is wrong, and you've got more boilerplate to maintain.</p>
+<p>Really, the only way to truly prevent this kind of fat-fingering error is to have wrapper types (like <code>struct FirstName(String)</code>, etc) for all your fields, in which case <code>Generic</code> conversion would be foolproof (if you got your field declaration orders wrong, you’d get a compile-time error). Ultimately, how typesafe you want to be is a choice you will need to make while weighing the risk of fat-fingering against the burden of maintaining more code.</p>
 
-<p>Really, the only way to truly prevent this kind of fat-fingering error is to have wrapper types (like <code>struct FirstName(String)</code>, etc) for all your fields, in which case <code>Generic</code> conversion would be foolproof (if you got your field declaration orders wrong, you'd get a compile-time error). Ultimately, how typesafe you want to be is a choice you will need to make while weighing the risk of fat-fingering against the burden of maintaining more code.</p>
+<p>I hope you’re now convinced that there is no dirty casting / unsafe stuff going on, so you can rest easy knowing your code is still as type-safe as it would have been if you had gone with something like <code>From</code> instead.</p>
 
-<p>I hope you're now convinced that there is no dirty casting / unsafe stuff going on, so you can rest easy knowing your code is still as type-safe as it would have been if you had gone with something like <code>From</code> instead.</p>
+<h2 id="conclusion">Conclusion</h2>
 
-<h2>Conclusion</h2>
+<p>There are probably many other ways that <code>Generic</code> can be used to make code nicer (more reusable, DRYer, less noisy), so go ahead and see what you can cook up. As always, please don’t hesitate to get in touch via comments, on Github or on Gitter with suggestions, issues, questions, or PRs.</p>
 
-<p>There are probably many other ways that <code>Generic</code> can be used to make code nicer (more reusable, DRYer, less noisy), so go ahead and see what you can cook up. As always, please don't hesitate to get in touch via comments, on Github or on Gitter with suggestions, issues, questions, or PRs.</p>
-
-<h2>Links</h2>
+<h2 id="links">Links</h2>
 
 <ol>
-<li><a href="https://github.com/lloydmeta/frunk">Frunk on Github</a></li>
-<li><a href="https://crates.io/crates/frunk">Frunk on Crates.io</a></li>
+  <li><a href="https://github.com/lloydmeta/frunk">Frunk on Github</a></li>
+  <li><a href="https://crates.io/crates/frunk">Frunk on Crates.io</a></li>
 </ol>
 
-
-<h2>Credit</h2>
+<h2 id="credit">Credit</h2>
 
 <ol>
-<li><a href="https://github.com/milessabin/shapeless">Shapeless</a></li>
+  <li><a href="https://github.com/milessabin/shapeless">Shapeless</a></li>
 </ol>
-
 ]]></content>
   </entry>
   

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Heterogenously Typed List | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/heterogenously-typed-list/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-02-17T12:19:45+09:00</updated>
+  <updated>2017-03-05T02:10:04+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -18,19 +18,18 @@
     <link href="https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list/"/>
     <updated>2016-10-23T13:05:00+09:00</updated>
     <id>https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list</id>
-    <content type="html"><![CDATA[<p>A heterogeneous list (henceforth "HList") is a useful abstraction that is implemented in many statically-typed functional programming languages. Unlike normal list-like structures (e.g. <code>Vec</code>, <code>Slice</code>, <code>Array</code>), a heterogenous list is able to hold elements of different types (hence heterogenous) and expose those types in its own type signature.</p>
+    <content type="html"><![CDATA[<p>A heterogeneous list (henceforth “HList”) is a useful abstraction that is implemented in many statically-typed functional programming languages. Unlike normal list-like structures (e.g. <code>Vec</code>, <code>Slice</code>, <code>Array</code>), a heterogenous list is able to hold elements of different types (hence heterogenous) and expose those types in its own type signature.</p>
 
 <p><code>rust
 let h = hlist!["Joe", "Blow", 30, true];
 // h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;
 </code></p>
 
-<p>Now, you might be thinking "Isn't that just a tuple?". The answer is: in a way. Indeed, in terms of data structure, a given implementation of HList is usually really nothing more than deeply nested pairs (tuple of 2 elements) that each hold an element of arbitrary type in its 1st element and knows that its 2nd element is itself an HList-like thing. While it may seem convoluted, HList buys us the ability to abstract over arity, which turns out to be extremely useful, as you can see from <a href="http://stackoverflow.com/questions/11825129/are-hlists-nothing-more-than-a-convoluted-way-of-writing-tuples">this Stackoverflow answer</a> by Miles Sabin, the creater of the <a href="https://github.com/milessabin/shapeless">Shapeless</a> library, which provides an HList implementation in Scala.</p>
+<p>Now, you might be thinking “Isn’t that just a tuple?”. The answer is: in a way. Indeed, in terms of data structure, a given implementation of HList is usually really nothing more than deeply nested pairs (tuple of 2 elements) that each hold an element of arbitrary type in its 1st element and knows that its 2nd element is itself an HList-like thing. While it may seem convoluted, HList buys us the ability to abstract over arity, which turns out to be extremely useful, as you can see from <a href="http://stackoverflow.com/questions/11825129/are-hlists-nothing-more-than-a-convoluted-way-of-writing-tuples">this Stackoverflow answer</a> by Miles Sabin, the creater of the <a href="https://github.com/milessabin/shapeless">Shapeless</a> library, which provides an HList implementation in Scala.</p>
 
-<p>Given that description and justification for the existence of HLists, let's take a look at how to use <a href="https://github.com/lloydmeta/frunk">Frunk</a>'s implementation of HList in Rust.</p>
+<p>Given that description and justification for the existence of HLists, let’s take a look at how to use <a href="https://github.com/lloydmeta/frunk">Frunk</a>’s implementation of HList in Rust.</p>
 
 <!-- more -->
-
 
 <p><a href="https://github.com/lloydmeta/frunk">Frunk</a> is published to <a href="//crates.io/crates/frust">Crates.io</a>, so to begin, add the crate to your list of dependencies:</p>
 
@@ -39,31 +38,29 @@ let h = hlist!["Joe", "Blow", 30, true];
 frunk = "0.1.9"
 </code></p>
 
-<p>By the way, to take a dive into the deep end, jump <a href="https://beachape.com/frunk/frunk/hlist/index.html" target="_blank">straight to HList's Rustdocs</a>.</p>
+<p>By the way, to take a dive into the deep end, jump <a href="https://beachape.com/frunk/frunk/hlist/index.html" target="_blank">straight to HList’s Rustdocs</a>.</p>
 
-<h3>Imports</h3>
+<h3 id="imports">Imports</h3>
 
-<p>Next, let's add a few imports. In particular, note that we have a <code>#[macro_use]</code> directive in order to enable the <code>hlist!</code> macro, which makes declaring <code>HList</code>s nicer by saving you the trouble of writing deeply nested <code>HCon</code>s.</p>
+<p>Next, let’s add a few imports. In particular, note that we have a <code>#[macro_use]</code> directive in order to enable the <code>hlist!</code> macro, which makes declaring <code>HList</code>s nicer by saving you the trouble of writing deeply nested <code>HCon</code>s.</p>
 
-<p>```rust</p>
+<p><code>rust
+#[macro_use] extern crate frunk;
+use frunk::hlist::*;
+</code></p>
 
-<h1>[macro_use] extern crate frunk;</h1>
-
-<p>use frunk::hlist::*;
-```</p>
-
-<h3>Creating an HList</h3>
+<h3 id="creating-an-hlist">Creating an HList</h3>
 
 <p>Making an HList is easy if you use the <code>hlist!</code> macro:</p>
 
 <p>```rust
-let h = hlist!["Joe", "Blow", 30, true];</p>
+let h = hlist![“Joe”, “Blow”, 30, true];</p>
 
 <p>// You can choose to explicitly annotate the type of HList
-let h2: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil>>>> = hlist!["Joe", "Blow", 30, true];
+let h2: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil»» = hlist![“Joe”, “Blow”, 30, true];
 ```</p>
 
-<h3>Writing the type of an HList</h3>
+<h3 id="writing-the-type-of-an-hlist">Writing the type of an HList</h3>
 
 <p>Since HLists are a bunch of nested <code>HCons</code>s, you may think that writing the type annotation for one would be a PITA. Well, it might have been if not for the type-level macros introduced in Rust 1.13.</p>
 
@@ -74,7 +71,7 @@ let h: Hlist!(&amp;str, &amp;str, i32, bool) = hlist!["Joe", "Blow", 30, true];
 // h has an expanded static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;i32, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;
 </code></p>
 
-<h3>Getting the head of an HList</h3>
+<h3 id="getting-the-head-of-an-hlist">Getting the head of an HList</h3>
 
 <p>To retrieve the head element of an HList, use the <code>.head</code> accessor</p>
 
@@ -83,33 +80,33 @@ let h = hList![ "Joe" ];
 let joe = h.head;
 </code></p>
 
-<h3>Getting multiple elements from an HList</h3>
+<h3 id="getting-multiple-elements-from-an-hlist">Getting multiple elements from an HList</h3>
 
-<p>To retrieve multiple elements, it's highly recommended to use the <code>hlist_pat!</code> macro to deconstruct your <code>HList</code>.</p>
+<p>To retrieve multiple elements, it’s highly recommended to use the <code>hlist_pat!</code> macro to deconstruct your <code>HList</code>.</p>
 
 <p>```rust
-let h = hlist!["Joe", "Blow", 30, true];
-// h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil>>>></p>
+let h = hlist![“Joe”, “Blow”, 30, true];
+// h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil»»</p>
 
 <p>let hlist_pat!(f_name, l_name, age, is_admin) = h;
-assert_eq!(f_name, "Joe");
-assert_eq!(l_name, "Blow");
+assert_eq!(f_name, “Joe”);
+assert_eq!(l_name, “Blow”);
 assert_eq!(age, 30);
 assert_eq!(is_admin, true);
 ```</p>
 
-<h3>Appending HLists</h3>
+<h3 id="appending-hlists">Appending HLists</h3>
 
 <p>The <code>Add&lt;RHS&gt;</code> trait is implemented for <code>HList</code> so that you can simply call <code>+</code> to append to an existing HList</p>
 
 <p>```rust
-let joe = hlist!["Joe", "Blow", 30];
+let joe = hlist![“Joe”, “Blow”, 30];
 let is_admin = hlist![true];</p>
 
 <p>let joe_is_admin = joe + is_admin;
 ```</p>
 
-<h3>Length</h3>
+<h3 id="length">Length</h3>
 
 <p>To get the length of an HList, simply call its <code>length()</code> method</p>
 
@@ -118,34 +115,27 @@ let joe = hlist!["Joe", "Blow", 30];
 assert_eq!(joe.length(), 3);
 </code></p>
 
-<h2>Have fun !</h2>
+<h2 id="have-fun-">Have fun !</h2>
 
-<p>It will be interesting to see what you can cook up with HList. As mentioned before, abstracting over arity allows you to do some really cool stuff, for example <a href="https://crates.io/crates/frunk">Frunk</a> already uses HList to define a <a href="https://beachape.com/frunk/frunk/validated/"><code>Validated</code> abstraction</a> to help accumulate errors over many different <code>Result&lt;T, E&gt;</code> (we'll go through this in <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">another post</a>):</p>
+<p>It will be interesting to see what you can cook up with HList. As mentioned before, abstracting over arity allows you to do some really cool stuff, for example <a href="https://crates.io/crates/frunk">Frunk</a> already uses HList to define a <a href="https://beachape.com/frunk/frunk/validated/"><code>Validated</code> abstraction</a> to help accumulate errors over many different <code>Result&lt;T, E&gt;</code> (we’ll go through this in <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">another post</a>):</p>
 
-<p>```rust
-pub enum Validated&lt;T, E></p>
-
-<pre><code>where T: HList
-</code></pre>
-
-<p>{</p>
-
-<pre><code>Ok(T),
-Err(Vec&lt;E&gt;),
-</code></pre>
-
-<p>}
-```</p>
+<p><code>rust
+pub enum Validated&lt;T, E&gt;
+    where T: HList
+{
+    Ok(T),
+    Err(Vec&lt;E&gt;),
+}
+</code></p>
 
 <p>So please check it out, take it for a spin, and come back with any ideas, criticisms, and PRs!</p>
 
-<h2>Links</h2>
+<h2 id="links">Links</h2>
 
 <ol>
-<li><a href="https://github.com/lloydmeta/frunk">Frunk on Github</a></li>
-<li><a href="https://crates.io/crates/frunk">Frunk on Crates.io</a></li>
+  <li><a href="https://github.com/lloydmeta/frunk">Frunk on Github</a></li>
+  <li><a href="https://crates.io/crates/frunk">Frunk on Crates.io</a></li>
 </ol>
-
 ]]></content>
   </entry>
   
