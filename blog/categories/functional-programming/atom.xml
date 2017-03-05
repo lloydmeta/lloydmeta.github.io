@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Functional Programming | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/functional-programming/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-03-05T02:34:18+09:00</updated>
+  <updated>2017-03-05T10:33:38+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -386,7 +386,7 @@ struct Fancy {
 
 <p>// Since ❤ has a Unicode hexcode of \u{2764}\u{fe0f}, the
 // labelled generic representation for the above would be
-type Repr = HList![ Labelled&lt;(<em>ucu2764ufe0fuc</em>, usize&gt; ]
+type Repr = HList![ Labelled&lt;<em>ucu2764ufe0fuc</em>, usize&gt; ]
 ```</p>
 
 <p>This allows us to effectively represent virtually any legal identifier at the type level, even when the ASCII-only restriction for identifiers is lifted from stable Rust. For more details, take a look at how characters are matched to identifiers <a href="https://github.com/lloydmeta/frunk/blob/8c75c23b1986e533ada83ba89b3b0de584db0f23/derives/src/derive_labelled_generic.rs#L105-L124">here</a>.</p>
