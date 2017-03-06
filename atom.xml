@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-03-05T11:40:37+09:00</updated>
+  <updated>2017-03-06T19:36:08+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -102,7 +102,7 @@
 
 <p>The solution to this sort of problem has been in <a href="https://github.com/milessabin/shapeless">Shapeless</a> for some time; by using <code>HList</code>s where each cell contains not just a value, but instead hold <em>named</em> fields, where each value is labelled <em>at the type level</em>.</p>
 
-<p>Let’s take a look at how Frunk implements <code>Labelled</code> values and <code>LabelledGeneric</code> in Rust :)</p>
+<p>Let’s take a look at how Frunk implements <code>Field</code> values and <code>LabelledGeneric</code> in Rust :)</p>
 
 <!-- more -->
 
@@ -123,16 +123,16 @@
   <li><a href="#why-motivation" id="markdown-toc-why-motivation">Why? (Motivation)</a>    <ul>
       <li><a href="#silent-runtime-errors-with-generic" id="markdown-toc-silent-runtime-errors-with-generic">Silent runtime errors with <code>Generic</code></a></li>
       <li><a href="#labelledgeneric-to-the-rescue" id="markdown-toc-labelledgeneric-to-the-rescue"><code>LabelledGeneric</code> to the rescue</a></li>
-      <li><a href="#labelled-" id="markdown-toc-labelled-"><code>Labelled</code> ??</a></li>
+      <li><a href="#field-" id="markdown-toc-field-"><code>Field</code> ??</a></li>
     </ul>
   </li>
   <li><a href="#how-it-works" id="markdown-toc-how-it-works">How it works</a>    <ul>
-      <li><a href="#labelledname-type" id="markdown-toc-labelledname-type"><code>Labelled&lt;Name, Type&gt;</code></a>        <ul>
+      <li><a href="#fieldname-type" id="markdown-toc-fieldname-type"><code>Field&lt;Name, Type&gt;</code></a>        <ul>
           <li><a href="#type-level-characters-and-strings" id="markdown-toc-type-level-characters-and-strings">Type-level characters and strings</a></li>
         </ul>
       </li>
       <li><a href="#anonymous-records" id="markdown-toc-anonymous-records">(Anonymous) Records!</a></li>
-      <li><a href="#labelled-and-labelledgeneric" id="markdown-toc-labelled-and-labelledgeneric"><code>Labelled</code> and <code>LabelledGeneric</code></a></li>
+      <li><a href="#field-and-labelledgeneric" id="markdown-toc-field-and-labelledgeneric"><code>Field</code> and <code>LabelledGeneric</code></a></li>
       <li><a href="#how-the-labelledgeneric-derivation-is-generated" id="markdown-toc-how-the-labelledgeneric-derivation-is-generated">How the <code>LabelledGeneric</code> derivation is generated</a></li>
     </ul>
   </li>
@@ -299,78 +299,70 @@
 <span class="line-number">17</span>
 </pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// LabelledGeneric Representation for NewUser</span>
 </span><span class="line"><span class="k">type</span> <span class="nc">NewUserRepr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HList</span><span class="o">!</span><span class="p">[</span><span class="w"></span>
-</span><span class="line"><span class="w">  </span><span class="n">Labelled</span><span class="o">&lt;</span><span class="n">first_name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="o">&gt;</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">  </span><span class="n">Labelled</span><span class="o">&lt;</span><span class="n">last_name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="o">&gt;</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">  </span><span class="n">Labelled</span><span class="o">&lt;</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="kt">usize</span><span class="o">&gt;</span><span class="p">];</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="n">Field</span><span class="o">&lt;</span><span class="n">first_name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="o">&gt;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="n">Field</span><span class="o">&lt;</span><span class="n">last_name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="o">&gt;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="n">Field</span><span class="o">&lt;</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="kt">usize</span><span class="o">&gt;</span><span class="p">];</span><span class="w"></span>
 </span><span class="line">
 </span><span class="line"><span class="c1">// LabelledGeneric Representation for SavedUser</span>
 </span><span class="line"><span class="k">type</span> <span class="nc">SavedUserRepr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HList</span><span class="o">!</span><span class="p">[</span><span class="w"></span>
-</span><span class="line"><span class="w">  </span><span class="n">Labelled</span><span class="o">&lt;</span><span class="n">first_name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="o">&gt;</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">  </span><span class="n">Labelled</span><span class="o">&lt;</span><span class="n">last_name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="o">&gt;</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">  </span><span class="n">Labelled</span><span class="o">&lt;</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="kt">usize</span><span class="o">&gt;</span><span class="p">];</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="n">Field</span><span class="o">&lt;</span><span class="n">first_name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="o">&gt;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="n">Field</span><span class="o">&lt;</span><span class="n">last_name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="o">&gt;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="n">Field</span><span class="o">&lt;</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="kt">usize</span><span class="o">&gt;</span><span class="p">];</span><span class="w"></span>
 </span><span class="line">
 </span><span class="line"><span class="c1">// LabelledGeneric Representation for JumbledUser</span>
 </span><span class="line"><span class="k">type</span> <span class="nc">JumbledUserRepr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HList</span><span class="o">!</span><span class="p">[</span><span class="w"></span>
-</span><span class="line"><span class="w">  </span><span class="n">Labelled</span><span class="o">&lt;</span><span class="n">last_name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="o">&gt;</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">  </span><span class="n">Labelled</span><span class="o">&lt;</span><span class="n">first_name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="o">&gt;</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">  </span><span class="n">Labelled</span><span class="o">&lt;</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="kt">usize</span><span class="o">&gt;</span><span class="p">];</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="n">Field</span><span class="o">&lt;</span><span class="n">last_name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="o">&gt;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="n">Field</span><span class="o">&lt;</span><span class="n">first_name</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="o">&gt;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="n">Field</span><span class="o">&lt;</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="kt">usize</span><span class="o">&gt;</span><span class="p">];</span><span class="w"></span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>This difference in type-level representation is how the compiler knows that one can’t simply convert a <code>NewUser</code> or <code>SavedUser</code> into a <code>JumbledUser</code> via <code>labelled_convert_from</code>.</p>
 
-<h3 id="labelled-"><code>Labelled</code> ??</h3>
+<h3 id="field-"><code>Field</code> ??</h3>
 
-<p>What is <code>Labelled</code> ? It’s simply a container struct that is parameterised by 2 types, and has the following signature:</p>
+<p>What is <code>Field</code> ? It’s simply a container struct that is parameterised by 2 types, and has the following signature:</p>
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">pub</span><span class="w"> </span><span class="k">struct</span> <span class="nc">Labelled</span><span class="o">&lt;</span><span class="n">Name</span><span class="p">,</span><span class="w"> </span><span class="n">Type</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">pub</span><span class="w"> </span><span class="k">struct</span> <span class="nc">Field</span><span class="o">&lt;</span><span class="n">Name</span><span class="p">,</span><span class="w"> </span><span class="n">Type</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>The first type parameter is <code>Name</code> and its purpose is to contain a type-level String, and the second type parameter is <code>Type</code>, which reflects the type of value contained inside the struct.</p>
 
-<p>It may help to think of <code>Labelled</code> as an ad-hoc wrapper type.</p>
+<p>It may help to think of <code>Field</code> as an ad-hoc wrapper type.</p>
 
 <h2 id="how-it-works">How it works</h2>
 
-<h3 id="labelledname-type"><code>Labelled&lt;Name, Type&gt;</code></h3>
+<h3 id="fieldname-type"><code>Field&lt;Name, Type&gt;</code></h3>
 
-<p>The full definition of <code>Labelled</code> is currently as follows:</p>
+<p>The full definition of <code>Field</code> is currently as follows:</p>
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
 <span class="line-number">2</span>
 <span class="line-number">3</span>
 <span class="line-number">4</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">pub</span><span class="w"> </span><span class="k">struct</span> <span class="nc">Labelled</span><span class="o">&lt;</span><span class="n">Name</span><span class="p">,</span><span class="w"> </span><span class="n">Type</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">pub</span><span class="w"> </span><span class="k">struct</span> <span class="nc">Field</span><span class="o">&lt;</span><span class="n">Name</span><span class="p">,</span><span class="w"> </span><span class="n">Type</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 </span><span class="line"><span class="w">    </span><span class="n">name</span><span class="o">:</span><span class="w"> </span><span class="n">PhantomData</span><span class="o">&lt;</span><span class="n">Name</span><span class="o">&gt;</span><span class="p">,</span><span class="w"></span>
 </span><span class="line"><span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="n">value</span><span class="o">:</span><span class="w"> </span><span class="n">Type</span><span class="p">,</span><span class="w"></span>
 </span><span class="line"><span class="p">}</span><span class="w"></span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
-<p><code>PhantomData</code> is used to allow us to bind a concrete type to the <code>Name</code> type parameter in an instance of <code>Labelled</code> without actually having it take up any space (for more details on Phantom data, refer to the <a href="https://doc.rust-lang.org/std/marker/struct.PhantomData.html">official docs</a>).</p>
+<p><code>PhantomData</code> is used to allow us to bind a concrete type to the <code>Name</code> type parameter in an instance of <code>Field</code> without actually having it take up any space (for more details on Phantom data, refer to the <a href="https://doc.rust-lang.org/std/marker/struct.PhantomData.html">official docs</a>).</p>
 
-<p>To construct a <code>Labelled</code>, Frunk exposes a method called <code>label</code> so that you don’t need to touch <code>PhantomData</code> yourself.</p>
+<p>To construct a <code>Field</code>, Frunk exposes a macro called <code>field!</code> so that you don’t need to touch <code>PhantomData</code> yourself.</p>
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
 <span class="line-number">2</span>
 <span class="line-number">3</span>
 <span class="line-number">4</span>
 <span class="line-number">5</span>
-<span class="line-number">6</span>
-<span class="line-number">7</span>
-<span class="line-number">8</span>
-<span class="line-number">9</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">label</span><span class="o">&lt;</span><span class="n">Name</span><span class="p">,</span><span class="w"> </span><span class="n">Value</span><span class="o">&gt;</span><span class="p">(</span><span class="n">value</span><span class="o">:</span><span class="w"> </span><span class="n">Value</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Labelled</span><span class="o">&lt;</span><span class="n">Name</span><span class="p">,</span><span class="w"> </span><span class="n">Value</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">Labelled</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">        </span><span class="n">name</span><span class="o">:</span><span class="w"> </span><span class="n">PhantomData</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">        </span><span class="n">value</span><span class="o">:</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="p">}</span><span class="w"></span>
-</span><span class="line"><span class="p">}</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// Usage: we let the compiler figure out the value type for us</span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">age</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">field</span><span class="o">!</span><span class="p">((</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="p">),</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span><span class="w"></span>
 </span><span class="line">
-</span><span class="line"><span class="c1">// Usage: we let the compiler figure out the value type for us</span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">age</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">label</span><span class="o">::&lt;</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="p">),</span><span class="w"> </span><span class="n">_</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">age</span><span class="p">.</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;age&quot;</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">age</span><span class="p">.</span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span><span class="w"></span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
-<p>Astute readers will notice the odd <code>(a,g,e)</code> type used for naming. What is that about ???</p>
+<p>For more information about the <code>field!</code> macro, please refer to its <a href="https://beachape.com/frunk/frunk_core/macro.field.html">Rustdoc page</a>.  Astute readers will notice the odd <code>(a,g,e)</code> type used for naming. What is that about ???</p>
 
 <h4 id="type-level-characters-and-strings">Type-level characters and strings</h4>
 
@@ -410,7 +402,7 @@
 
 <h3 id="anonymous-records">(Anonymous) Records!</h3>
 
-<p>Combining the <code>Labelled</code> and <code>HList</code> constructs gets us something else: Records. I believe once upon a time, Rust supported anonymous structs; well, you can get most of that functionality back with Frunk!</p>
+<p>Combining the <code>Field</code> and <code>HList</code> constructs gets us something else: Records. I believe once upon a time, Rust supported anonymous structs; well, you can get most of that functionality back with Frunk!</p>
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
 <span class="line-number">2</span>
@@ -424,15 +416,15 @@
 <span class="line-number">10</span>
 <span class="line-number">11</span>
 </pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">record</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">label</span><span class="o">::&lt;</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Joe&quot;</span><span class="p">),</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">label</span><span class="o">::&lt;</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">field</span><span class="o">!</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Joe&quot;</span><span class="p">),</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">field</span><span class="o">!</span><span class="p">(</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">)</span><span class="w"></span>
 </span><span class="line"><span class="p">];</span><span class="w"></span>
 </span><span class="line">
 </span><span class="line"><span class="c1">// We&#39;ll talk about pluck() in a later post, but just an FYI, it returns the</span>
 </span><span class="line"><span class="c1">// target value with the type you specified as well as the remainder</span>
 </span><span class="line"><span class="c1">// of the HList in a pair. It is checked at compile time to make sure it never</span>
 </span><span class="line"><span class="c1">// fails at runtime.</span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">Labelled</span><span class="o">&lt;</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">record</span><span class="p">.</span><span class="n">pluck</span><span class="p">();</span><span class="w"></span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">Field</span><span class="o">&lt;</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">record</span><span class="p">.</span><span class="n">pluck</span><span class="p">();</span><span class="w"></span>
 </span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">name</span><span class="p">.</span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Joe&quot;</span><span class="p">)</span><span class="w"></span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
@@ -440,9 +432,9 @@
 
 <p>In the future, the anonymous Records API in Frunk might be improved. As it stands, it exists mostly for the purpose of <code>LabelledGeneric</code> and is a bit noisy to use.</p>
 
-<h3 id="labelled-and-labelledgeneric"><code>Labelled</code> and <code>LabelledGeneric</code></h3>
+<h3 id="field-and-labelledgeneric"><code>Field</code> and <code>LabelledGeneric</code></h3>
 
-<p>So, what is the relationship between <code>Labelled</code> and  the <code>LabelledGeneric</code> typeclass?</p>
+<p>So, what is the relationship between <code>Field</code> and  the <code>LabelledGeneric</code> typeclass?</p>
 
 <p>Quite simply, the associated <code>Repr</code> type of an instance of <code>LabelledGeneric</code> should have the type of an anonymous record (labelled <code>HList</code>).</p>
 
@@ -482,12 +474,12 @@
 <span class="line-number">20</span>
 </pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">impl</span><span class="w"> </span><span class="n">LabelledGeneric</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">Person</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 </span><span class="line">
-</span><span class="line"><span class="w">  </span><span class="k">type</span> <span class="nc">Repr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HList</span><span class="o">!</span><span class="p">[</span><span class="w"> </span><span class="n">Labelled</span><span class="o">&lt;</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="nb">String</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">Labelled</span><span class="o">&lt;</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="kt">usize</span><span class="o">&gt;</span><span class="w"> </span><span class="p">];</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="k">type</span> <span class="nc">Repr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HList</span><span class="o">!</span><span class="p">[</span><span class="w"> </span><span class="n">Field</span><span class="o">&lt;</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="nb">String</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">Field</span><span class="o">&lt;</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="kt">usize</span><span class="o">&gt;</span><span class="w"> </span><span class="p">];</span><span class="w"></span>
 </span><span class="line">
 </span><span class="line"><span class="w">  </span><span class="k">fn</span> <span class="nf">into</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Repr</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 </span><span class="line"><span class="w">    </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="w"></span>
-</span><span class="line"><span class="w">      </span><span class="n">label</span><span class="o">::&lt;</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="nb">String</span><span class="o">&gt;</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">name</span><span class="p">),</span><span class="w"></span>
-</span><span class="line"><span class="w">      </span><span class="n">label</span><span class="o">::&lt;</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="kt">usize</span><span class="o">&gt;</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">age</span><span class="p">)</span><span class="w"></span>
+</span><span class="line"><span class="w">      </span><span class="n">field</span><span class="o">!</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">name</span><span class="p">),</span><span class="w"></span>
+</span><span class="line"><span class="w">      </span><span class="n">field</span><span class="o">!</span><span class="p">(</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">age</span><span class="p">)</span><span class="w"></span>
 </span><span class="line"><span class="w">    </span><span class="p">]</span><span class="w"></span>
 </span><span class="line"><span class="w">  </span><span class="p">}</span><span class="w"></span>
 </span><span class="line">
@@ -539,7 +531,7 @@
 </span><span class="line">
 </span><span class="line"><span class="c1">// Since ❤ has a Unicode hexcode of \u{2764}\u{fe0f}, the</span>
 </span><span class="line"><span class="c1">// labelled generic representation for the above would be</span>
-</span><span class="line"><span class="k">type</span> <span class="nc">Repr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HList</span><span class="o">!</span><span class="p">[</span><span class="w"> </span><span class="n">Labelled</span><span class="o">&lt;</span><span class="n">_ucu2764ufe0fuc_</span><span class="p">,</span><span class="w"> </span><span class="kt">usize</span><span class="o">&gt;</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+</span><span class="line"><span class="k">type</span> <span class="nc">Repr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HList</span><span class="o">!</span><span class="p">[</span><span class="w"> </span><span class="n">Field</span><span class="o">&lt;</span><span class="n">_ucu2764ufe0fuc_</span><span class="p">,</span><span class="w"> </span><span class="kt">usize</span><span class="o">&gt;</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>This allows us to effectively represent virtually any legal identifier at the type level, even when the ASCII-only restriction for identifiers is lifted from stable Rust. For more details, take a look at how characters are matched to identifiers <a href="https://github.com/lloydmeta/frunk/blob/8c75c23b1986e533ada83ba89b3b0de584db0f23/derives/src/derive_labelled_generic.rs#L105-L124">here</a>.</p>

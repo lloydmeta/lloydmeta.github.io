@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Rust | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/rust/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-03-05T11:40:37+09:00</updated>
+  <updated>2017-03-06T19:36:08+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -71,7 +71,7 @@ let d_user = <DeletedUser as="" LabelledGeneric="">::convert_from(s_user);
 
 <p>The solution to this sort of problem has been in <a href="https://github.com/milessabin/shapeless">Shapeless</a> for some time; by using <code>HList</code>s where each cell contains not just a value, but instead hold <em>named</em> fields, where each value is labelled <em>at the type level</em>.</p>
 
-<p>Let’s take a look at how Frunk implements <code>Labelled</code> values and <code>LabelledGeneric</code> in Rust :)</p>
+<p>Let’s take a look at how Frunk implements <code>Field</code> values and <code>LabelledGeneric</code> in Rust :)</p>
 
 <!-- more -->
 
@@ -101,14 +101,14 @@ frunk = "${latest_version}"
   </li>
   <li><a href="#derivelabelledgeneric-1" id="markdown-toc-derivelabelledgeneric-1">[derive(LabelledGeneric)]</a></li>
   <li><a href="#derivegeneric-1" id="markdown-toc-derivegeneric-1">[derive(Generic)]</a>    <ul>
-      <li><a href="#labelled-" id="markdown-toc-labelled-"><code>Labelled</code> ??</a></li>
+      <li><a href="#field-" id="markdown-toc-field-"><code>Field</code> ??</a></li>
       <li><a href="#how-it-works" id="markdown-toc-how-it-works">How it works</a>        <ul>
-          <li><a href="#labelledname-type" id="markdown-toc-labelledname-type"><code>Labelled&lt;Name, Type&gt;</code></a>            <ul>
+          <li><a href="#fieldname-type" id="markdown-toc-fieldname-type"><code>Field&lt;Name, Type&gt;</code></a>            <ul>
               <li><a href="#type-level-characters-and-strings" id="markdown-toc-type-level-characters-and-strings">Type-level characters and strings</a></li>
             </ul>
           </li>
           <li><a href="#anonymous-records" id="markdown-toc-anonymous-records">(Anonymous) Records!</a></li>
-          <li><a href="#labelled-and-labelledgeneric" id="markdown-toc-labelled-and-labelledgeneric"><code>Labelled</code> and <code>LabelledGeneric</code></a></li>
+          <li><a href="#field-and-labelledgeneric" id="markdown-toc-field-and-labelledgeneric"><code>Field</code> and <code>LabelledGeneric</code></a></li>
           <li><a href="#how-the-labelledgeneric-derivation-is-generated" id="markdown-toc-how-the-labelledgeneric-derivation-is-generated">How the <code>LabelledGeneric</code> derivation is generated</a></li>
         </ul>
       </li>
@@ -212,67 +212,63 @@ There isn’t a whole lot different to using <code>LabelledGeneric</code> vs usi
 <p>```rust
 // LabelledGeneric Representation for NewUser
 type NewUserRepr = HList![
-  Labelled&lt;first_name, &amp;’a str&gt;,
-  Labelled&lt;last_name, &amp;’a str&gt;,
-  Labelled&lt;age, usize&gt;];</p>
+  Field&lt;first_name, &amp;’a str&gt;,
+  Field&lt;last_name, &amp;’a str&gt;,
+  Field&lt;age, usize&gt;];</p>
 
 <p>// LabelledGeneric Representation for SavedUser
 type SavedUserRepr = HList![
-  Labelled&lt;first_name, &amp;’a str&gt;,
-  Labelled&lt;last_name, &amp;’a str&gt;,
-  Labelled&lt;age, usize&gt;];</p>
+  Field&lt;first_name, &amp;’a str&gt;,
+  Field&lt;last_name, &amp;’a str&gt;,
+  Field&lt;age, usize&gt;];</p>
 
 <p>// LabelledGeneric Representation for JumbledUser
 type JumbledUserRepr = HList![
-  Labelled&lt;last_name, &amp;’a str&gt;,
-  Labelled&lt;first_name, &amp;’a str&gt;,
-  Labelled&lt;age, usize&gt;];
+  Field&lt;last_name, &amp;’a str&gt;,
+  Field&lt;first_name, &amp;’a str&gt;,
+  Field&lt;age, usize&gt;];
 ```</p>
 
 <p>This difference in type-level representation is how the compiler knows that one can’t simply convert a <code>NewUser</code> or <code>SavedUser</code> into a <code>JumbledUser</code> via <code>labelled_convert_from</code>.</p>
 
-<h3 id="labelled-"><code>Labelled</code> ??</h3>
+<h3 id="field-"><code>Field</code> ??</h3>
 
-<p>What is <code>Labelled</code> ? It’s simply a container struct that is parameterised by 2 types, and has the following signature:</p>
+<p>What is <code>Field</code> ? It’s simply a container struct that is parameterised by 2 types, and has the following signature:</p>
 
 <p><code>rust
-pub struct Labelled&lt;Name, Type&gt; { ... }
+pub struct Field&lt;Name, Type&gt; { ... }
 </code></p>
 
 <p>The first type parameter is <code>Name</code> and its purpose is to contain a type-level String, and the second type parameter is <code>Type</code>, which reflects the type of value contained inside the struct.</p>
 
-<p>It may help to think of <code>Labelled</code> as an ad-hoc wrapper type.</p>
+<p>It may help to think of <code>Field</code> as an ad-hoc wrapper type.</p>
 
 <h2 id="how-it-works">How it works</h2>
 
-<h3 id="labelledname-type"><code>Labelled&lt;Name, Type&gt;</code></h3>
+<h3 id="fieldname-type"><code>Field&lt;Name, Type&gt;</code></h3>
 
-<p>The full definition of <code>Labelled</code> is currently as follows:</p>
+<p>The full definition of <code>Field</code> is currently as follows:</p>
 
 <p><code>rust
-pub struct Labelled&lt;Name, Type&gt; {
+pub struct Field&lt;Name, Type&gt; {
     name: PhantomData&lt;Name&gt;,
     pub value: Type,
 }
 </code></p>
 
-<p><code>PhantomData</code> is used to allow us to bind a concrete type to the <code>Name</code> type parameter in an instance of <code>Labelled</code> without actually having it take up any space (for more details on Phantom data, refer to the <a href="https://doc.rust-lang.org/std/marker/struct.PhantomData.html">official docs</a>).</p>
+<p><code>PhantomData</code> is used to allow us to bind a concrete type to the <code>Name</code> type parameter in an instance of <code>Field</code> without actually having it take up any space (for more details on Phantom data, refer to the <a href="https://doc.rust-lang.org/std/marker/struct.PhantomData.html">official docs</a>).</p>
 
-<p>To construct a <code>Labelled</code>, Frunk exposes a method called <code>label</code> so that you don’t need to touch <code>PhantomData</code> yourself.</p>
+<p>To construct a <code>Field</code>, Frunk exposes a macro called <code>field!</code> so that you don’t need to touch <code>PhantomData</code> yourself.</p>
 
 <p>```rust
-pub fn label&lt;Name, Value&gt;(value: Value) -&gt; Labelled&lt;Name, Value&gt; {
-    Labelled {
-        name: PhantomData,
-        value: value,
-    }
-}</p>
+// Usage: we let the compiler figure out the value type for us
+let age = field!((a, g, e), 3);</p>
 
-<p>// Usage: we let the compiler figure out the value type for us
-let age = label::&lt;(a, g, e), _&gt;(3);
+<p>assert_eq!(age.name, “age”);
+assert_eq!(age.value, 3);
 ```</p>
 
-<p>Astute readers will notice the odd <code>(a,g,e)</code> type used for naming. What is that about ???</p>
+<p>For more information about the <code>field!</code> macro, please refer to its <a href="https://beachape.com/frunk/frunk_core/macro.field.html">Rustdoc page</a>.  Astute readers will notice the odd <code>(a,g,e)</code> type used for naming. What is that about ???</p>
 
 <h4 id="type-level-characters-and-strings">Type-level characters and strings</h4>
 
@@ -302,19 +298,19 @@ pub enum _2 {}</p>
 
 <h3 id="anonymous-records">(Anonymous) Records!</h3>
 
-<p>Combining the <code>Labelled</code> and <code>HList</code> constructs gets us something else: Records. I believe once upon a time, Rust supported anonymous structs; well, you can get most of that functionality back with Frunk!</p>
+<p>Combining the <code>Field</code> and <code>HList</code> constructs gets us something else: Records. I believe once upon a time, Rust supported anonymous structs; well, you can get most of that functionality back with Frunk!</p>
 
 <p>```rust
 let record = hlist![
-    label::&lt;name, _&gt;(“Joe”),
-    label::&lt;age, _&gt;(30)
+    field!(name, “Joe”),
+    field!(age, 30)
 ];</p>
 
 <p>// We’ll talk about pluck() in a later post, but just an FYI, it returns the
 // target value with the type you specified as well as the remainder
 // of the HList in a pair. It is checked at compile time to make sure it never
 // fails at runtime.
-let (name, _): (Labelled&lt;name, _&gt;, _) = record.pluck();
+let (name, _): (Field&lt;name, _&gt;, _) = record.pluck();
 assert_eq!(name.value, “Joe”)
 ```</p>
 
@@ -322,9 +318,9 @@ assert_eq!(name.value, “Joe”)
 
 <p>In the future, the anonymous Records API in Frunk might be improved. As it stands, it exists mostly for the purpose of <code>LabelledGeneric</code> and is a bit noisy to use.</p>
 
-<h3 id="labelled-and-labelledgeneric"><code>Labelled</code> and <code>LabelledGeneric</code></h3>
+<h3 id="field-and-labelledgeneric"><code>Field</code> and <code>LabelledGeneric</code></h3>
 
-<p>So, what is the relationship between <code>Labelled</code> and  the <code>LabelledGeneric</code> typeclass?</p>
+<p>So, what is the relationship between <code>Field</code> and  the <code>LabelledGeneric</code> typeclass?</p>
 
 <p>Quite simply, the associated <code>Repr</code> type of an instance of <code>LabelledGeneric</code> should have the type of an anonymous record (labelled <code>HList</code>).</p>
 
@@ -342,12 +338,12 @@ struct Person {
 <p>```rust
 impl LabelledGeneric for Person {</p>
 
-<p>type Repr = HList![ Labelled&lt;name, String&gt;, Labelled&lt;age, usize&gt; ];</p>
+<p>type Repr = HList![ Field&lt;name, String&gt;, Field&lt;age, usize&gt; ];</p>
 
 <p>fn into(self) -&gt; Self::Repr {
     hlist![
-      label::&lt;name, String&gt;(self.name),
-      label::&lt;age, usize&gt;(self.age)
+      field!(name, self.name),
+      field!(age, self.age)
     ]
   }</p>
 
@@ -388,7 +384,7 @@ struct Fancy {
 
 <p>// Since ❤ has a Unicode hexcode of \u{2764}\u{fe0f}, the
 // labelled generic representation for the above would be
-type Repr = HList![ Labelled&lt;<em>ucu2764ufe0fuc</em>, usize&gt; ]
+type Repr = HList![ Field&lt;<em>ucu2764ufe0fuc</em>, usize&gt; ]
 ```</p>
 
 <p>This allows us to effectively represent virtually any legal identifier at the type level, even when the ASCII-only restriction for identifiers is lifted from stable Rust. For more details, take a look at how characters are matched to identifiers <a href="https://github.com/lloydmeta/frunk/blob/8c75c23b1986e533ada83ba89b3b0de584db0f23/derives/src/derive_labelled_generic.rs#L105-L124">here</a>.</p>
