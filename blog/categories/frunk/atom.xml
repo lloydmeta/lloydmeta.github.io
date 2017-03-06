@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Frunk | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/frunk/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-03-06T19:43:10+09:00</updated>
+  <updated>2017-03-06T21:18:50+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -66,8 +66,8 @@ struct JumbledUser&lt;’a&gt; {
 
 <p>// This should fail at compile-time because last_name and first_name are swapped
 // even if they have the same type
-let d_user = <DeletedUser as="" LabelledGeneric="">::convert_from(s_user);
-```</DeletedUser></p>
+let d_user = <JumbledUser as="" LabelledGeneric="">::convert_from(s_user);
+```</JumbledUser></p>
 
 <p>The solution to this sort of problem has been in <a href="https://github.com/milessabin/shapeless">Shapeless</a> for some time; by using <code>HList</code>s where each cell contains not just a value, but instead hold <em>named</em> fields, where each value is labelled <em>at the type level</em>.</p>
 
@@ -143,7 +143,7 @@ struct NewUser&lt;’a&gt; {
 <p>That is, the <code>Generic</code> representation of their fields as <code>Generic</code> is simply <code>HList![&amp;'a str, &amp;'a str, usize]</code>. As a result, when we do the following:</p>
 
 <p>```rust
-let n_u = NormalUser {
+let n_user = NewUser {
                     first_name: “Moe”,
                     last_name: “Ali”,
                     age: 30
@@ -178,7 +178,7 @@ struct NewUser&lt;’a&gt; {
     age: usize,
 }</p>
 
-<p>let n_u = NormalUser {
+<p>let n_user = NewUser {
                     first_name: “Moe”,
                     last_name: “Ali”,
                     age: 30
@@ -194,7 +194,7 @@ let s_user: SavedUser = labelled_convert_from(n_user);</p>
     age: usize
 }
 // ⬇︎ This will fail at compile time
-let s_user: JumbledUser = labelled_convert_from(n_user);
+let j_user: JumbledUser = labelled_convert_from(n_user);
 ```
 There isn’t a whole lot different to using <code>LabelledGeneric</code> vs using <code>Generic</code>:</p>
 

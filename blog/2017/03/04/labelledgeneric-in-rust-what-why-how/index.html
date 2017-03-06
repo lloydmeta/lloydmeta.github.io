@@ -237,7 +237,7 @@
 </span><span class="line">
 </span><span class="line"><span class="c1">// This should fail at compile-time because last_name and first_name are swapped</span>
 </span><span class="line"><span class="c1">// even if they have the same type</span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">d_user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">DeletedUser</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">LabelledGeneric</span><span class="o">&gt;::</span><span class="n">convert_from</span><span class="p">(</span><span class="n">s_user</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">d_user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">JumbledUser</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">LabelledGeneric</span><span class="o">&gt;::</span><span class="n">convert_from</span><span class="p">(</span><span class="n">s_user</span><span class="p">);</span><span class="w"></span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>The solution to this sort of problem has been in <a href="https://github.com/milessabin/shapeless">Shapeless</a> for some time; by using <code>HList</code>s where each cell contains not just a value, but instead hold <em>named</em> fields, where each value is labelled <em>at the type level</em>.</p>
@@ -324,7 +324,7 @@
 <span class="line-number">6</span>
 <span class="line-number">7</span>
 <span class="line-number">8</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">n_u</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NormalUser</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">n_user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NewUser</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 </span><span class="line"><span class="w">                    </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Moe&quot;</span><span class="p">,</span><span class="w"></span>
 </span><span class="line"><span class="w">                    </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Ali&quot;</span><span class="p">,</span><span class="w"></span>
 </span><span class="line"><span class="w">                    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="mi">30</span><span class="w"></span>
@@ -389,7 +389,7 @@
 </span><span class="line"><span class="w">    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="kt">usize</span><span class="p">,</span><span class="w"></span>
 </span><span class="line"><span class="p">}</span><span class="w"></span>
 </span><span class="line">
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">n_u</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NormalUser</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">n_user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NewUser</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 </span><span class="line"><span class="w">                    </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Moe&quot;</span><span class="p">,</span><span class="w"></span>
 </span><span class="line"><span class="w">                    </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Ali&quot;</span><span class="p">,</span><span class="w"></span>
 </span><span class="line"><span class="w">                    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="mi">30</span><span class="w"></span>
@@ -405,7 +405,7 @@
 </span><span class="line"><span class="w">    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="kt">usize</span><span class="w"></span>
 </span><span class="line"><span class="p">}</span><span class="w"></span>
 </span><span class="line"><span class="c1">// ⬇︎ This will fail at compile time</span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">s_user</span><span class="o">:</span><span class="w"> </span><span class="n">JumbledUser</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">labelled_convert_from</span><span class="p">(</span><span class="n">n_user</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">j_user</span><span class="o">:</span><span class="w"> </span><span class="n">JumbledUser</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">labelled_convert_from</span><span class="p">(</span><span class="n">n_user</span><span class="p">);</span><span class="w"></span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 <p>There isn’t a whole lot different to using <code>LabelledGeneric</code> vs using <code>Generic</code>:</p>
 
