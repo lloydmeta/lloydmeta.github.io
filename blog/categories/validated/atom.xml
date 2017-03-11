@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Validated | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/validated/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-03-06T21:18:50+09:00</updated>
+  <updated>2017-03-12T02:24:46+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -39,7 +39,7 @@ fn double_arg(mut argv: env::Args) -&gt; Result&lt;i32, String&gt; {
 
 <!-- more -->
 
-<p><a href="https://github.com/lloydmeta/frunk">Frunk</a> is published to <a href="//crates.io/crates/frust">Crates.io</a>, so to begin, add the crate to your list of dependencies:</p>
+<p><a href="https://github.com/lloydmeta/frunk">Frunk</a> is published to <a href="//crates.io/crates/frunk">Crates.io</a>, so to begin, add the crate to your list of dependencies:</p>
 
 <p><code>rust
 [dependencies]

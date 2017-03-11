@@ -149,6 +149,50 @@
 
 
 
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2013-09-12T13:25:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Sep 12<span>th</span>, 2013</time>
+        
+      </p>
+    
+    
+      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2013/09/12/resolving-java-oom-unable-to-create-new-native-thread-errors-on-heroku/" itemprop="url">Resolving &#8216;Java OOM: Unable to Create New Native Thread&#8217; Errors on Heroku</a></h1>
+    
+  </header>
+
+
+  <div class="entry-content clearfix" itemprop="articleBody description"><p>For the most part, I’m a very happy Heroku user. The platform allows me deploy my apps, be they Java, Scala or Ruby-based without having to think/worry about infrastructure, which is amazing. They also allow me to, for the most part, do this for free. For the most part, I love it, and so do many others. That said, sometimes you do run into problems that cause you to lose lots of time debugging … in the wrong direction.</p>
+
+<p>Yesterday, after adding non-blocking I/O to my <a href="https://github.com/lloydmeta/metascraper">Metascraper library</a>, I load tested my deployed application and found it fatally crashing with <code>java.lang.OutOfMemoryError: unable to create new native thread</code> errors. <strong>Not Good</strong></p>
+
+</div>
+  
+  
+    <footer>
+      <a class="btn btn-default" href="/blog/2013/09/12/resolving-java-oom-unable-to-create-new-native-thread-errors-on-heroku/">Read on &rarr;</a>
+    </footer>
+  
+
+
+        </article>
+      
+      
+        <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+          
+  <header class="page-header">
+    
+      <p class="meta text-muted text-uppercase">
+        
+
+
+
+
+
+
+
+
+
+
+
+
 <span class="glyphicon glyphicon-calendar"></span> <time datetime="2013-09-12T10:04:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Sep 12<span>th</span>, 2013</time>
         
       </p>
@@ -564,52 +608,6 @@
 
         </article>
       
-      
-        <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-          
-  <header class="page-header">
-    
-      <p class="meta text-muted text-uppercase">
-        
-
-
-
-
-
-
-
-
-
-
-
-
-<span class="glyphicon glyphicon-calendar"></span> <time datetime="2013-02-04T12:31:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Feb 4<span>th</span>, 2013</time>
-        
-      </p>
-    
-    
-      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2013/02/04/nodejs-on-heroku-with-newrelic/" itemprop="url">NodeJS on Heroku With NewRelic</a></h1>
-    
-  </header>
-
-
-  <div class="entry-content clearfix" itemprop="articleBody description"><p><em>TL;DR</em> If you’re using NodeJS and want to monitor using NewRelic, follow <a href="https://npmjs.org/package/newrelic">these steps</a>. Additionally if you want to do this on Heroku using the NewRelic account you added through the Heroku API, make sure your <a href="https://github.com/lloydmeta/Node_notifications/blob/master/package.json">package.json has “newrelic”</a> and <a href="https://github.com/lloydmeta/Node_notifications/blob/master/newrelic.js">your newrelic.js points to the NEW_RELIC_LICENSE_KEY environment variable</a>.</p>
-
-<p>Last Friday, I set up a NodeJS push notification server for my current project. Essentially it was mostly inspired by this <a href="http://blog.joshsoftware.com/2012/01/30/push-notifications-using-express-js-and-socket-io/">excellent blog post</a>, but I updated it to use the latest NPM packages and to support sending notifications to all of a user’s open sockets as well as cleaning up on disconnect. That’s another story for another time.</p>
-
-<p>This blog post will cover how to get NodeJS monitoring with NewRelic <strong>on</strong> Heroku.</p>
-
-</div>
-  
-  
-    <footer>
-      <a class="btn btn-default" href="/blog/2013/02/04/nodejs-on-heroku-with-newrelic/">Read on &rarr;</a>
-    </footer>
-  
-
-
-        </article>
-      
     </div>
 
     <ul class="pager">
@@ -633,6 +631,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">Gentle Intro to Type-level Recursion in Rust: From Zero to Frunk HList Sculpting.</a>
+    
     <a class="list-group-item " href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric in Rust: What, Why, How?</a>
     
     <a class="list-group-item " href="/blog/2017/02/04/rust-generic-not-generics/">Rust Generic (Not Generics)</a>
@@ -640,8 +640,6 @@
     <a class="list-group-item " href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/">Rust Performance Testing on Travis CI</a>
     
     <a class="list-group-item " href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Accumulating Results in Rust With Validated</a>
-    
-    <a class="list-group-item " href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">Rust HLists (Heterogenous List)</a>
     
   </div>
 </section>

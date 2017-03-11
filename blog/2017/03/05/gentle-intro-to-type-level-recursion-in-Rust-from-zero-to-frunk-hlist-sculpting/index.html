@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Gentle Intro to Type-level Recursion in Rust: From Zero to Frunk HList Sculpting. - BeachApe.</title>
+  <meta name="author" content="Lloyd">
+
+  <meta name="description" content="Implementing plucking from and shaping of HLists: getting the type signature right was 99% of the work. Here's what I've learnt along the way.">
+  
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:widgets:csp" content="on">
+
+  
+  <link rel="canonical" href="https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting">
+  <link href="/favicon.png" type="image/png" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="BeachApe." type="application/atom+xml">
+
+  <script src="/javascripts/libs/jquery/jquery-2.0.3.min.js"></script>
+
+<link href="/assets/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<link href="/stylesheets/theme.min.css" rel="stylesheet" type="text/css">
+
+
+  
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+  
+   <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-24087840-1', 'auto');
+    ga('send', 'pageview');
+
+  </script>
+
+
+
+  <!-- Social media content metadata -->
+  
+  <meta property="fb:app_id" content="1078686448895325" />
+  <meta property="og:title" content="Gentle intro to type-level recursion in Rust: from zero to Frunk HList sculpting." />
+  <meta property="og:site_name" content="BeachApe." />
+  <meta property="og:url" content="https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/" />
+
+  <meta property="og:description" content="Implementing plucking from and shaping of HLists: getting the type signature right was 99% of the work. Here's what I've learnt along the way." />
+  
+  <meta property="og:author" content="https://www.facebook.com/BEACHAPE-221821961171501/" />
+  <meta property="og:image" content="https://beachape.com/images/sculptor-typesig.png" />
+  
+  
+  
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:site" content="meta_lloyd" />
+  <meta property="twitter:url" content="https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting" />
+  <meta property="twitter:title" content="Gentle intro to type-level recursion in Rust: from zero to Frunk HList sculpting." />
+  <meta property="twitter:description" content="Implementing plucking from and shaping of HLists: getting the type signature right was 99% of the work. Here's what I've learnt along the way." />
+  
+  <meta property="twitter:creator" content="meta_lloyd" />
+  <meta property="twitter:image:src" content="https://beachape.com/images/sculptor-typesig.png" />
+  
+  
+
+</head>
+
+  <body   >
+    <div id="wrap">
+      <header role="banner">
+        <nav class="navbar navbar-default" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">BeachApe.</a>
+        </div>
+
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="active">
+                    <a rel="index" href="/">Blog</a>
+                </li>
+                <li >
+                    <a href="/blog/archives">Archives</a>
+                </li>
+                <li >
+                    <a href="/about">About</a>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a class="subscribe-rss" href="/atom.xml" title="subscribe via RSS">
+                        <span class="visible-xs">RSS</span>
+                        <img class="hidden-xs" src="/images/rss.png" alt="RSS">
+                    </a>
+                </li>
+                
+            </ul>
+            
+                <form class="search navbar-form navbar-right" action="https://google.com/search" method="GET">
+                    <!--<input type="hidden" name="q" value="site:beachape.com">-->
+                    <input type="hidden" name="sitesearch" value="beachape.com" />
+                    <div class="form-group">
+                        <input class="form-control" type="text" name="q" placeholder="Search">
+                    </div>
+                </form>
+            
+        </div>
+    </div>
+</nav>
+
+
+      </header>
+      <div id="main" class="container">
+        <div id="content">
+          <div class="row">
+  <div class="page-content col-md-9" itemscope itemtype="http://schema.org/Blog">
+    <meta itemprop="name" content="BeachApe." />
+    <meta itemprop="description" content="A collection of findings, snippets and thoughts. My name is Lloyd, a software engineer. In another life, I was a biomedical engineer." />
+    <meta itemprop="url" content="https://beachape.com" />
+    <article class="hentry" role="article" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+      
+  <header class="page-header">
+    
+      <p class="meta text-muted text-uppercase">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2017-03-05T12:03:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Mar 5<span>th</span>, 2017</time>
+        
+      </p>
+    
+    
+    <h1 class="entry-title" itemprop="name headline">
+        Gentle Intro to Type-level Recursion in Rust: From Zero to Frunk HList Sculpting.
+        
+    </h1>
+    
+  </header>
+
+
+<div class="entry-content clearfix" itemprop="articleBody"><blockquote>
+  <p><em>TL;DR</em>: Implementing plucking from and shaping of <code>HList</code>s: getting the type signature and recursive types right was 99% of the work. Here’s what I’ve learnt along the way: what works, and what doesn’t work (and why).</p>
+</blockquote>
+
+<p>As you may already know, Rust eschews the now-mainstream object-oriented model of programming (e.g. in Java, where behaviour for a type is added to the type/interface definition directly) in favour of a typeclass-like approach (e.g. in Haskell where you can ad-hoc add behaviour to a type separate from the type definition itself).  Both approaches have their merits, and indeed, some languages, such as Scala, allow for a mix of both.</p>
+
+<p>For those coming from the OOP school of programming, Rust’s system of adding behaviour to types might be daunting to come to grips with. At a glance, it might not be obvious how to get things done, especially when what you want to goes beyond implementing <code>Debug</code> or <code>Eq</code>. When what you want to do has a certain degree of type-level recursiveness, it might be hard to see the light at the end of the tunnel, and the lack of online material covering that sort of thing doesn’t help.</p>
+
+<p>As a Scala guy with Haskell knowledge, I’m no stranger to typeclasses, but it took me a while and several failed attempts to figure out how to implement the following:</p>
+
+<ol>
+  <li>Plucking out a value by type from an HList and getting back the remainder **</li>
+  <li>Sculpting an HList into another shape, and getting back the remainder (in the case where we only want a smaller subset than the original) **</li>
+</ol>
+
+<p>Of course, the type signature of the finished product can be intimidating !</p>
+
+<p><img class="center" src="/images/sculptor-typesig.png" title="'6 type parameters, 1 fills in a type parameter on the trait that is recursive, and a recursive associated type. WTF? '" /></p>
+
+<p>In this post, I’ll give a brief intro of Rust’s trait system and try to work out a mental model for type-level recursion when it comes to writing trait implementations. I will also try to explain how <code>pluck()</code> and <code>sculpt()</code> were written in Frunk, as well as recount some of my failed approaches so you can learn from my mistakes.</p>
+
+<p>Hopefully, by the end of it, you’ll be able to look at signatures like the one above and not go “WTF”, but rather, “FTW”.</p>
+
+<!-- more -->
+
+<h2 class="no_toc" id="type-level-recursion">“Type-level recursion”?</h2>
+
+<p>Ok, I may be butchering/making up a term, but by “type-level recursion”, I’m referring to recursive expansions/evaluations of types  at compile-time, particularly for the purpose of proving that a certain typeclass instance exists at a function call site. This is distinct from runtime “value”-level recursion that occurs when you call a function that calls itself.</p>
+
+<p>If you’re having trouble understanding the difference:</p>
+
+<ul>
+  <li><strong>Value-level recursion</strong>: If it can’t find an exit condition, your program is stuck running forever.</li>
+  <li><strong>Type-level recursion</strong>: If it can’t expand/find the exit-type, your compiler will either give up or never finish compiling; you won’t even have a program to run.</li>
+</ul>
+
+<h2 class="no_toc" id="outline">Outline</h2>
+<ul id="markdown-toc">
+  <li><a href="#basic-gist-of-rust-typeclasses-traits" id="markdown-toc-basic-gist-of-rust-typeclasses-traits">Basic Gist of Rust typeclasses (traits)</a>    <ul>
+      <li><a href="#dependent-trait-implementations" id="markdown-toc-dependent-trait-implementations">Dependent trait implementations</a></li>
+      <li><a href="#mental-model-for-type-level-recursion" id="markdown-toc-mental-model-for-type-level-recursion">Mental model for type-level recursion</a>        <ul>
+          <li><a href="#recursion-on-the-value-level" id="markdown-toc-recursion-on-the-value-level">Recursion on the value level</a></li>
+          <li><a href="#recursion-on-the-type-level" id="markdown-toc-recursion-on-the-type-level">Recursion on the type level</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="#adding-frunk-to-your-project" id="markdown-toc-adding-frunk-to-your-project">Adding Frunk to your project</a></li>
+  <li><a href="#plucking-from-hlists" id="markdown-toc-plucking-from-hlists">Plucking from HLists</a>    <ul>
+      <li><a href="#implementation-intuition" id="markdown-toc-implementation-intuition">Implementation intuition</a></li>
+      <li><a href="#first-attempt" id="markdown-toc-first-attempt">First attempt</a></li>
+      <li><a href="#second-attempt" id="markdown-toc-second-attempt">Second attempt</a></li>
+      <li><a href="#type-level-walkthrough" id="markdown-toc-type-level-walkthrough">Type-level walkthrough</a></li>
+    </ul>
+  </li>
+  <li><a href="#sculpting-hlists" id="markdown-toc-sculpting-hlists">Sculpting HLists</a>    <ul>
+      <li><a href="#implementation-intuition-1" id="markdown-toc-implementation-intuition-1">Implementation intuition</a></li>
+      <li><a href="#first-attempt-1" id="markdown-toc-first-attempt-1">First attempt</a></li>
+      <li><a href="#second-attempt-1" id="markdown-toc-second-attempt-1">Second attempt</a></li>
+    </ul>
+  </li>
+  <li><a href="#conclusion" id="markdown-toc-conclusion">Conclusion</a>    <ul>
+      <li><a href="#credit" id="markdown-toc-credit">Credit</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="basic-gist-of-rust-typeclasses-traits">Basic Gist of Rust typeclasses (traits)</h2>
+
+<p>In Rust, typeclass is spelt <code>trait</code>, and although that word is somewhat ambiguous and overloaded with different meanings depending on context (e.g. in Scala), I’ll try to stick with it throughout this article. Subsequently, a typeclass instance is called an “implementation” (<code>impl</code> in code) in Rust.</p>
+
+<p>Here is a basic example of a simple trait and implementation for a type <code>Circle</code>, taken from the official <a href="https://doc.rust-lang.org/book/traits.html">Rust book</a>.</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// A trait that allows you to call &quot;area&quot; on something</span>
+</span><span class="line"><span class="k">trait</span><span class="w"> </span><span class="n">HasArea</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">area</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="kt">f64</span><span class="p">;</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// Our type</span>
+</span><span class="line"><span class="k">struct</span> <span class="nc">Circle</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">x</span><span class="o">:</span><span class="w"> </span><span class="kt">f64</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">y</span><span class="o">:</span><span class="w"> </span><span class="kt">f64</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">radius</span><span class="o">:</span><span class="w"> </span><span class="kt">f64</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// Our implementation of HasArea for Circle</span>
+</span><span class="line"><span class="k">impl</span><span class="w"> </span><span class="n">HasArea</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">Circle</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">area</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="kt">f64</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="kt">f64</span><span class="o">::</span><span class="n">consts</span><span class="o">::</span><span class="n">PI</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">radius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">radius</span><span class="p">)</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>For comparison, here is the Haskell equivalent</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="haskell"><span class="line"><span></span><span class="c1">-- Our typeclass</span>
+</span><span class="line"><span class="kr">class</span> <span class="kt">HasArea</span> <span class="n">a</span> <span class="kr">where</span>
+</span><span class="line">  <span class="n">area</span> <span class="ow">::</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="kt">Float</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">-- Our type</span>
+</span><span class="line"><span class="kr">data</span> <span class="kt">Circle</span> <span class="ow">=</span> <span class="kt">Circle</span> <span class="p">{</span> <span class="n">x</span> <span class="ow">::</span> <span class="kt">Float</span><span class="p">,</span> <span class="n">y</span> <span class="ow">::</span> <span class="kt">Float</span><span class="p">,</span> <span class="n">radius</span> <span class="ow">::</span> <span class="kt">Float</span> <span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">-- Our typeclass instance for Circle</span>
+</span><span class="line"><span class="kr">instance</span> <span class="kt">HasArea</span> <span class="kt">Circle</span> <span class="kr">where</span>
+</span><span class="line">  <span class="n">area</span> <span class="n">c</span> <span class="ow">=</span> <span class="n">pi</span> <span class="o">*</span> <span class="n">radius</span> <span class="n">c</span> <span class="o">^</span> <span class="mi">2</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>In both of these cases, what we see is</p>
+
+<ol>
+  <li>There is a trait, <code>HasArea</code>, which describes behaviour (must implement an <code>area</code> function that takes as its first argument the implementing type) for types that want to belong to, or join it.</li>
+  <li>Next, we have a type, <code>Circle</code>, which has one purpose: hold data.</li>
+  <li>Then, we add <code>Circle</code> to the <code>HasArea</code> trait by implementing an instance of the trait, fulfilling the contract by writing the <code>area</code> function.</li>
+</ol>
+
+<p>The key difference between this approach and the OOP approach is that adding behaviour to an existing type does not require us to edit the original type declaration, nor does it require us to create a wrapper type. This allows us to add behaviour to types that do not belong to us (e.g. we don’t have access to its source)! This flexibility is a key advantage of the typeclass/trait approach. For a much more detailed comparison between OOP and typeclasses (traits), checkout this <a href="https://wiki.haskell.org/OOP_vs_type_classes">wiki entry on haskell.org</a>.</p>
+
+<h3 id="dependent-trait-implementations">Dependent trait implementations</h3>
+
+<p>Sometimes, you’ll want to write trait implementations for data types that have one or more type parameters. In these cases, your trait implementation will likely require that implementations of the trait exist for each of those type parameters.</p>
+
+<p>For example</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// The Add trait, which exists in core::ops, copied verbatim here.</span>
+</span><span class="line"><span class="c1">//</span>
+</span><span class="line"><span class="c1">// Note that the Add trait has a right hand side (RHS) type parameter</span>
+</span><span class="line"><span class="c1">// to represent the type that the implementing trait is being added</span>
+</span><span class="line"><span class="c1">// with.</span>
+</span><span class="line"><span class="k">pub</span><span class="w"> </span><span class="k">trait</span><span class="w"> </span><span class="n">Add</span><span class="o">&lt;</span><span class="n">RHS</span><span class="o">=</span><span class="n">Self</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="sd">/// The resulting type after applying the `+` operator</span>
+</span><span class="line"><span class="w">    </span><span class="cp">#[stable(feature = </span><span class="s">&quot;rust1&quot;</span><span class="cp">, since = </span><span class="s">&quot;1.0.0&quot;</span><span class="cp">)]</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="k">type</span> <span class="nc">Output</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="sd">/// The method for the `+` operator</span>
+</span><span class="line"><span class="w">    </span><span class="cp">#[stable(feature = </span><span class="s">&quot;rust1&quot;</span><span class="cp">, since = </span><span class="s">&quot;1.0.0&quot;</span><span class="cp">)]</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">rhs</span><span class="o">:</span><span class="w"> </span><span class="n">RHS</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Output</span><span class="p">;</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// Our Cup struct. We signal that its contents can be</span>
+</span><span class="line"><span class="c1">// anything because it has an unrestricted type parameter</span>
+</span><span class="line"><span class="c1">// of A</span>
+</span><span class="line"><span class="k">struct</span> <span class="nc">Cup</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">content</span><span class="o">:</span><span class="w"> </span><span class="n">A</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// In our case, we want to implement Add&lt;Cup&lt;A&gt;&gt; because we want to add</span>
+</span><span class="line"><span class="c1">// 2 cups with the same content type together, but we don&#39;t know in</span>
+</span><span class="line"><span class="c1">// advance what kind of content would be in them; hence we keep</span>
+</span><span class="line"><span class="c1">// it parameterised with A.</span>
+</span><span class="line"><span class="c1">//</span>
+</span><span class="line"><span class="c1">// Thus, we write an implementation of Cup for Add, but add a restriction:</span>
+</span><span class="line"><span class="c1">// the implementation only exists for Cups where the content is bound to a</span>
+</span><span class="line"><span class="c1">// type that is already implements the Add trait (thus &quot;A: Add&lt;A&gt;&quot;)</span>
+</span><span class="line"><span class="k">impl</span><span class="o">&lt;</span><span class="n">A</span><span class="o">:</span><span class="w"> </span><span class="n">Add</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">Add</span><span class="o">&lt;</span><span class="n">Cup</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">Cup</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span><span class="w"></span>
+</span><span class="line"><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="c1">// This is what is called an associated type.</span>
+</span><span class="line"><span class="w">    </span><span class="c1">// Here, Output is the type that will be returned</span>
+</span><span class="line"><span class="w">    </span><span class="c1">// from the add operation</span>
+</span><span class="line"><span class="w">    </span><span class="k">type</span> <span class="nc">Output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Cup</span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">A</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Add</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&gt;::</span><span class="n">Output</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">rhs</span><span class="o">:</span><span class="w"> </span><span class="n">Cup</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Output</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="c1">// Here we make use of the Add trait for A to add</span>
+</span><span class="line"><span class="w">        </span><span class="c1">// the contents from both cups together</span>
+</span><span class="line"><span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">added_content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">content</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">rhs</span><span class="p">.</span><span class="n">content</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="n">Cup</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">content</span><span class="o">:</span><span class="w"> </span><span class="n">added_content</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Making <code>Cup</code> part of the <code>Add</code> typeclass will allow us to call <code>cup_a + cup_b</code>, which is kind of neat. One thing to take note of here is the <code>Output</code> associated type. Pay attention to the fact that in our implementation of <code>Add</code> for <code>Cup</code>, the type of <code>Output</code> is <code>Cup&lt;&lt; A as Add&lt;A&gt; &gt;::Output&gt;</code>, which means that ultimately, the output of our <code>Add</code>ing of 2 cups will depend on what the <code>Output</code> of <code>Add&lt;A&gt;</code> is.  The <code>&lt; A as Add&lt;A&gt; &gt;</code> part can be read as “summon the <code>Add&lt;A&gt;</code> implementation for the type A” (the compiler will do the actual lookup work here; if one doesn’t exist, your code will fail to compile), and the <code>::Output</code> following it means “retrieve the associated type, Output, from <em>that</em> implementation”. Let this sink in, because it’s important in order for us to move towards the concept of type-level recursion for traits.</p>
+
+<p>Here is another way to write the same thing: using <a href="https://doc.rust-lang.org/book/traits.html#where-clause">where clause</a> syntax, so that the restriction goes at the end of the initial type signature in our implementation declaration. This is useful when you have more than 2 or 3 type parameters for your typeclass instance and you have a complex set of restraints. Using <code>where</code> can help cut down on initial noise.</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">impl</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Add</span><span class="o">&lt;</span><span class="n">Cup</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">Cup</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">A</span><span class="o">:</span><span class="w"> </span><span class="n">Add</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span><span class="w"></span>
+</span><span class="line"><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="k">type</span> <span class="nc">Output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Cup</span><span class="o">&lt;&lt;</span><span class="n">A</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Add</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;&gt;::</span><span class="n">Output</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">rhs</span><span class="o">:</span><span class="w"> </span><span class="n">Cup</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Output</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">added_content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">content</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">rhs</span><span class="p">.</span><span class="n">content</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="n">Cup</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">content</span><span class="o">:</span><span class="w"> </span><span class="n">added_content</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Here’s another, more general implementation of <code>Add</code> for <code>Cup</code>. It’s more general because it lets us add <code>Cup</code>s of <em>different</em> content types, provided that there exists an <code>Add&lt;B&gt;</code> implementation for whatever concrete type is bound to <code>A</code> in any given <code>Cup&lt;A&gt;</code>.</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// Instead of just A, we introduce another type parameter, B, which</span>
+</span><span class="line"><span class="c1">// is passed as the type parameter for the Cup that we want to add with</span>
+</span><span class="line"><span class="k">impl</span><span class="o">&lt;</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Add</span><span class="o">&lt;</span><span class="n">Cup</span><span class="o">&lt;</span><span class="n">B</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">Cup</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="c1">// This next line means &quot;A must have an Add&lt;B&gt; implementation&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">A</span><span class="o">:</span><span class="w"> </span><span class="n">Add</span><span class="o">&lt;</span><span class="n">B</span><span class="o">&gt;</span><span class="w"></span>
+</span><span class="line"><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="c1">// The Output associated type now depends on the Output of &lt;A as Add&lt;B&gt;&gt;</span>
+</span><span class="line"><span class="w">    </span><span class="k">type</span> <span class="nc">Output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Cup</span><span class="o">&lt;&lt;</span><span class="n">A</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Add</span><span class="o">&lt;</span><span class="n">B</span><span class="o">&gt;&gt;::</span><span class="n">Output</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">rhs</span><span class="o">:</span><span class="w"> </span><span class="n">Cup</span><span class="o">&lt;</span><span class="n">B</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Output</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="c1">// Notice that we can use the operator &quot;+&quot;</span>
+</span><span class="line"><span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">added_content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">content</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">rhs</span><span class="p">.</span><span class="n">content</span><span class="p">;</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="n">Cup</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">content</span><span class="o">:</span><span class="w"> </span><span class="n">added_content</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h3 id="mental-model-for-type-level-recursion">Mental model for type-level recursion</h3>
+
+<p>By this point, we have covered most of the basic understanding required to write more complex traits and implementations. To recap, they are:</p>
+
+<ol>
+  <li>The differences between a trait, a type, and a trait implementation</li>
+  <li>How to use bounds (<code>A: Add&lt;A&gt;</code> or <code>where</code> clauses) when writing implementations for generic types</li>
+  <li>How to summon an implementation for a given type (<code>&lt;A as Display&gt;</code>)</li>
+  <li>How to write and use associated types (see <code>Output</code> in the above examples)</li>
+</ol>
+
+<p>For a more thorough introduction to Rust’s trait system, by all means refer to the official Rust <a href="https://doc.rust-lang.org/book/traits.html">docs on traits</a>.</p>
+
+<p>Before going any further, I’d like to provide you with my mental model of how to think about recursion on the <em>type level</em>.</p>
+
+<h4 id="recursion-on-the-value-level">Recursion on the value level</h4>
+<blockquote>
+  <p>You write a function that keeps calling itself until an exit condition is met, then returns a value.</p>
+</blockquote>
+
+<h4 id="recursion-on-the-type-level">Recursion on the type level</h4>
+<blockquote>
+  <p>You write implementations of your trait for exit-types and work-to-be-done types. In order to prove an implementation of your trait exists for a concrete type at a function call site, the compiler will try to lookup and expand/expand types recursively until it can figure out a concrete implementation to use, or gives up with an error.</p>
+</blockquote>
+
+<p>This may not make much sense at the moment, but hopefully it will soon.</p>
+
+<h2 id="adding-frunk-to-your-project">Adding Frunk to your project</h2>
+
+<p>Much of this post will make use of <a href="https://github.com/lloydmeta/frunk">Frunk’s</a> types (e.g. <code>HCons</code>, <code>HNil</code>), methods, macros (esp. for describing macro types via the <code>Hlist!</code> <a href="https://beachape.com/frunk/frunk_core/macro.Hlist.html">type macro</a>), and terminology.</p>
+
+<p>It might be easier to follow along if you add Frunk to your project and play around with it.  <a href="https://github.com/lloydmeta/frunk">Frunk</a> is published to <a href="//crates.io/crates/frunk">Crates.io</a>, so to add it your list of dependencies, simply put this in your <code>Cargo.toml</code>:</p>
+
+<p><a href="https://crates.io/crates/frunk"><img src="https://img.shields.io/crates/v/frunk.svg" alt="Crates.io" /></a></p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="p">[</span><span class="n">dependencies</span><span class="p">]</span><span class="w"></span>
+</span><span class="line"><span class="n">frunk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;${latest_version}&quot;</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Alternatively, take a look at the <a href="https://beachape.com/frunk">published Rustdocs</a>.</p>
+
+<h2 id="plucking-from-hlists">Plucking from HLists</h2>
+
+<p>Given an <a href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">HList</a>, how can we write a function that allows us to pluck out a value by type (if the <code>HList</code> does not contain this type, the compiler should let us know), and also return the rest of the <code>HList</code>?</p>
+
+<p>Suppose we call this function <code>pluck()</code>, it should behave like so:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// h has type Hlist![ {integer}, &amp;str, f32, bool ]</span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Joe&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="k">f32</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">];</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// We tell it the target type, and let the compiler infer the rest</span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="p">(</span><span class="n">target</span><span class="p">,</span><span class="w"> </span><span class="n">remainder</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="kt">f32</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">h</span><span class="p">.</span><span class="n">pluck</span><span class="p">();</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">target</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="k">f32</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">remainder</span><span class="p">,</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Joe&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">]);</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h4 id="implementation-intuition">Implementation intuition</h4>
+
+<p>Our basic logic is fairly simple, given an <code>HList</code> and a <code>Target</code> type:</p>
+
+<ol>
+  <li>If the head of the Hlist matches the <code>Target</code> type, return the head of the Hlist and the tail of the Hlist as the remainder in a pair (2 element tuple)</li>
+  <li>Otherwise,
+    <ol>
+      <li>Store the head in <code>current_head</code></li>
+      <li>Call <code>pluck()</code> again on the tail of the current Hlist with the same <code>Target</code> type (i.e. recursively call 1. with the tail), and store the result in <code>(tail_target, tail_remainder)</code> pair.</li>
+      <li>Return the target plucked from the tail, and prepend <code>current_head</code> to the remainder from the tail. Return both in a tuple like so: <code>(tail_target, HCons { head: current_head, tail: tail_remainder} )</code>.</li>
+    </ol>
+  </li>
+</ol>
+
+<h4 id="first-attempt">First attempt</h4>
+
+<p>First, let’s assume we’ll be working with a trait; call it <code>Plucker</code>. For now, let’s also assume that it will be parameterised with 1 type, the target type, and will also have an associated type, <code>Remainder</code>. There isn’t really a hard and fast rule for when you should use type parameters vs associated types, but if you’re interested, you can take a look at <a href="http://stackoverflow.com/questions/32059370/when-is-it-appropriate-to-use-an-associated-type-versus-a-generic-type">this Stackoverflow question</a> because Matthieu offers some great advice.</p>
+
+<p>Personally, I always try use an associated type when I need to refer to the type from somewhere else (espescially recursively; more on this later). However, going with a type parameter is useful when you need to have different implementations of a trait for the same type in different circumstances. We saw this with <code>Add</code>, where the right hand side was a type parameter, <code>RHS</code>, allowing you to declare different <code>Add</code> implementations for the same left-hand-side type and letting the compiler find the correct implementation to use at <code>+</code> call sites depending on the type of thing being added with.</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// Our trait</span>
+</span><span class="line"><span class="k">trait</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="k">type</span> <span class="nc">Remainder</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="c1">// Pluck should return the target type and the Remainder in a pair</span>
+</span><span class="line"><span class="w">  </span><span class="k">fn</span> <span class="nf">pluck</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>The “exit-type” implementation is for when the current head of the <code>HList</code> contains the target type, so let’s jot that down that:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">impl</span><span class="w"> </span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Tail</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="o">&gt;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Tail</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="c1">// Target is the head element, so the Remainder type is the tail!</span>
+</span><span class="line"><span class="w">  </span><span class="k">type</span> <span class="nc">Remainder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Tail</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="k">fn</span> <span class="nf">pluck</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">head</span><span class="p">,</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">tail</span><span class="p">)</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Now let’s implement the second piece; the non-trivial part where the target type is <em>not</em> in <code>Head</code>, but in the <code>Tail</code> of our HList. I’ll sometimes refer to this as the “work-to-be-done” type.</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">impl</span><span class="w"> </span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Head</span><span class="p">,</span><span class="w"> </span><span class="n">Tail</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="o">&gt;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">Head</span><span class="p">,</span><span class="w"> </span><span class="n">Tail</span><span class="o">&gt;</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="k">where</span><span class="w"> </span><span class="n">Tail</span><span class="o">:</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="o">&gt;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="c1">// Target is in the tail, so we add the current head type to the remainder</span>
+</span><span class="line"><span class="w">  </span><span class="c1">// And use the Tail&#39;s Plucker&#39;s Remainder type as the tail :)</span>
+</span><span class="line"><span class="w">  </span><span class="k">type</span> <span class="nc">Remainder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">Head</span><span class="p">,</span><span class="w"> </span><span class="o">&lt;</span><span class="n">Tail</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="o">&gt;&gt;::</span><span class="n">Remainder</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="k">fn</span> <span class="nf">pluck</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="p">(</span><span class="n">tail_target</span><span class="p">,</span><span class="w"> </span><span class="n">tail_remainder</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="o">&lt;</span><span class="n">Tail</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="o">&gt;&gt;::</span><span class="n">Remainder</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">tail</span><span class="p">.</span><span class="n">pluck</span><span class="p">();</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="p">(</span><span class="w"></span>
+</span><span class="line"><span class="w">      </span><span class="n">tail_target</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">      </span><span class="n">HCons</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">head</span><span class="o">:</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">head</span><span class="p">,</span><span class="w"> </span><span class="n">tail</span><span class="o">:</span><span class="w"> </span><span class="n">tail_remainder</span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="p">)</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Looks good right? But if you send that to the compiler, you’ll be hit with this message:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>error<span class="o">[</span>E0119<span class="o">]</span>: conflicting implementations of trait <span class="sb">`</span>Plucker&lt;_&gt;<span class="sb">`</span> <span class="k">for</span> <span class="nb">type</span> <span class="sb">`</span>frunk_core::hlist::HCons&lt;_, _&gt;<span class="sb">`</span>:
+</span><span class="line">   --&gt; tests/example.rs:306:1
+</span><span class="line">    <span class="p">|</span>
+</span><span class="line"><span class="m">296</span> <span class="p">|</span>   impl &lt;Target, Tail&gt; Plucker&lt;Target&gt; <span class="k">for</span> HCons&lt;Target, Tail&gt; <span class="o">{</span>
+</span><span class="line">    <span class="p">|</span>  _- starting here...
+</span><span class="line"><span class="m">297</span> <span class="p">|</span> <span class="p">|</span>
+</span><span class="line"><span class="m">298</span> <span class="p">|</span> <span class="p">|</span>     // Target is the head element, so the Remainder <span class="nb">type</span> is the tail!
+</span><span class="line"><span class="m">299</span> <span class="p">|</span> <span class="p">|</span>     <span class="nb">type</span> <span class="nv">Remainder</span> <span class="o">=</span> Tail<span class="p">;</span>
+</span><span class="line"><span class="m">300</span> <span class="p">|</span> <span class="p">|</span>
+</span><span class="line"><span class="m">301</span> <span class="p">|</span> <span class="p">|</span>     fn pluck<span class="o">(</span>self<span class="o">)</span> -&gt; <span class="o">(</span>Target, Self::Remainder<span class="o">)</span> <span class="o">{</span>
+</span><span class="line"><span class="m">302</span> <span class="p">|</span> <span class="p">|</span>         <span class="o">(</span>self.head, self.tail<span class="o">)</span>
+</span><span class="line"><span class="m">303</span> <span class="p">|</span> <span class="p">|</span>     <span class="o">}</span>
+</span><span class="line"><span class="m">304</span> <span class="p">|</span> <span class="p">|</span> <span class="o">}</span>
+</span><span class="line">    <span class="p">|</span> <span class="p">|</span>_- ...ending here: first implementation here
+</span><span class="line"><span class="m">305</span> <span class="p">|</span>
+</span><span class="line"><span class="m">306</span> <span class="p">|</span>   impl &lt;Target, Head, Tail&gt; Plucker&lt;Target&gt; <span class="k">for</span> HCons&lt;Head, Tail&gt;
+</span><span class="line">    <span class="p">|</span>   ^ conflicting implementation <span class="k">for</span> <span class="sb">`</span>frunk_core::hlist::HCons&lt;_, _&gt;<span class="sb">`</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>What the Rust compiler is helpfully is telling us, is that it can’t distinguish between our two implementations, and if we look closely at the types, that is indeed true:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// exit (work done) type implementation</span>
+</span><span class="line"><span class="k">impl</span><span class="w"> </span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Tail</span><span class="o">&gt;</span><span class="w">  </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="o">&gt;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Tail</span><span class="o">&gt;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// work-to-be-done implementation</span>
+</span><span class="line"><span class="k">impl</span><span class="w"> </span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Head</span><span class="p">,</span><span class="w"> </span><span class="n">Tail</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="o">&gt;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">Head</span><span class="p">,</span><span class="w"> </span><span class="n">Tail</span><span class="o">&gt;</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>The <code>Plucker&lt;Target&gt;</code> part is exactly the same, and sure, we’ve used <code>Target</code> instead of <code>Head</code> in the <code>for HCons&lt;..&gt;</code> part in the first case, but that simply using different type parameters isn’t enough to distinguish between the two.</p>
+
+<p>Furthermore, note that you can’t use the lack of constraints (or <code>where</code> clauses) to distinguish between implementations either. This is because the current lack of an implementation for a given type parameter doesn’t mean that it can’t be added later (see <a href="http://stackoverflow.com/a/39161143/1814775">this Stackoverflow questions</a> for more details).</p>
+
+<p>Welp, back to the drawing board.</p>
+
+<h4 id="second-attempt">Second attempt</h4>
+
+<p>What we’ve learnt is that we need to have another type parameter in order to distinguish the exit-type and the work-to-be-done-type implementations, so let’s add one to <code>Plucker</code>. Intuitively, we know that we want to have a way to distinguish between “the target is here in the HList” (exit) and “the target is over there in the HList” (recursion), so let’s call our type parameter <code>Index</code>.</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// the new and improved Plucker trait</span>
+</span><span class="line"><span class="k">trait</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Index</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="k">type</span> <span class="nc">Remainder</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">pluck</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Then, let’s add a type to identify the <code>index</code> for the exit-type implementation. We’ll use an empty <code>enum</code> because we just want to have a type, and we don’t want it to be available at runtime (ensuring zero runtime cost for our type).</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// This will be the type we&#39;ll use to denote that the Target is in the Head</span>
+</span><span class="line"><span class="k">enum</span> <span class="nc">Here</span><span class="w"> </span><span class="p">{}</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="k">impl</span><span class="w"> </span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Tail</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Here</span><span class="o">&gt;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Tail</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="c1">// Target type is in the Head, so the Remainder type must be the tail!</span>
+</span><span class="line"><span class="w">  </span><span class="k">type</span> <span class="nc">Remainder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Tail</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="k">fn</span> <span class="nf">pluck</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">head</span><span class="p">,</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">tail</span><span class="p">)</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>What about the work-to-be-done-type? Let’s imagine a scenario where we want to pluck a <code>Target</code> of type <code>MagicType</code> (let’s assume it’s declared as <code>struct MagicType</code>, so a type with a single element in it), and we have the following <code>HList</code>s to <code>pluck()</code> from; what would the <code>Index</code> be?</p>
+
+<ol>
+  <li>
+    <p><code>HNil</code></p>
+
+    <p>Trick question, there is no <code>Index</code> because our target of <code>MagicType</code> isn’t here. The compiler should fail to find an instance/implementation of our trait.</p>
+  </li>
+  <li>
+    <p><code>hlist[ MagicType ]</code> (this is syntactic sugar for <code>HCons&lt;MagicType, HNil&gt;</code>)</p>
+
+    <p><code>Index</code> would clearly be our <code>Here</code> enum type</p>
+  </li>
+  <li>
+    <p><code>hlist![ Foo, MagicType ]</code> (this is syntactic sugar for <code>HCons&lt;Foo, HCons&lt;MagicType, HNil&gt;&gt;</code>)</p>
+
+    <p><code>Index</code> can’t be <code>Here</code>, but we know that in order for the compiler to be satisfied that it can reach our end-type in 1. <code>Here</code> needs to be <em>somewhere</em> inside the type, but we <em>can’t</em> just use it as is, otherwise we’ll run into the same “conflicting implementation” error as before. So, let’s introduce new type <code>There&lt;A&gt;</code>, that has one type parameter. In this case, the <code>Index</code> should resolve to <code>There&lt;Here&gt;</code> because the target type is in the head of the tail.</p>
+  </li>
+  <li>
+    <p><code>hlist![ Foo, Foo, MagicType ]</code></p>
+
+    <p>Following from 3. <code>Index</code> would have to be <code>There&lt;There&lt;Here&gt;&gt;</code></p>
+  </li>
+  <li>
+    <p><code>hlist![ Foo, Foo, Foo, MagicType ]</code></p>
+
+    <p>What else could <code>Index</code> be but <code>There&lt;There&lt;There&lt;Here&gt;&gt;&gt;</code></p>
+  </li>
+</ol>
+
+<p>That Looks alright, so let’s give it a go. Since the new type has a type parameter but no real data to associate it with, we’ll need use the <code>PhantomData</code> trick (discussed in <a href="blog/2017/03/04/labelledgeneric-in-rust-what-why-how/#fieldname-type">the last post</a>).</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// Type for representing a not-here Index</span>
+</span><span class="line"><span class="k">struct</span> <span class="nc">There</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">PhantomData</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">);</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="k">impl</span><span class="o">&lt;</span><span class="n">Head</span><span class="p">,</span><span class="w"> </span><span class="n">Tail</span><span class="p">,</span><span class="w"> </span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">TailIndex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">There</span><span class="o">&lt;</span><span class="n">TailIndex</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">Head</span><span class="p">,</span><span class="w"> </span><span class="n">Tail</span><span class="o">&gt;</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="c1">// This where clause can be interpreted as &quot;the target must be pluckable from the Tail&quot;</span>
+</span><span class="line"><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">Tail</span><span class="o">:</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">TailIndex</span><span class="o">&gt;</span><span class="w"></span>
+</span><span class="line"><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="k">type</span> <span class="nc">Remainder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">Head</span><span class="p">,</span><span class="w"> </span><span class="o">&lt;</span><span class="n">Tail</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">TailIndex</span><span class="o">&gt;&gt;::</span><span class="n">Remainder</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">pluck</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="p">(</span><span class="n">target</span><span class="p">,</span><span class="w"> </span><span class="n">tail_remainder</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="o">&lt;</span><span class="n">Tail</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">TailIndex</span><span class="o">&gt;&gt;::</span><span class="n">Remainder</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"></span>
+</span><span class="line"><span class="w">            </span><span class="o">&lt;</span><span class="n">Tail</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">TailIndex</span><span class="o">&gt;&gt;::</span><span class="n">pluck</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">tail</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="p">(</span><span class="n">target</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">         </span><span class="n">HCons</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">             </span><span class="n">head</span><span class="o">:</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">head</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">             </span><span class="n">tail</span><span class="o">:</span><span class="w"> </span><span class="n">tail_remainder</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">         </span><span class="p">})</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>And that’s it, we’ve written implementations of <code>Plucker</code> for <code>HList</code>. The implementation for work-to-be-done type is type-recursive in its <code>Index</code> type as well as its <code>Remainder</code> associated type. The cool thing is that the compiler is in charge of figuring out what the <em>concrete</em> types should be at any given <code>pluck()</code> call-site. In fact, you can see <a href="https://beachape.com/frunk/frunk_core/hlist/trait.Plucker.html">from this example</a> in Frunk that the compiler will also happily infer the remainder for us too.</p>
+
+<h3 id="type-level-walkthrough">Type-level walkthrough</h3>
+
+<p>Let’s take a step back and work through what we’ve done.</p>
+
+<p>We’ve declared an implementation of <code>Plucker</code> for the trivial exit-type (<code>Target</code> is in the head).</p>
+
+<p>We’ve also declared an implementation for the work-to-be-done type (<code>Target</code> is in the tail). This implementation, however, is dependent on its recursive types of <code>Tail</code> and <code>TailIndex</code> (hint: look at the <code>where</code> clause).  Intuitively speaking, an implementation of this type only exists if the current HList’s <code>Tail</code> has either:</p>
+
+<ol>
+  <li>An implementation for the exit-type; the <code>Target</code> type is in the head</li>
+  <li>Another work-to-be-done implementation of <code>Plucker</code>. This ultimately means that <em>eventually</em> there has to be a 1. in the tail <em>somewhere</em>.</li>
+</ol>
+
+<p>Let’s try to walk through a mental model of how <code>pluck()</code> gets associated to the proper implementation.</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// Given an HList (type explicitly declared for clarity)</span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">h</span><span class="o">:</span><span class="w"> </span><span class="n">Hlist</span><span class="o">!</span><span class="p">[</span><span class="w"> </span><span class="o">&amp;</span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="p">,</span><span class="w"> </span><span class="kt">f32</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="w"> </span><span class="s">&quot;Joe&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="k">f32</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="w"> </span><span class="p">];</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// Suppose we want to get the float (f32) value out</span>
+</span><span class="line"><span class="c1">// We&#39;re ignoring the remainder and its type (Rust will figure it out),</span>
+</span><span class="line"><span class="c1">// because it isn&#39;t relevant for now.</span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="kt">f32</span><span class="p">,</span><span class="n">_</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">h</span><span class="p">.</span><span class="n">pluck</span><span class="p">();</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>We’re ignoring the remainder and its type (Rust will figure it out if we use the underscore binding <code>_</code>), because it isn’t relevant for what we’re about to do.</p>
+
+<p>In the following steps, we’ll substitute concrete types into our implementations where possible; similar to how functions get bound to values during the <a href="http://www.cs.cornell.edu/courses/cs3110/2013sp/lectures/lec06-subst-model/lec06.html">substitution model of evaluation</a> (normally used for evaluating runtime values). We’ll do this in steps, so it’s possible that in the earlier stages, we don’t quite know the concrete type yet, but we’ll go down the “stack”, and come back up and fill those types in, too, once we know them.</p>
+
+<ol>
+  <li>
+    <p><code>pluck()</code> on <code>Hlist![ &amp;str, bool, f32, i32 ]</code></p>
+
+    <p>Since our <code>Target</code> type (<code>f32</code>) is not in the head, it doesn’t match with the <code>Here</code> case, so we will try to use the work-to-be-done case (<code>Index</code> is <code>There&lt;TailIndex&gt;</code>) and fill in as many types as we can for now. Let’s replace some type parameters with their concrete types where possible.</p>
+
+    <p>Concrete types:</p>
+
+    <ul>
+      <li><code>Head</code> → <code>&amp;str</code></li>
+      <li><code>Tail</code> → <code>Hlist![bool, f32, i32 ]</code> (remember, this is syntactic sugar for <code>HCons&lt;bool, HCons&lt;f32, HCons&lt;i32, HNil&gt;</code>)</li>
+      <li><code>Target</code> → <code>f32</code> (this doesn’t change)</li>
+      <li><code>Remainder</code> → Don’t know yet, but we already know that the current <code>Head</code> will be in it, since it isn’t the <code>target</code> type. And we know the tail of <code>Remainder</code> will be the remainder from <code>pluck()</code>ing <code>f32</code> from the tail, so we can reference it as <code>HCons&lt; &amp;str, &lt; Hlist![bool, f32, i32] as Plucker&lt;f32, There&lt;Here&gt;&gt; &gt;::Remainder &gt;</code> for now.</li>
+      <li><code>TailIndex</code> → Don’t know yet, but we’ll find out. Let’s call reference it as <code>TailIndex1</code> for now.</li>
+    </ul>
+  </li>
+  <li>
+    <p><code>pluck()</code> on <code>Hlist![bool, f32, i32]</code> (<code>Tail</code> from 1.)</p>
+
+    <p>Again, <code>f32</code> is not in the head of our type, so we know we aren’t going to be working with the exit-type typeclass implementation (e.g., <code>Index</code> is not <code>Here</code> yet.)</p>
+
+    <p>Concrete types:</p>
+
+    <ul>
+      <li><code>Head</code> → <code>bool</code></li>
+      <li><code>Tail</code> → <code>Hlist![ f32, i32 ]</code></li>
+      <li><code>Target</code> → <code>f32</code> (again, this doesn’t change)</li>
+      <li><code>Remainder</code> → Still don’t know yet, but we do know that <code>bool</code> will be in it since it isn’t our target. Similar to the previous step, we’ll tentatively call it <code>HCons&lt; bool, &lt; Hlist![ f32, i32] as Plucker&lt;f32, Here&gt; &gt;::Remainder &gt;</code></li>
+      <li><code>TailIndex</code> → Don’t know yet, but let’s rename it <code>TailIndex2</code> for now and fill it in later.</li>
+    </ul>
+  </li>
+  <li>
+    <p><code>pluck()</code> on <code>Hlist![ f32, i32 ]</code> (<code>Tail</code> from 2.)</p>
+
+    <p>The head has type <code>f32</code> and the target type is <code>f32</code>, so we’ve arrived at the exit-type implementation.</p>
+
+    <p>Concrete types:</p>
+
+    <ul>
+      <li><code>Head</code> → <code>f32</code></li>
+      <li><code>Tail</code> → <code>Hlist![ i32 ]</code></li>
+      <li><code>Target</code> → <code>f32</code> !</li>
+      <li><code>Remainder</code> → Since we’ve found our target, we know that <code>Remainder</code> must be the tail, and thus <code>Hlist![ i32 ]</code>, or its equivalent <code>HCons&lt; i32, HNil &gt;</code></li>
+      <li><code>Index</code> → <code>Here</code> !</li>
+    </ul>
+  </li>
+</ol>
+
+<p>Now, that we’ve finally resolved a concrete type for <code>Index</code>, we can go backwards up the type-level stack and fill in our unknowns:</p>
+
+<ul>
+  <li>Step 2:
+    <ul>
+      <li><code>TailIndex2</code> → <code>Here</code>, which means that <code>Index</code> is <code>There&lt;Here&gt;&gt;</code></li>
+      <li><code>Remainder</code> → <code>HList![ boo, i32 ]</code></li>
+    </ul>
+  </li>
+  <li>Step 1:
+    <ul>
+      <li><code>TailIndex1</code> → <code>There&lt;Here&gt;</code>, which means that <code>Index</code> is <code>There&lt;There&lt;Here&gt;&gt;&gt;</code></li>
+      <li><code>Remainder</code> → <code>HList![ &amp;str, boo, i32 ]</code></li>
+    </ul>
+  </li>
+</ul>
+
+<p>The compiler is thus able to find a trait implementation to <code>pluck()</code> a <code>f32</code> out of an <code>Hlist![ &amp;str, bool, f32, i32 ]</code> that looks like this (with all the type parameters bound to a concrete type):</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// Remember Hlist![ ... ] is just a type-macro to make it easier to write nested Hcons</span>
+</span><span class="line"><span class="k">impl</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="w"> </span><span class="kt">f32</span><span class="p">,</span><span class="w"> </span><span class="n">There</span><span class="o">&lt;</span><span class="n">There</span><span class="o">&lt;</span><span class="n">Here</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">Hlist</span><span class="o">!</span><span class="p">[</span><span class="w"> </span><span class="o">&amp;</span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="p">,</span><span class="w"> </span><span class="kt">f32</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">]</span><span class="w"></span>
+</span><span class="line"><span class="w">   </span><span class="k">where</span><span class="w"> </span><span class="n">Hlist</span><span class="o">!</span><span class="p">[</span><span class="w"> </span><span class="kt">bool</span><span class="p">,</span><span class="w"> </span><span class="kt">f32</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">]</span><span class="o">:</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="w"> </span><span class="kt">f32</span><span class="p">,</span><span class="w"> </span><span class="n">There</span><span class="o">&lt;</span><span class="n">Here</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&gt;</span><span class="w"></span>
+</span><span class="line"><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="k">type</span> <span class="nc">Remainder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HList</span><span class="o">!</span><span class="p">[</span><span class="w"> </span><span class="o">&amp;</span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="n">boo</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">];</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="k">fn</span> <span class="nf">pluck</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="kt">f32</span><span class="p">,</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="p">(</span><span class="n">target</span><span class="p">,</span><span class="w"> </span><span class="n">tail_remainder</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="kt">f32</span><span class="p">,</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">Hlist</span><span class="o">!</span><span class="p">[</span><span class="kt">bool</span><span class="p">,</span><span class="w"> </span><span class="kt">f32</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">]</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="kt">f32</span><span class="p">,</span><span class="w"> </span><span class="n">There</span><span class="o">&lt;</span><span class="n">Here</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="o">&gt;::</span><span class="n">Remainder</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"></span>
+</span><span class="line"><span class="w">      </span><span class="o">&lt;</span><span class="w"> </span><span class="n">Hlist</span><span class="o">!</span><span class="p">[</span><span class="w"> </span><span class="kt">bool</span><span class="p">,</span><span class="w"> </span><span class="kt">f32</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="kt">f32</span><span class="p">,</span><span class="w"> </span><span class="n">There</span><span class="o">&lt;</span><span class="n">Here</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="o">&gt;::</span><span class="n">pluck</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">tail</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="p">(</span><span class="n">target</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">     </span><span class="n">HCons</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">         </span><span class="n">head</span><span class="o">:</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">head</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">         </span><span class="n">tail</span><span class="o">:</span><span class="w"> </span><span class="n">tail_remainder</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">     </span><span class="p">})</span><span class="w"></span>
+</span><span class="line"><span class="w">  </span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Whew! That took a while, but I hope it helps illustrate how you can use a mental model similar to the substitution model of evaluation, but with types, in order to prove the existence of implementations for a given type.</p>
+
+<p>By the way, by default, the compiler has a limit on how many levels of recursion/expansion this search for a typeclass instance goes. In my testing, I found this to be 64 levels and verified it to be so by looking at <a href="https://github.com/rust-lang/rust/blob/be304afc8c2b1a364bd406888b5378897ed82a9f/src/libsyntax/ext/expand.rs#L1122">Rust’s source code</a>. If you hit the limit, the compiler blow up, but will helpfully offer you a solution:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="n">error</span><span class="p">[</span><span class="n">E0275</span><span class="p">]</span><span class="o">:</span><span class="w"> </span><span class="n">overflow</span><span class="w"> </span><span class="n">evaluating</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">requirement</span><span class="w"> </span><span class="err">`</span><span class="n">frunk_core</span><span class="o">::</span><span class="n">hlist</span><span class="o">::</span><span class="n">HNil</span><span class="o">:</span><span class="w"> </span><span class="n">frunk_core</span><span class="o">::</span><span class="n">hlist</span><span class="o">::</span><span class="n">Plucker</span><span class="o">&lt;</span><span class="kt">bool</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="o">&gt;</span><span class="err">`</span><span class="w"></span>
+</span><span class="line"><span class="w">   </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">tests</span><span class="o">/</span><span class="n">derivation_tests</span><span class="p">.</span><span class="n">rs</span><span class="o">:</span><span class="mi">296</span><span class="o">:</span><span class="mi">35</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="o">|</span><span class="w"></span>
+</span><span class="line"><span class="mi">296</span><span class="w"> </span><span class="o">|</span><span class="w">     </span><span class="kd">let</span><span class="w"> </span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="kt">bool</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hello</span><span class="p">.</span><span class="n">pluck</span><span class="p">();</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="o">|</span><span class="w">                                   </span><span class="o">^^^^^</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="o">|</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">note</span><span class="o">:</span><span class="w"> </span><span class="n">consider</span><span class="w"> </span><span class="n">adding</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="err">`</span><span class="cp">#![recursion_limit=</span><span class="s">&quot;128&quot;</span><span class="cp">]</span><span class="err">`</span><span class="w"> </span><span class="n">attribute</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">your</span><span class="w"> </span><span class="k">crate</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">note</span><span class="o">:</span><span class="w"> </span><span class="n">required</span><span class="w"> </span><span class="n">because</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">requirements</span><span class="w"> </span><span class="n">on</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="k">impl</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="err">`</span><span class="n">frunk_core</span><span class="o">::</span><span class="n">hlist</span><span class="o">::</span><span class="n">Plucker</span><span class="o">&lt;</span><span class="kt">bool</span><span class="p">,</span><span class="w"> </span><span class="n">frunk_core</span><span class="o">::</span><span class="n">hlist</span><span class="o">::</span><span class="n">There</span><span class="o">&lt;</span><span class="n">_</span><span class="o">&gt;&gt;</span><span class="err">`</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="err">`</span><span class="n">frunk_core</span><span class="o">::</span><span class="n">hlist</span><span class="o">::</span><span class="n">HCons</span><span class="o">&lt;</span><span class="kt">bool</span><span class="p">,</span><span class="w"> </span><span class="n">frunk_core</span><span class="o">::</span><span class="n">hlist</span><span class="o">::</span><span class="n">HNil</span><span class="o">&gt;</span><span class="err">`</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>So, simply add <code>#![recursion_limit="128"]</code> to your crate. If you hit the limit again, the compiler will tell you to double the limit again. Ad infinitum.</p>
+
+<h2 id="sculpting-hlists">Sculpting HLists</h2>
+
+<p>Great ! Now that we’ve finished with <code>Plucker</code>, let’s go one level deeper: making use of <code>Plucker</code> to do something even more interesting; sculpting <code>HList</code>s !</p>
+
+<p>Here is the basic idea of what we want to be able to do:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// Given an HList of type Hlist![ i32, &amp;str, f32, bool ]</span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">h</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="mi">9000</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;joe&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">41</span><span class="k">f32</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">];</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// We&#39;d like to be able to &quot;sculpt&quot; it into another, differently shaped HList.</span>
+</span><span class="line"><span class="c1">//</span>
+</span><span class="line"><span class="c1">// Of course, the types in the new HList must be a subset of the original HList,</span>
+</span><span class="line"><span class="c1">// and if not, compilation should fail.</span>
+</span><span class="line"><span class="c1">//</span>
+</span><span class="line"><span class="c1">// Similar to pluck(), we&#39;d also want the remainder of the original HList _not_</span>
+</span><span class="line"><span class="c1">// used in the final result.</span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="p">(</span><span class="n">reshaped</span><span class="p">,</span><span class="w"> </span><span class="n">remainder</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">Hlist</span><span class="o">!</span><span class="p">[</span><span class="w"> </span><span class="kt">f32</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="kt">str</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="n">_</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">h</span><span class="p">.</span><span class="n">sculpt</span><span class="p">();</span><span class="w"></span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">reshaped</span><span class="p">,</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="mi">41</span><span class="k">f32</span><span class="p">,</span><span class="w"> </span><span class="mi">9000</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;joe&quot;</span><span class="p">]);</span><span class="w"></span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">remainder</span><span class="p">,</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="kc">true</span><span class="p">]);</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// the following should fail to compile, because there is no char in the original Hlist</span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="p">(</span><span class="n">reshaped</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">Hlist</span><span class="o">!</span><span class="p">[</span><span class="n">char</span><span class="p">],</span><span class="w"> </span><span class="n">_</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">h</span><span class="p">.</span><span class="n">sculpt</span><span class="p">();</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h3 id="implementation-intuition-1">Implementation intuition</h3>
+
+<p>Let’s call our trait <code>Sculptor</code>. We should be able to re-use our <code>Plucker</code> trait, which which means we’ll work with <code>Target</code>s and <code>Index</code>s, <em>but</em> there’s more than one of each!</p>
+
+<p>Intuitively, this is the kind of logic that we want:</p>
+
+<p>Given <code>TargetHList</code> (target HList) and <code>SourceHList</code> (source HList), and assuming the types in the former is a subset (not necessarily in order though) of the latter:</p>
+
+<ol>
+  <li>Pluck value with the head type of <code>TargetHList</code> from <code>SourceHList</code>:
+    <ul>
+      <li>Store the result in a <code>(plucked, remainder)</code> tuple</li>
+    </ul>
+  </li>
+  <li>Call <code>sculpt</code> on <code>remainder</code>, passing the tail type of the current <code>TargetHList</code> as the new    <code>TargetHList</code> type.
+    <ul>
+      <li>Store the result in a <code>(sculpted_tail, sculpted_remainder)</code> tuple</li>
+    </ul>
+  </li>
+  <li>Return <code>(HCons { head: plucked, tail: sculpted_tail }, sculpted_remainder)</code></li>
+</ol>
+
+<p>Note that in 1. we are making use of <code>pluck()</code>, and there is a recursive call to <code>sculpt()</code> in 2. Since there is a recursive call to <code>sculpt()</code>, it means that we need an exit-type as well. Intuitively, we’ll pencil one in:</p>
+
+<blockquote>
+  <p>When the target HList is empty (HNil), return a tuple <code>(HNil, </code>SourceHList<code>)</code></p>
+</blockquote>
+
+<h3 id="first-attempt-1">First attempt</h3>
+
+<p>Given our logic, let’s assume we want 4 type parameters in our trait. Our trait is a bit more complicated than our <code>Pluck</code> trait, but not by much. We make use of the same associated-type trick to hold the type of <code>Remainder</code> to be returned as the 2nd element in our type that will be filled-in when we write instances of the trait.</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">trait</span><span class="w"> </span><span class="n">Sculptor</span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">TargetTail</span><span class="p">,</span><span class="w"> </span><span class="n">HeadIndex</span><span class="p">,</span><span class="w"> </span><span class="n">TailIndices</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="k">type</span> <span class="nc">Remainder</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">  </span><span class="k">fn</span> <span class="nf">sculpt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">TargetTail</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>The instance of <code>Sculptor</code> for the exit-type should be simple, right?:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// Our exit condition is when Target is HNil, so we don&#39;t care about the tail of the target</span>
+</span><span class="line"><span class="c1">// nor do we really care about the type of SourceHList</span>
+</span><span class="line"><span class="k">impl</span><span class="w"> </span><span class="o">&lt;</span><span class="n">TargetTail</span><span class="p">,</span><span class="w"> </span><span class="n">HeadIndex</span><span class="p">,</span><span class="w"> </span><span class="n">TailIndices</span><span class="p">,</span><span class="w"> </span><span class="n">SourceHList</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Sculptor</span><span class="o">&lt;</span><span class="n">HNil</span><span class="p">,</span><span class="w"> </span><span class="n">TargetTail</span><span class="p">,</span><span class="w"> </span><span class="n">HeadIndex</span><span class="p">,</span><span class="w"> </span><span class="n">TailIndices</span><span class="o">&gt;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">SourceHList</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="k">type</span> <span class="nc">Remainder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Source</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="c1">// ?!?!? HNil as the head type of an HCons doesn&#39;t make sense</span>
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">sculpt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">HNil</span><span class="p">,</span><span class="w"> </span><span class="n">TargetTail</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="c1">// nevermind</span>
+</span><span class="line"><span class="w">    </span><span class="p">}</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Ooops; that didn’t work; our type signature for the trait can’t be fulfilled when implementing our instance! We simply have too many type parameters in our trait, even for the exit-type implementation (try implementing for the recursion case…it’ll become more apparent)</p>
+
+<p>Back to the drawing board.</p>
+
+<h3 id="second-attempt-1">Second attempt</h3>
+
+<p>Let’s collapse our target-related type parameters into a single <code>Target</code> type parameter and our indices-related type parameters into a single <code>Indices</code> type parameter in our <code>Sculptor</code> trait declaration, and rely on the implementations to dictate (specialise) what types they should be (similar to how the <code>Plucker</code> trait had no mention of <code>There</code> or <code>Here</code>).</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">trait</span><span class="w"> </span><span class="n">Sculptor</span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Indices</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="k">type</span> <span class="nc">Remainder</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">sculpt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>The exit-type implementation will still be when we have <code>HNil</code> as the target. Thinking it through further, in the case that we don’t have a <code>HNil</code> as the target, it’s obvious that <code>Source</code> can then be literally anything, so we’ll rename its type parameter <code>Source</code>. Since our intention for <code>Sculptor</code> is for <code>Indices</code> to be an HList of <code>Here</code> or <code>There&lt;A&gt;</code> (one for each type in our <code>Target</code> HList), the exit <code>Indices</code> must therefore be a valid Hlist. Since we don’t need an index to find an empty target, let’s make <code>Indices</code> <code>HNil</code> for simplicity.</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">impl</span><span class="o">&lt;</span><span class="n">Source</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Sculptor</span><span class="o">&lt;</span><span class="n">HNil</span><span class="p">,</span><span class="w"> </span><span class="n">HNil</span><span class="o">&gt;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">Source</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="c1">// Since Our Target is HNil, we just return the Source</span>
+</span><span class="line"><span class="w">    </span><span class="k">type</span> <span class="nc">Remainder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Source</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">sculpt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">HNil</span><span class="p">,</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="p">(</span><span class="n">HNil</span><span class="p">,</span><span class="w"> </span><span class="bp">self</span><span class="p">)</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>To figure out the type parameters needed for our work-to-be-done type, let’s work through the logic we laid out earlier.</p>
+
+<p>At minimum, we know we’re writing an instance of <code>Sculptor</code> for a Source of type HList, and our Target type is also an HList, so we’ll use <code>SHead</code> and <code>STail</code> to describe the “Source” HList (so <code>HCons&lt;SHead, STail&gt;</code>), and <code>THead</code> and <code>TTail</code> to denote the “Target” HList (similarly, <code>HCons&lt;THead, TTail&gt;</code>).</p>
+
+<blockquote>
+  <ol>
+    <li>Pluck value with the head type of <code>TargetHList</code> from <code>SourceHList</code>:
+      <ul>
+        <li>Store the result in a <code>(plucked, remainder)</code> tuple</li>
+      </ul>
+    </li>
+  </ol>
+</blockquote>
+
+<p>Since we need to <code>pluck()</code> a <code>THead</code> from our Source HList, we’ll need a type parameter for the first index, so let’s name it <code>IndexHead</code>. In addition, in order to <code>pluck()</code>, we need a <code>Plucker</code> too, so this constraint is needed somewhere in our implementation declaration:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">SHead</span><span class="p">,</span><span class="w"> </span><span class="n">STail</span><span class="o">&gt;:</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">THead</span><span class="p">,</span><span class="w"> </span><span class="n">IndexHead</span><span class="o">&gt;</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<blockquote>
+  <ol>
+    <li>Call <code>sculpt()</code> on <code>remainder</code>, passing the tail type of the current <code>TargetHList</code> as the new <code>TargetHList</code> type.
+      <ul>
+        <li>Store the result in a <code>(sculpted_tail, sculpted_remainder)</code> tuple</li>
+      </ul>
+    </li>
+  </ol>
+</blockquote>
+
+<p>Since we want to sculpt the remainder of calling <code>pluck()</code> in step 1. into type <code>TTail</code> (tail of <code>TargetHList</code>), we’ll need to have an HList of indices for that purpose too, so let’s call it <code>IndexTail</code>. Note that we don’t need a separate type parameter for the remainder from 1 because we can take advantage of the associated type on <code>Plucker</code>.</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// In English, this is read as:</span>
+</span><span class="line"><span class="c1">// &quot;The remainder of plucking the Target head type (THead) out of the source HList</span>
+</span><span class="line"><span class="c1">// must have a Sculptor implementation that lets us turn it into the tail type of</span>
+</span><span class="line"><span class="c1">// the Target HList (TTail) using the tail of the current Indices (IndexTail)&quot;</span>
+</span><span class="line"><span class="o">&lt;</span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">SHead</span><span class="p">,</span><span class="w"> </span><span class="n">STail</span><span class="o">&gt;</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">THead</span><span class="p">,</span><span class="w"> </span><span class="n">IndexHead</span><span class="o">&gt;&gt;::</span><span class="n">Remainder</span><span class="o">:</span><span class="w"> </span><span class="n">Sculptor</span><span class="o">&lt;</span><span class="n">TTail</span><span class="p">,</span><span class="w"> </span><span class="n">IndexTail</span><span class="o">&gt;</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<blockquote>
+  <ol>
+    <li>Return <code>(HCons { head: plucked, tail: sculpted_tail }, sculpted_remainder)</code></li>
+  </ol>
+</blockquote>
+
+<p>What will the <code>Remainder</code> type be? It should be the remainder of sculpting the remainder from plucking the head type (<code>THead</code>) out of the current source HList into <code>TTail</code> (yeah…)</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">type</span> <span class="nc">Remainder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">SHead</span><span class="p">,</span><span class="w"> </span><span class="n">STail</span><span class="o">&gt;</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">THead</span><span class="p">,</span><span class="w"> </span><span class="n">IndexHead</span><span class="o">&gt;&gt;::</span><span class="n">Remainder</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Sculptor</span><span class="o">&lt;</span><span class="n">TTail</span><span class="p">,</span><span class="w"> </span><span class="n">IndexTail</span><span class="o">&gt;&gt;::</span><span class="n">Remainder</span><span class="p">;</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Putting all these types together with the logic, we have</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">impl</span><span class="w"> </span><span class="o">&lt;</span><span class="n">THead</span><span class="p">,</span><span class="w"> </span><span class="n">TTail</span><span class="p">,</span><span class="w"> </span><span class="n">SHead</span><span class="p">,</span><span class="w"> </span><span class="n">STail</span><span class="p">,</span><span class="w"> </span><span class="n">IndexHead</span><span class="p">,</span><span class="w"> </span><span class="n">IndexTail</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Sculptor</span><span class="o">&lt;</span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">THead</span><span class="p">,</span><span class="w"> </span><span class="n">TTail</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">IndexHead</span><span class="p">,</span><span class="w"> </span><span class="n">IndexTail</span><span class="o">&gt;&gt;</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">SHead</span><span class="p">,</span><span class="w"> </span><span class="n">STail</span><span class="o">&gt;</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="k">where</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">SHead</span><span class="p">,</span><span class="w"> </span><span class="n">STail</span><span class="o">&gt;:</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">THead</span><span class="p">,</span><span class="w"> </span><span class="n">IndexHead</span><span class="o">&gt;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="o">&lt;</span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">SHead</span><span class="p">,</span><span class="w"> </span><span class="n">STail</span><span class="o">&gt;</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">THead</span><span class="p">,</span><span class="w"> </span><span class="n">IndexHead</span><span class="o">&gt;&gt;::</span><span class="n">Remainder</span><span class="o">:</span><span class="w"> </span><span class="n">Sculptor</span><span class="o">&lt;</span><span class="n">TTail</span><span class="p">,</span><span class="w"> </span><span class="n">IndexTail</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="k">type</span> <span class="nc">Remainder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">SHead</span><span class="p">,</span><span class="w"> </span><span class="n">STail</span><span class="o">&gt;</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">THead</span><span class="p">,</span><span class="w"> </span><span class="n">IndexHead</span><span class="o">&gt;&gt;::</span><span class="n">Remainder</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Sculptor</span><span class="o">&lt;</span><span class="n">TTail</span><span class="p">,</span><span class="w"> </span><span class="n">IndexTail</span><span class="o">&gt;&gt;::</span><span class="n">Remainder</span><span class="p">;</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="w">    </span><span class="k">fn</span> <span class="nf">sculpt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">THead</span><span class="p">,</span><span class="w"> </span><span class="n">TTail</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">THead</span><span class="p">,</span><span class="w"> </span><span class="o">&lt;</span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">SHead</span><span class="p">,</span><span class="w"> </span><span class="n">STail</span><span class="o">&gt;</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">THead</span><span class="p">,</span><span class="w"> </span><span class="n">IndexHead</span><span class="o">&gt;&gt;::</span><span class="n">Remainder</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">pluck</span><span class="p">();</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="p">(</span><span class="n">tail</span><span class="p">,</span><span class="w"> </span><span class="n">tail_remainder</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">TTail</span><span class="p">,</span><span class="w"> </span><span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">sculpt</span><span class="p">();</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="p">(</span><span class="w"></span>
+</span><span class="line"><span class="w">            </span><span class="n">HCons</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">                </span><span class="n">head</span><span class="o">:</span><span class="w"> </span><span class="n">p</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">                </span><span class="n">tail</span><span class="o">:</span><span class="w"> </span><span class="n">tail</span><span class="w"></span>
+</span><span class="line"><span class="w">            </span><span class="p">},</span><span class="w"></span>
+</span><span class="line"><span class="w">            </span><span class="n">tail_remainder</span><span class="w"></span>
+</span><span class="line"><span class="w">        </span><span class="p">)</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="p">}</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>As you can see, our implementations of <code>Sculptor</code> is type-recursive in an interesting way, and there are quite a few dependencies that need to be worked out between all the type parameters and the <code>Plucker</code> trait <em>as well as</em> the <code>Sculptor</code> trait itself (it appears in the <code>where</code> after all). Fortunately, the Rust compiler will do that for us (and if need be, tell you to raise the <code>#![recursion_limit]</code> in your crate).</p>
+
+<p>If you’re not convinced this works, please by all means check out the <a href="https://beachape.com/frunk/frunk_core/hlist/index.html"><code>hlist</code> module</a> in Frunk, in particular the <a href="https://beachape.com/frunk/frunk_core/hlist/trait.Sculptor.html">Sculptor trait</a>.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>One last thing: the <code>Plucker</code> and <code>Sculptor</code> things aren’t just cute exercises; <code>Pluck</code> has already paid dividends when modeling <code>Sculptor</code>, and <code>Sculptor</code>, well, it’s instrumental in letting us do cool stuff like convert between structs with different <a href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric implementations</a> (well, to an extent, anyways), and other, even cooler generic functions. We’ll talk more about this in another post.</p>
+
+<p>If you do a search, you’ll find a number of articles on the Interwebs that cover Rust’s trait system, but not many that go deep into how to use it when you need to do non-trivial type-level recursion in your trait implementations (though how often this need arises is … another topic altogether). I also find that people generally don’t talk about what they did <em>wrong</em>, so I wanted to share my failed approaches as well.</p>
+
+<p>The goal of this post is to hopefully help others who are curious, or have a need to do something similar, as well as to leave notes for myself in case I ever need to revisit this in the future. The mental models for breaking down the problem, defining types, and understanding what’s going on might not work for everyone, but they’ve helped me.</p>
+
+<p>Personally, I think it’s awesome that a close-to-the-metal systems programming language like Rust has a powerful enough type-system to allow for these kinds of techniques. As you can see, we’ve managed to build powerful, reusable abstractions without doing anything unsafe, and we’ve exposed an API that requires just the bare minimum of type annotations; Rust infers the rest :) In any case, I hope this post was useful, and as usual please chime in with questions and suggestions.</p>
+
+<h3 id="credit">Credit</h3>
+<ol>
+  <li>The <code>Here</code> and <code>There&lt;A&gt;</code> design was largely gleaned from <a href="https://github.com/Sgeo/hlist/blob/master/src/lib.rs#L30">this code</a>. I stand on the shoulders of giants :)</li>
+</ol>
+
+<p>** It goes without saying that these operations need to be type-safe. That is, they are verified by the compiler without using any unsafe tricks that could blow up at runtime.</p>
+</div>
+
+
+      <footer>
+        <p class="meta text-muted">
+          
+  
+
+<span class="glyphicon glyphicon-user"></span> <span class="byline author vcard" itemprop="author" itemscope itemtype="http://schema.org/Person">Posted by <span class="fn" itemprop="name">Lloyd</span></span>
+
+          
+
+
+
+
+
+
+
+
+
+
+
+
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2017-03-05T12:03:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Mar 5<span>th</span>, 2017</time>
+          
+
+<span class="glyphicon glyphicon-tags"></span>&nbsp;
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/frunk/'>Frunk</a>, <a class='category' href='/blog/categories/hlist/'>HList</a>, <a class='category' href='/blog/categories/hlist-plucking/'>HList plucking</a>, <a class='category' href='/blog/categories/hlist-sculpting/'>HList sculpting</a>, <a class='category' href='/blog/categories/hlist-shaping/'>HList shaping</a>, <a class='category' href='/blog/categories/rust/'>Rust</a>, <a class='category' href='/blog/categories/generic-programming/'>generic programming</a>, <a class='category' href='/blog/categories/recursion/'>recursion</a>, <a class='category' href='/blog/categories/traits/'>traits</a>, <a class='category' href='/blog/categories/type-level-programming/'>type-level programming</a>, <a class='category' href='/blog/categories/typeclasses/'>typeclasses</a>
+  
+</span>
+
+
+        </p>
+        
+          <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/" data-via="meta_lloyd" data-counturl="https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="320" data-show-faces="false"></div>
+  
+</div>
+
+        
+        
+          <ul class="meta text-muted pager">
+            
+            <li class="previous"><a href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/" title="Previous Post: LabelledGeneric in Rust: What, Why, How?">&laquo; LabelledGeneric in Rust: What, Why, How?</a></li>
+            
+            
+          </ul>
+        
+      </footer>
+    </article>
+    
+      <section>
+        <h1>Comments</h1>
+        <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+      </section>
+    
+  </div>
+
+  
+  <aside class="sidebar col-md-3">
+    
+      <section class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Recent Posts</h3>
+  </div>
+  
+  <div id="recent_posts" class="list-group">
+    
+    <a class="list-group-item active" href="/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">Gentle Intro to Type-level Recursion in Rust: From Zero to Frunk HList Sculpting.</a>
+    
+    <a class="list-group-item " href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric in Rust: What, Why, How?</a>
+    
+    <a class="list-group-item " href="/blog/2017/02/04/rust-generic-not-generics/">Rust Generic (Not Generics)</a>
+    
+    <a class="list-group-item " href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/">Rust Performance Testing on Travis CI</a>
+    
+    <a class="list-group-item " href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Accumulating Results in Rust With Validated</a>
+    
+  </div>
+</section>
+
+<section class="panel panel-default clearfix">
+  <div class="panel-heading">
+      <h3 class="panel-title">GitHub Repos</h3>
+  </div>
+  <div class="list-group" id="gh_repos">
+    <p class="loading">Status updating...</p>
+  </div>
+  
+    <div class="gh-profile-link pull-right text-muted">
+      <a href="https://github.com/lloydmeta">@lloydmeta</a> on GitHub
+    </div>
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'lloydmeta',
+            count: 5,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+<section>
+    <h1>Twitter</h1>
+    <a class="twitter-timeline" href="https://twitter.com/meta_Lloyd" data-widget-id="423278387365302272">Tweets by @meta_Lloyd</a>
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
+    </script>
+</section>
+
+
+
+
+
+<section>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- beachape sidebar -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-1172936881778206"
+     data-ad-slot="7801157970"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+</section>
+
+    
+  </aside>
+  
+</div>
+
+        </div>
+      </div>
+    </div>
+    <footer role="contentinfo"><div class="container">
+    <p class="text-muted credits">
+  Copyright &copy; 2017 - Lloyd<br>
+  <small>
+      <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>,
+      <span class="credit">customized with <a href="https://github.com/kAworu/octostrap3">octostrap3</a></span>.
+  </small>
+</p>
+
+</div>
+</footer>
+    
+
+<script type="text/javascript">
+      var disqus_shortname = 'beachape';
+      
+        
+        var disqus_developer = 1;
+        var disqus_identifier = 'https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/';
+        var disqus_url = 'https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+<script src="/assets/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="/javascripts/modernizr-2.0.js"></script>
+
+
+  </body>
+</html>

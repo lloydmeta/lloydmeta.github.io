@@ -149,6 +149,69 @@
 
 
 
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2017-03-05T12:03:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Mar 5<span>th</span>, 2017</time>
+        
+      </p>
+    
+    
+      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/" itemprop="url">Gentle Intro to Type-level Recursion in Rust: From Zero to Frunk HList Sculpting.</a></h1>
+    
+  </header>
+
+
+  <div class="entry-content clearfix" itemprop="articleBody description"><blockquote>
+  <p><em>TL;DR</em>: Implementing plucking from and shaping of <code>HList</code>s: getting the type signature and recursive types right was 99% of the work. Here’s what I’ve learnt along the way: what works, and what doesn’t work (and why).</p>
+</blockquote>
+
+<p>As you may already know, Rust eschews the now-mainstream object-oriented model of programming (e.g. in Java, where behaviour for a type is added to the type/interface definition directly) in favour of a typeclass-like approach (e.g. in Haskell where you can ad-hoc add behaviour to a type separate from the type definition itself).  Both approaches have their merits, and indeed, some languages, such as Scala, allow for a mix of both.</p>
+
+<p>For those coming from the OOP school of programming, Rust’s system of adding behaviour to types might be daunting to come to grips with. At a glance, it might not be obvious how to get things done, especially when what you want to goes beyond implementing <code>Debug</code> or <code>Eq</code>. When what you want to do has a certain degree of type-level recursiveness, it might be hard to see the light at the end of the tunnel, and the lack of online material covering that sort of thing doesn’t help.</p>
+
+<p>As a Scala guy with Haskell knowledge, I’m no stranger to typeclasses, but it took me a while and several failed attempts to figure out how to implement the following:</p>
+
+<ol>
+  <li>Plucking out a value by type from an HList and getting back the remainder **</li>
+  <li>Sculpting an HList into another shape, and getting back the remainder (in the case where we only want a smaller subset than the original) **</li>
+</ol>
+
+<p>Of course, the type signature of the finished product can be intimidating !</p>
+
+<p><img class="center" src="/images/sculptor-typesig.png" title="'6 type parameters, 1 fills in a type parameter on the trait that is recursive, and a recursive associated type. WTF? '" /></p>
+
+<p>In this post, I’ll give a brief intro of Rust’s trait system and try to work out a mental model for type-level recursion when it comes to writing trait implementations. I will also try to explain how <code>pluck()</code> and <code>sculpt()</code> were written in Frunk, as well as recount some of my failed approaches so you can learn from my mistakes.</p>
+
+<p>Hopefully, by the end of it, you’ll be able to look at signatures like the one above and not go “WTF”, but rather, “FTW”.</p>
+
+</div>
+  
+  
+    <footer>
+      <a class="btn btn-default" href="/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">Read on &rarr;</a>
+    </footer>
+  
+
+
+        </article>
+      
+      
+        <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+          
+  <header class="page-header">
+    
+      <p class="meta text-muted text-uppercase">
+        
+
+
+
+
+
+
+
+
+
+
+
+
 <span class="glyphicon glyphicon-calendar"></span> <time datetime="2017-03-04T12:23:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Mar 4<span>th</span>, 2017</time>
         
       </p>
@@ -663,52 +726,6 @@
 
         </article>
       
-      
-        <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-          
-  <header class="page-header">
-    
-      <p class="meta text-muted text-uppercase">
-        
-
-
-
-
-
-
-
-
-
-
-
-
-<span class="glyphicon glyphicon-calendar"></span> <time datetime="2015-07-25T20:50:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Jul 25<span>th</span>, 2015</time>
-        
-      </p>
-    
-    
-      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2015/07/25/slim-play-app/" itemprop="url">Slim Play App</a></h1>
-    
-  </header>
-
-
-  <div class="entry-content clearfix" itemprop="articleBody description"><p><a href="https://www.playframework.com/">Play</a> is one of two officially-supported web frameworks from Typesafe, the company behind Scala (the other is <a href="http://spray.io/">Spray</a>). It runs on its own webserver, is non-blocking, and encourages the use of idiomatic Scala. It is often compared with Rails because of its emphasis on convention over configuration and because it’s a full-on framework that comes with most of the bells and whistles needed to build a full-featured webapp. Spray is considered by many to be the defacto API-centric alternative to Play, offering a Sinatra-esque DSL for routing and being slimmer to boot (from a files + LOC perspective).</p>
-
-<p>After looking around  I began suspecting that Play comes with the ability to be slimmed down. By combining the <a href="https://www.playframework.com/documentation/2.4.x/ScalaSirdRouter">String Interpolating Routing DSL</a> and <a href="https://www.playframework.com/documentation/2.4.x/ScalaCompileTimeDependencyInjection">Compile-time dependency injection</a> of Play 2.4, I was able to build a Scala app that would give Sinatra a run for its money in terms of the whole brevity thing.</p>
-
-<p><img class="center" src="/images/duderino.jpeg" width="350" height="350" title="'The Dude is focused on the whole brevity thing'" /></p>
-
-</div>
-  
-  
-    <footer>
-      <a class="btn btn-default" href="/blog/2015/07/25/slim-play-app/">Read on &rarr;</a>
-    </footer>
-  
-
-
-        </article>
-      
     </div>
 
     <ul class="pager">
@@ -732,6 +749,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">Gentle Intro to Type-level Recursion in Rust: From Zero to Frunk HList Sculpting.</a>
+    
     <a class="list-group-item " href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric in Rust: What, Why, How?</a>
     
     <a class="list-group-item " href="/blog/2017/02/04/rust-generic-not-generics/">Rust Generic (Not Generics)</a>
@@ -739,8 +758,6 @@
     <a class="list-group-item " href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/">Rust Performance Testing on Travis CI</a>
     
     <a class="list-group-item " href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Accumulating Results in Rust With Validated</a>
-    
-    <a class="list-group-item " href="/blog/2016/10/23/rust-hlists-heterogenously-typed-list/">Rust HLists (Heterogenous List)</a>
     
   </div>
 </section>
