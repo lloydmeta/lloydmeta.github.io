@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Traits | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/traits/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-03-12T02:24:46+09:00</updated>
+  <updated>2017-03-12T02:28:35+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -15,11 +15,13 @@
   
   <entry>
     <title type="html"><![CDATA[Gentle Intro to Type-level Recursion in Rust: From Zero to Frunk HList Sculpting.]]></title>
-    <link href="https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/"/>
-    <updated>2017-03-05T12:03:00+09:00</updated>
-    <id>https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting</id>
+    <link href="https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/"/>
+    <updated>2017-03-12T12:03:00+09:00</updated>
+    <id>https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting</id>
     <content type="html"><![CDATA[<blockquote>
-  <p><em>TL;DR</em>: Implementing plucking from and shaping of <code>HList</code>s: getting the type signature and recursive types right was 99% of the work. Here’s what I’ve learnt along the way: what works, and what doesn’t work (and why).</p>
+  <p>Getting the type signature and recursive types right was 99% of the work of implementing plucking from and shaping of <code>HList</code>s.</p>
+
+  <p>Here’s what I’ve learnt along the way: what works, and what doesn’t work (and why).</p>
 </blockquote>
 
 <p>As you may already know, Rust eschews the now-mainstream object-oriented model of programming (e.g. in Java, where behaviour for a type is added to the type/interface definition directly) in favour of a typeclass-like approach (e.g. in Haskell where you can ad-hoc add behaviour to a type separate from the type definition itself).  Both approaches have their merits, and indeed, some languages, such as Scala, allow for a mix of both.</p>

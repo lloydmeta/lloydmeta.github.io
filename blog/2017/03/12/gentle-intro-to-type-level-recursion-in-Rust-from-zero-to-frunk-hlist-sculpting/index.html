@@ -16,7 +16,7 @@
   <meta name="twitter:widgets:csp" content="on">
 
   
-  <link rel="canonical" href="https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting">
+  <link rel="canonical" href="https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting">
   <link href="/favicon.png" type="image/png" rel="icon">
   <link href="/atom.xml" rel="alternate" title="BeachApe." type="application/atom+xml">
 
@@ -48,7 +48,7 @@
   <meta property="fb:app_id" content="1078686448895325" />
   <meta property="og:title" content="Gentle intro to type-level recursion in Rust: from zero to Frunk HList sculpting." />
   <meta property="og:site_name" content="BeachApe." />
-  <meta property="og:url" content="https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/" />
+  <meta property="og:url" content="https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/" />
 
   <meta property="og:description" content="Implementing plucking from and shaping of HLists: getting the type signature right was 99% of the work. Here's what I've learnt along the way." />
   
@@ -59,7 +59,7 @@
   
   <meta property="twitter:card" content="summary_large_image" />
   <meta property="twitter:site" content="meta_lloyd" />
-  <meta property="twitter:url" content="https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting" />
+  <meta property="twitter:url" content="https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting" />
   <meta property="twitter:title" content="Gentle intro to type-level recursion in Rust: from zero to Frunk HList sculpting." />
   <meta property="twitter:description" content="Implementing plucking from and shaping of HLists: getting the type signature right was 99% of the work. Here's what I've learnt along the way." />
   
@@ -145,7 +145,7 @@
 
 
 
-<span class="glyphicon glyphicon-calendar"></span> <time datetime="2017-03-05T12:03:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Mar 5<span>th</span>, 2017</time>
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2017-03-12T12:03:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Mar 12<span>th</span>, 2017</time>
         
       </p>
     
@@ -159,7 +159,9 @@
 
 
 <div class="entry-content clearfix" itemprop="articleBody"><blockquote>
-  <p><em>TL;DR</em>: Implementing plucking from and shaping of <code>HList</code>s: getting the type signature and recursive types right was 99% of the work. Here’s what I’ve learnt along the way: what works, and what doesn’t work (and why).</p>
+  <p>Getting the type signature and recursive types right was 99% of the work of implementing plucking from and shaping of <code>HList</code>s.</p>
+
+  <p>Here’s what I’ve learnt along the way: what works, and what doesn’t work (and why).</p>
 </blockquote>
 
 <p>As you may already know, Rust eschews the now-mainstream object-oriented model of programming (e.g. in Java, where behaviour for a type is added to the type/interface definition directly) in favour of a typeclass-like approach (e.g. in Haskell where you can ad-hoc add behaviour to a type separate from the type definition itself).  Both approaches have their merits, and indeed, some languages, such as Scala, allow for a mix of both.</p>
@@ -1262,7 +1264,7 @@
 
 
 
-<span class="glyphicon glyphicon-calendar"></span> <time datetime="2017-03-05T12:03:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Mar 5<span>th</span>, 2017</time>
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2017-03-12T12:03:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Mar 12<span>th</span>, 2017</time>
           
 
 <span class="glyphicon glyphicon-tags"></span>&nbsp;
@@ -1277,7 +1279,7 @@
         
           <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/" data-via="meta_lloyd" data-counturl="https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/" data-via="meta_lloyd" data-counturl="https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="medium"></div>
@@ -1317,7 +1319,7 @@
   
   <div id="recent_posts" class="list-group">
     
-    <a class="list-group-item active" href="/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">Gentle Intro to Type-level Recursion in Rust: From Zero to Frunk HList Sculpting.</a>
+    <a class="list-group-item active" href="/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">Gentle Intro to Type-level Recursion in Rust: From Zero to Frunk HList Sculpting.</a>
     
     <a class="list-group-item " href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric in Rust: What, Why, How?</a>
     
@@ -1414,8 +1416,8 @@
       
         
         var disqus_developer = 1;
-        var disqus_identifier = 'https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/';
-        var disqus_url = 'https://beachape.com/blog/2017/03/05/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/';
+        var disqus_identifier = 'https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/';
+        var disqus_url = 'https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/';
         var disqus_script = 'embed.js';
       
     (function () {
