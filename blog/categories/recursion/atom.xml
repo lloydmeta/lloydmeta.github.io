@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Recursion | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/recursion/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-03-12T02:28:35+09:00</updated>
+  <updated>2017-03-12T02:32:52+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -26,7 +26,7 @@
 
 <p>As you may already know, Rust eschews the now-mainstream object-oriented model of programming (e.g. in Java, where behaviour for a type is added to the type/interface definition directly) in favour of a typeclass-like approach (e.g. in Haskell where you can ad-hoc add behaviour to a type separate from the type definition itself).  Both approaches have their merits, and indeed, some languages, such as Scala, allow for a mix of both.</p>
 
-<p>For those coming from the OOP school of programming, Rust’s system of adding behaviour to types might be daunting to come to grips with. At a glance, it might not be obvious how to get things done, especially when what you want to goes beyond implementing <code>Debug</code> or <code>Eq</code>. When what you want to do has a certain degree of type-level recursiveness, it might be hard to see the light at the end of the tunnel, and the lack of online material covering that sort of thing doesn’t help.</p>
+<p>For those coming from the OOP school of programming, Rust’s system of adding behaviour to types might be daunting to come to grips with. At a glance, it might not be obvious how to get things done, especially when what you want to build goes beyond implementing <code>Debug</code> or <code>Eq</code>. If your abstraction has a certain degree of type-level recursiveness, it might be harder to see the light at the end of the tunnel, and the lack of online material covering that sort of thing doesn’t help.</p>
 
 <p>As a Scala guy with Haskell knowledge, I’m no stranger to typeclasses, but it took me a while and several failed attempts to figure out how to implement the following:</p>
 
