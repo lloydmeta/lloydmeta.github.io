@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Rust | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/rust/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-03-12T02:32:52+09:00</updated>
+  <updated>2017-03-12T10:52:33+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -19,7 +19,7 @@
     <updated>2017-03-12T12:03:00+09:00</updated>
     <id>https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting</id>
     <content type="html"><![CDATA[<blockquote>
-  <p>Getting the type signature and recursive types right was 99% of the work of implementing plucking from and shaping of <code>HList</code>s.</p>
+  <p>Getting the type signature right was 99% of the work of implementing plucking from and shaping of <code>HList</code>s.</p>
 
   <p>Here’s what I’ve learnt along the way: what works, and what doesn’t work (and why).</p>
 </blockquote>
