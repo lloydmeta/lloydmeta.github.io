@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Recursion | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/recursion/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-03-12T12:13:18+09:00</updated>
+  <updated>2017-03-12T12:21:45+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -191,7 +191,7 @@ impl&lt;A: Add<a>&gt; Add&lt;Cup<a>&gt; for Cup<a>
 } } ```
 </code></pre>
 
-<p>Making <code>Cup</code> part of the <code>Add</code> typeclass will allow us to call <code>cup_a + cup_b</code>, which is kind of neat. One thing to take note of here is the <code>Output</code> associated type. Pay attention to the fact that in our implementation of <code>Add</code> for <code>Cup</code>, the type of <code>Output</code> is <code>Cup&lt;&lt; A as Add&lt;A&gt; &gt;::Output&gt;</code>, which means that ultimately, the output of our <code>Add</code>ing of 2 cups will depend on what the <code>Output</code> of <code>Add&lt;A&gt;</code> is.  The <code>&lt; A as Add&lt;A&gt; &gt;</code> part can be read as “summon the <code>Add&lt;A&gt;</code> implementation for the type A” (the compiler will do the actual lookup work here; if one doesn’t exist, your code will fail to compile), and the <code>::Output</code> following it means “retrieve the associated type, Output, from <em>that</em> implementation”. Let this sink in, because it’s important in order for us to move towards the concept of type-level recursion for traits.</p>
+<p>Making <code>Cup</code> part of the <code>Add</code> typeclass will allow us to call <code>cup_a + cup_b</code>, which is kind of neat. One thing to take note of here is the <code>Output</code> associated type. Pay attention to the fact that in our implementation of <code>Add</code> for <code>Cup</code>, the type of <code>Output</code> is <code>Cup&lt;&lt; A as Add&lt;A&gt; &gt;::Output&gt;</code>, which means that ultimately, the output of <code>Add</code>ing of 2 <code>Cup&lt;A&gt;</code>s will depend on what the <code>Output</code> of <code>Add&lt;A&gt;</code> is.  The <code>&lt; A as Add&lt;A&gt; &gt;</code> part can be read as “summon the <code>Add&lt;A&gt;</code> implementation for the type A” (the compiler will do the actual lookup work here; if one doesn’t exist, your code will fail to compile), and the <code>::Output</code> following it means “retrieve the associated type, Output, from <em>that</em> implementation”. Let this sink in, because it’s important in order for us to move towards the concept of type-level recursion for traits.</p>
 
 <p>Here is another way to write the same thing: using <a href="https://doc.rust-lang.org/book/traits.html#where-clause">where clause</a> syntax, so that the restriction goes at the end of the initial type signature in our implementation declaration. This is useful when you have more than 2 or 3 type parameters for your typeclass instance and you have a complex set of restraints. Using <code>where</code> can help cut down on initial noise.</p>
 
