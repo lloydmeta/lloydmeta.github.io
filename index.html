@@ -154,20 +154,20 @@
       </p>
     
     
-      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/" itemprop="url">Gentle Intro to Type-level Recursion in Rust: From Zero to Frunk HList Sculpting.</a></h1>
+      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/" itemprop="url">Gentle Intro to Type-level Recursion in Rust: From Zero to HList Sculpting.</a></h1>
     
   </header>
 
 
   <div class="entry-content clearfix" itemprop="articleBody description"><blockquote>
-  <p>Getting the type signature right was 99% of the work of implementing plucking from and shaping of <code>HList</code>s.</p>
+  <p>Getting the type signature right was 99% of the work in implementing <code>pluck</code> and <code>sculpt</code> for <code>HList</code>s in Frunk.</p>
 
   <p>Here’s what I’ve learnt along the way: what works, and what doesn’t work (and why).</p>
 </blockquote>
 
 <p>As you may already know, Rust eschews the now-mainstream object-oriented model of programming (e.g. in Java, where behaviour for a type is added to the type/interface definition directly) in favour of a typeclass-like approach (e.g. in Haskell where you can ad-hoc add behaviour to a type separate from the type definition itself).  Both approaches have their merits, and indeed, some languages, such as Scala, allow for a mix of both.</p>
 
-<p>For those coming from the OOP school of programming, Rust’s system of adding behaviour to types might be daunting to come to grips with. At a glance, it might not be obvious how to get things done, especially when what you want to build goes beyond implementing <code>Debug</code> or <code>Eq</code>. If your abstraction has a certain degree of type-level recursiveness, it might be harder to see the light at the end of the tunnel, and the lack of online material covering that sort of thing doesn’t help.</p>
+<p>For those coming from the OOP school of programming, Rust’s system of adding behaviour to types might be daunting to come to grips with. At a glance, it might not be obvious how to get things done, especially when what you want to build goes beyond implementing <code>Debug</code> or <code>Eq</code>. If your abstraction has a certain degree of type-level recursiveness, it might be even harder to see the light at the end of the tunnel, and the lack of online material covering that sort of thing doesn’t help.</p>
 
 <p>As a Scala guy with Haskell knowledge, I’m no stranger to typeclasses, but it took me a while and several failed attempts to figure out how to implement the following:</p>
 
@@ -180,7 +180,7 @@
 
 <p><img class="center" src="/images/sculptor-typesig.png" title="'6 type parameters, 1 fills in a type parameter on the trait that is recursive, and a recursive associated type. WTF? '" /></p>
 
-<p>In this post, I’ll give a brief intro of Rust’s trait system and try to work out a mental model for type-level recursion when it comes to writing trait implementations. I will also try to explain how <code>pluck()</code> and <code>sculpt()</code> were written in Frunk, as well as recount some of my failed approaches so you can learn from my mistakes.</p>
+<p>In this post, I’ll briefly introduce Rust’s trait system and present my mental model for writing trait implementations that deal with type-level recursion. To do so, I will go through how <code>pluck()</code> and <code>sculpt()</code> were written in Frunk, as well as recount some of my failed approaches so you can learn from my mistakes.</p>
 
 <p>Hopefully, by the end of it, you’ll be able to look at signatures like the one above and not go “WTF”, but rather, “FTW”.</p>
 
@@ -751,7 +751,7 @@
   
   <div id="recent_posts" class="list-group">
     
-    <a class="list-group-item " href="/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">Gentle Intro to Type-level Recursion in Rust: From Zero to Frunk HList Sculpting.</a>
+    <a class="list-group-item " href="/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">Gentle Intro to Type-level Recursion in Rust: From Zero to HList Sculpting.</a>
     
     <a class="list-group-item " href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric in Rust: What, Why, How?</a>
     

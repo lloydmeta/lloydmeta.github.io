@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Type-level Programming | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/type-level-programming/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-03-12T10:52:33+09:00</updated>
+  <updated>2017-03-12T12:13:18+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -14,19 +14,19 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Gentle Intro to Type-level Recursion in Rust: From Zero to Frunk HList Sculpting.]]></title>
+    <title type="html"><![CDATA[Gentle Intro to Type-level Recursion in Rust: From Zero to HList Sculpting.]]></title>
     <link href="https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/"/>
     <updated>2017-03-12T12:03:00+09:00</updated>
     <id>https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting</id>
     <content type="html"><![CDATA[<blockquote>
-  <p>Getting the type signature right was 99% of the work of implementing plucking from and shaping of <code>HList</code>s.</p>
+  <p>Getting the type signature right was 99% of the work in implementing <code>pluck</code> and <code>sculpt</code> for <code>HList</code>s in Frunk.</p>
 
   <p>Here’s what I’ve learnt along the way: what works, and what doesn’t work (and why).</p>
 </blockquote>
 
 <p>As you may already know, Rust eschews the now-mainstream object-oriented model of programming (e.g. in Java, where behaviour for a type is added to the type/interface definition directly) in favour of a typeclass-like approach (e.g. in Haskell where you can ad-hoc add behaviour to a type separate from the type definition itself).  Both approaches have their merits, and indeed, some languages, such as Scala, allow for a mix of both.</p>
 
-<p>For those coming from the OOP school of programming, Rust’s system of adding behaviour to types might be daunting to come to grips with. At a glance, it might not be obvious how to get things done, especially when what you want to build goes beyond implementing <code>Debug</code> or <code>Eq</code>. If your abstraction has a certain degree of type-level recursiveness, it might be harder to see the light at the end of the tunnel, and the lack of online material covering that sort of thing doesn’t help.</p>
+<p>For those coming from the OOP school of programming, Rust’s system of adding behaviour to types might be daunting to come to grips with. At a glance, it might not be obvious how to get things done, especially when what you want to build goes beyond implementing <code>Debug</code> or <code>Eq</code>. If your abstraction has a certain degree of type-level recursiveness, it might be even harder to see the light at the end of the tunnel, and the lack of online material covering that sort of thing doesn’t help.</p>
 
 <p>As a Scala guy with Haskell knowledge, I’m no stranger to typeclasses, but it took me a while and several failed attempts to figure out how to implement the following:</p>
 
@@ -39,7 +39,7 @@
 
 <p><img class="center" src="/images/sculptor-typesig.png" title="‘6 type parameters, 1 fills in a type parameter on the trait that is recursive, and a recursive associated type. WTF? ‘" ></p>
 
-<p>In this post, I’ll give a brief intro of Rust’s trait system and try to work out a mental model for type-level recursion when it comes to writing trait implementations. I will also try to explain how <code>pluck()</code> and <code>sculpt()</code> were written in Frunk, as well as recount some of my failed approaches so you can learn from my mistakes.</p>
+<p>In this post, I’ll briefly introduce Rust’s trait system and present my mental model for writing trait implementations that deal with type-level recursion. To do so, I will go through how <code>pluck()</code> and <code>sculpt()</code> were written in Frunk, as well as recount some of my failed approaches so you can learn from my mistakes.</p>
 
 <p>Hopefully, by the end of it, you’ll be able to look at signatures like the one above and not go “WTF”, but rather, “FTW”.</p>
 
@@ -803,13 +803,13 @@ fn sculpt(self) -&gt; (HCons&lt;THead, TTail&gt;, Self::Remainder) {
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>One last thing: the <code>Plucker</code> and <code>Sculptor</code> things aren’t just cute exercises; <code>Pluck</code> has already paid dividends when modeling <code>Sculptor</code>, and <code>Sculptor</code>, well, it’s instrumental in letting us do cool stuff like convert between structs with different <a href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric implementations</a> (well, to an extent, anyways), and other, even cooler generic functions. We’ll talk more about this in another post.</p>
+<p>One last thing: the <code>Plucker</code> and <code>Sculptor</code> things aren’t just cute exercises; <code>Plucker</code> has already paid dividends when modeling <code>Sculptor</code>, and <code>Sculptor</code>, well, it’s instrumental in letting us do cool stuff like convert between structs with different <a href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric implementations</a> (to an extent, anyways), and other, even cooler generic functions. We’ll talk more about this in another post.</p>
 
-<p>If you do a search, you’ll find a number of articles on the Interwebs that cover Rust’s trait system, but not many that go deep into how to use it when you need to do non-trivial type-level recursion in your trait implementations (though how often this need arises is … another topic altogether). I also find that people generally don’t talk about what they did <em>wrong</em>, so I wanted to share my failed approaches as well.</p>
+<p>If you do a search, you’ll find a number of articles on the Interwebs that introduce Rust’s trait system, but not many that go deep into how to use it when you need to do non-trivial type-level recursion in your trait implementations (though how often this need arises is … another topic altogether). I also find that people generally don’t talk about what they did <em>wrong</em>, so I wanted to share my failed approaches as well.</p>
 
-<p>The goal of this post is to hopefully help others who are curious, or have a need to do something similar, as well as to leave notes for myself in case I ever need to revisit this in the future. The mental models for breaking down the problem, defining types, and understanding what’s going on might not work for everyone, but they’ve helped me.</p>
+<p>The goal of this post is to hopefully help others who are curious, or have a need to do something similar, as well as to leave notes for myself in case I ever need to revisit this in the future. The mental models for breaking down the problem, defining types, and building up to an implementation might not work for everyone, but they’ve helped me.</p>
 
-<p>Personally, I think it’s awesome that a close-to-the-metal systems programming language like Rust has a powerful enough type-system to allow for these kinds of techniques. As you can see, we’ve managed to build powerful, reusable abstractions without doing anything unsafe, and we’ve exposed an API that requires just the bare minimum of type annotations; Rust infers the rest :) In any case, I hope this post was useful, and as usual please chime in with questions and suggestions.</p>
+<p>Personally, I think it’s awesome that a close-to-the-metal systems programming language like Rust has a powerful enough compiler and type-system to allow for these kinds of techniques. As you can see, we’ve managed to build powerful, reusable abstractions without doing anything unsafe, and we’ve exposed an API that requires just the bare minimum of type annotations; Rust infers the rest :) In any case, I hope this post was useful, and as usual, please chime in with questions and suggestions.</p>
 
 <h3 id="credit">Credit</h3>
 <ol>
