@@ -205,7 +205,7 @@
       </li>
     </ul>
   </li>
-  <li><a href="#adding-frunk-to-your-project" id="markdown-toc-adding-frunk-to-your-project">Adding Frunk to your project</a></li>
+  <li><a href="#what-the-frunk" id="markdown-toc-what-the-frunk">What the Frunk?</a></li>
   <li><a href="#plucking-from-hlists" id="markdown-toc-plucking-from-hlists">Plucking from HLists</a>    <ul>
       <li><a href="#implementation-intuition" id="markdown-toc-implementation-intuition">Implementation intuition</a></li>
       <li><a href="#first-attempt" id="markdown-toc-first-attempt">First attempt</a></li>
@@ -486,7 +486,7 @@
 
 <p>This may not make much sense at the moment, but hopefully it will soon.</p>
 
-<h2 id="adding-frunk-to-your-project">Adding Frunk to your project</h2>
+<h2 id="what-the-frunk">What the Frunk?</h2>
 
 <p>Much of this post will make use of <a href="https://github.com/lloydmeta/frunk">Frunk’s</a> types (e.g. <code>HCons</code>, <code>HNil</code>), methods, macros (esp. for describing macro types via the <code>Hlist!</code> <a href="https://beachape.com/frunk/frunk_core/macro.Hlist.html">type macro</a>), and terminology.</p>
 
@@ -675,7 +675,7 @@
 </span><span class="line"><span class="k">impl</span><span class="w"> </span><span class="o">&lt;</span><span class="n">Target</span><span class="p">,</span><span class="w"> </span><span class="n">Head</span><span class="p">,</span><span class="w"> </span><span class="n">Tail</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Plucker</span><span class="o">&lt;</span><span class="n">Target</span><span class="o">&gt;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">Head</span><span class="p">,</span><span class="w"> </span><span class="n">Tail</span><span class="o">&gt;</span><span class="w"></span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
-<p>The <code>Plucker&lt;Target&gt;</code> part is exactly the same, and sure, we’ve used <code>Target</code> instead of <code>Head</code> in the <code>for HCons&lt;..&gt;</code> part in the first case, but that simply using different type parameters isn’t enough to distinguish between the two.</p>
+<p>The <code>Plucker&lt;Target&gt;</code> part is exactly the same, and sure, we’ve used <code>Target</code> instead of <code>Head</code> in the <code>for HCons&lt;..&gt;</code> part in the first case, but simply using different type parameters isn’t enough to distinguish between the two.</p>
 
 <p>Furthermore, note that you can’t use the lack of constraints (or <code>where</code> clauses) to distinguish between implementations either. This is because the current lack of an implementation for a given type parameter doesn’t mean that it can’t be added later (see <a href="http://stackoverflow.com/a/39161143/1814775">this Stackoverflow questions</a> for more details).</p>
 
