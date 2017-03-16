@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Recursion | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/recursion/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-03-16T14:04:49+09:00</updated>
+  <updated>2017-03-17T00:20:07+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -656,7 +656,7 @@ let (reshaped, _) = (Hlist![char], _) = h.sculpt();
 <p>Note that in 1. we are making use of <code>pluck()</code>, and there is a recursive call to <code>sculpt()</code> in 2. Since there is a recursive call to <code>sculpt()</code>, it means that we need an exit-type as well. Intuitively, we’ll pencil one in:</p>
 
 <blockquote>
-  <p>When the target HList is empty (HNil), return a tuple <code>(HNil, </code>SourceHList<code>)</code></p>
+  <p>When the target HList is empty (HNil), return a tuple <code>(HNil, SourceHList)</code></p>
 </blockquote>
 
 <h3 id="first-attempt-1">First attempt</h3>
