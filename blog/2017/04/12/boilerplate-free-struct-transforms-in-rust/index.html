@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Boilerplate-free Struct Transforms in Rust. - BeachApe.</title>
+  <meta name="author" content="Lloyd">
+
+  <meta name="description" content="Introducing a DRY way of converting between structs with mis-matched fields by building on top of LabelledGeneric and HList.">
+  
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:widgets:csp" content="on">
+
+  
+  <link rel="canonical" href="https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust">
+  <link href="/favicon.png" type="image/png" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="BeachApe." type="application/atom+xml">
+
+  <link href="/assets/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<link href="/stylesheets/theme.min.css" rel="stylesheet" type="text/css">
+
+
+  
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+  
+   <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-24087840-1', 'auto');
+    ga('send', 'pageview');
+
+  </script>
+
+
+
+  <!-- Social media content metadata -->
+  
+  <meta property="fb:app_id" content="1078686448895325" />
+  <meta property="og:title" content="Boilerplate-free Struct transforms in Rust." />
+  <meta property="og:site_name" content="BeachApe." />
+  <meta property="og:url" content="https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/" />
+
+  <meta property="og:description" content="Introducing a DRY way of converting between structs with mis-matched fields by building on top of LabelledGeneric and HList." />
+  
+  <meta property="og:author" content="https://www.facebook.com/BEACHAPE-221821961171501/" />
+  <meta property="og:image" content="https://beachape.com/images/optimus-prime.jpg" />
+  
+  
+  
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:site" content="meta_lloyd" />
+  <meta property="twitter:url" content="https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust" />
+  <meta property="twitter:title" content="Boilerplate-free Struct transforms in Rust." />
+  <meta property="twitter:description" content="Introducing a DRY way of converting between structs with mis-matched fields by building on top of LabelledGeneric and HList." />
+  
+  <meta property="twitter:creator" content="meta_lloyd" />
+  <meta property="twitter:image:src" content="https://beachape.com/images/optimus-prime.jpg" />
+  
+  
+
+</head>
+
+  <body   >
+    <div id="wrap">
+      <header role="banner">
+        <nav class="navbar navbar-default" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">BeachApe.</a>
+        </div>
+
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="active">
+                    <a rel="index" href="/">Blog</a>
+                </li>
+                <li >
+                    <a href="/blog/archives">Archives</a>
+                </li>
+                <li >
+                    <a href="/about">About</a>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a class="subscribe-rss" href="/atom.xml" title="subscribe via RSS">
+                        <span class="visible-xs">RSS</span>
+                        <img class="hidden-xs" src="/images/rss.png" alt="RSS">
+                    </a>
+                </li>
+                
+            </ul>
+            
+                <form class="search navbar-form navbar-right" action="https://google.com/search" method="GET">
+                    <!--<input type="hidden" name="q" value="site:beachape.com">-->
+                    <input type="hidden" name="sitesearch" value="beachape.com" />
+                    <div class="form-group">
+                        <input class="form-control" type="text" name="q" placeholder="Search">
+                    </div>
+                </form>
+            
+        </div>
+    </div>
+</nav>
+
+
+      </header>
+      <div id="main" class="container">
+        <div id="content">
+          <div class="row">
+  <div class="page-content col-md-9" itemscope itemtype="http://schema.org/Blog">
+    <meta itemprop="name" content="BeachApe." />
+    <meta itemprop="description" content="A collection of findings, snippets and thoughts. My name is Lloyd, a software engineer. In another life, I was a biomedical engineer." />
+    <meta itemprop="url" content="https://beachape.com" />
+    <article class="hentry" role="article" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+      
+  <header class="page-header">
+    
+      <p class="meta text-muted text-uppercase">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2017-04-12T12:45:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Apr 12<span>th</span>, 2017</time>
+        
+      </p>
+    
+    
+    <h1 class="entry-title" itemprop="name headline">
+        Boilerplate-free Struct Transforms in Rust.
+        
+    </h1>
+    
+  </header>
+
+
+<div class="entry-content clearfix" itemprop="articleBody"><p>The last several posts have introduced a number of abstractions, namely HList, Generic, LabelledGeneric, as well as <code>pluck()</code> and <code>sculpt()</code>. Although each of those have impressive party tricks of their own, I’d like to share how you can use them to write a reuseable, generic function that handles converting between structs with mis-matched fields and thus have different <code>LabelledGeneric</code> representations.</p>
+
+<p><img class="center" src="/images/optimus-prime.gif" title="'All together now'" /></p>
+
+<p>Unlike the last post, this one will be relatively light on recursion and mind-bending type-level stuff; it’s time to sit back and enjoy the fruits of our labour.</p>
+
+<!-- more -->
+
+<h2 id="adding-frunk-to-your-project">Adding Frunk to your project</h2>
+
+<p>Much of this post will make use of <a href="https://github.com/lloydmeta/frunk">Frunk’s</a> types (e.g. <code>HCons</code>, <code>HNil</code>), methods, macros (esp. for describing macro types via the <code>Hlist!</code> <a href="https://beachape.com/frunk/frunk_core/macro.Hlist.html">type macro</a>), and terminology.</p>
+
+<p>It might be easier to follow along if you add Frunk to your project and play around with it. <a href="https://github.com/lloydmeta/frunk">Frunk</a> is published to <a href="//crates.io/crates/frunk">Crates.io</a>, so to add it your list of dependencies, simply put this in your <code>Cargo.toml</code>:</p>
+
+<p><a href="https://crates.io/crates/frunk"><img src="https://img.shields.io/crates/v/frunk.svg" alt="Crates.io" /></a></p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="p">[</span><span class="n">dependencies</span><span class="p">]</span><span class="w"></span>
+</span><span class="line"><span class="n">frunk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;${latest_version}&quot;</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Alternatively, take a look at the <a href="https://beachape.com/frunk">published Rustdocs</a>.</p>
+
+<h2 id="boilerplate-free-conversions-between-structs">Boilerplate-free conversions between Structs</h2>
+
+<p>Suppose we have a bunch of structs that are similar-ish in terms of their data but ultimately, not necessarily
+exactly the same. This means we can’t just use the normal <code>LabelledGeneric</code> <code>convert_from</code> method to convert between them.</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="cp">#[derive(LabelledGeneric)]</span><span class="w"></span>
+</span><span class="line"><span class="k">struct</span> <span class="nc">UserFromDb</span><span class="o">&lt;</span><span class="na">&#39;a</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">id</span><span class="o">:</span><span class="w"> </span><span class="kt">u64</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">email</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="kt">u32</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">pw_hash</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">is_admin</span><span class="o">:</span><span class="w"> </span><span class="kt">bool</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">created_at</span><span class="o">:</span><span class="w"> </span><span class="kt">i64</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// Holds User data for rendering in a front-end view</span>
+</span><span class="line"><span class="c1">// or for sending over an API. Striped of any sensitive</span>
+</span><span class="line"><span class="c1">// information</span>
+</span><span class="line"><span class="cp">#[derive(LabelledGeneric)]</span><span class="w"></span>
+</span><span class="line"><span class="k">struct</span> <span class="nc">PresentableUser</span><span class="o">&lt;</span><span class="na">&#39;a</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="kt">u32</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">created_at</span><span class="o">:</span><span class="w"> </span><span class="kt">i64</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// Holds data for sending a User over our internal API</span>
+</span><span class="line"><span class="cp">#[derive(LabelledGeneric)]</span><span class="w"></span>
+</span><span class="line"><span class="k">struct</span> <span class="nc">InternalApiUser</span><span class="o">&lt;</span><span class="na">&#39;a</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">id</span><span class="o">:</span><span class="w"> </span><span class="kt">u64</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="kt">u32</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">email</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">is_admin</span><span class="o">:</span><span class="w"> </span><span class="kt">bool</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">created_at</span><span class="o">:</span><span class="w"> </span><span class="kt">i64</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>In our example, <code>PresentableUser</code> and <code>InternalApiUser</code> structs have fields that are subsets of the fields in <code>UserFromDb</code>, and not in the same order either. The scenario is that <code>UserFromDb</code> is a struct that we get from reading our persistence layer, and the other 2 are types that we use in our application for business logic.</p>
+
+<p>Assuming a flow where we want to be able to go from <code>UserFromDb</code> to either <code>PresentableUser</code> or <code>InternalApiUser</code>, the idea is that we don’t want be holding on to sensitive data like <code>pw_hash</code> when we don’t need to, thus lowering the risk of accidentally leaking said data (e.g. serialising it by accident, or by rendering it in debug messages, etc).</p>
+
+<p>While we could go about writing <code>From</code>s by hand for each of these, and for every other time a similar situation arises, that’s quite a lot of boilerplate to write and maintain. Thankfully, we can make use of Frunk’s <code>LabelledGeneric</code> and <code>Sculptor</code> to write a single, reuseable generic function.</p>
+
+<p>Note, for a review of:</p>
+
+<ul>
+  <li><code>LabelledGeneric</code>, see <a href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">this post</a></li>
+  <li><code>Sculptor</code>, see <a href="/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">this post</a></li>
+</ul>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="sd">/// Converts from another type A into B assuming that A and B have labelled generic representations</span>
+</span><span class="line"><span class="sd">/// that can be sculpted into each other.</span>
+</span><span class="line"><span class="sd">///</span>
+</span><span class="line"><span class="sd">/// Note that this method tosses away the &quot;remainder&quot; of the sculpted representation.</span>
+</span><span class="line"><span class="k">fn</span> <span class="nf">transform_from</span><span class="o">&lt;</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="n">Indices</span><span class="o">&gt;</span><span class="p">(</span><span class="n">a</span><span class="o">:</span><span class="w"> </span><span class="n">A</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">B</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">A</span><span class="o">:</span><span class="w"> </span><span class="n">LabelledGeneric</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">          </span><span class="n">B</span><span class="o">:</span><span class="w"> </span><span class="n">LabelledGeneric</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="c1">// The labelled representation of A must be sculpt-able into the labelled representation of Self</span>
+</span><span class="line"><span class="w">          </span><span class="o">&lt;</span><span class="n">A</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">LabelledGeneric</span><span class="o">&gt;::</span><span class="n">Repr</span><span class="o">:</span><span class="w"> </span><span class="n">Sculptor</span><span class="o">&lt;&lt;</span><span class="n">B</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">LabelledGeneric</span><span class="o">&gt;::</span><span class="n">Repr</span><span class="p">,</span><span class="w"> </span><span class="n">Indices</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="c1">// Turn A into its labelled generic representation</span>
+</span><span class="line"><span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">a_gen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">A</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">LabelledGeneric</span><span class="o">&gt;::</span><span class="n">into</span><span class="p">(</span><span class="n">a</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="c1">// Sculpt the generic labelled representation of A into the labelled generic representation</span>
+</span><span class="line"><span class="w">    </span><span class="c1">// of B. We ignore the remainder.</span>
+</span><span class="line"><span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="p">(</span><span class="n">b_gen</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="o">&lt;</span><span class="n">B</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">LabelledGeneric</span><span class="o">&gt;::</span><span class="n">Repr</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a_gen</span><span class="p">.</span><span class="n">sculpt</span><span class="p">();</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="c1">// Turn the lablled generic representation of B into B</span>
+</span><span class="line"><span class="w">    </span><span class="o">&lt;</span><span class="n">B</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">LabelledGeneric</span><span class="o">&gt;::</span><span class="n">from</span><span class="p">(</span><span class="n">b_gen</span><span class="p">)</span><span class="w"></span>
+</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Not bad. The body of the function is literally 3 lines long :) Now we can do this:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">u_db</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">UserFromDb</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">id</span><span class="o">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Joe&quot;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Blow&quot;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">email</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;joe@gmail.com&quot;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">pw_hash</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;asd35235adsf&quot;</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">is_admin</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="w">    </span><span class="n">created_at</span><span class="o">:</span><span class="w"> </span><span class="mi">12345</span><span class="p">,</span><span class="w"></span>
+</span><span class="line"><span class="p">};</span><span class="w"></span>
+</span><span class="line">
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">p_user</span><span class="o">:</span><span class="w"> </span><span class="n">PresentableUser</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">transform_from</span><span class="p">(</span><span class="n">udb</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="c1">// or</span>
+</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">i_user</span><span class="o">:</span><span class="w"> </span><span class="n">InternalApiUser</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">transform_from</span><span class="p">(</span><span class="n">udb</span><span class="p">);</span><span class="w"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>In actuality, Frunk already <a href="https://beachape.com/frunk/frunk_core/labelled/fn.transform_from.html">ships with this function</a> so you can use it out of the box.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Often times, you’ll hear that heterogeneous lists enable developers to write reuseable generic functions because they abstract over arity and types, and it might not be obvious exactly what that means on a practical level. The example shown in this post just scratches the surface of what is made possible through <code>HList</code> and <code>LabelledGeneric</code>, and there are definitely more creative usages out there, such as building of boilerplate-free (e.g. JSON) codecs (hint: look to Haskell and Scala libs for more).</p>
+
+<p>As usual, please give it a spin and chime in with any questions, corrections, and suggestions !</p>
+</div>
+
+
+      <footer>
+        <p class="meta text-muted">
+          
+  
+
+<span class="glyphicon glyphicon-user"></span> <span class="byline author vcard" itemprop="author" itemscope itemtype="http://schema.org/Person">Posted by <span class="fn" itemprop="name">Lloyd</span></span>
+
+          
+
+
+
+
+
+
+
+
+
+
+
+
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2017-04-12T12:45:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Apr 12<span>th</span>, 2017</time>
+          
+
+<span class="glyphicon glyphicon-tags"></span>&nbsp;
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/frunk/'>Frunk</a>, <a class='category' href='/blog/categories/hlist/'>HList</a>, <a class='category' href='/blog/categories/hlist-sculpting/'>HList sculpting</a>, <a class='category' href='/blog/categories/labelledgeneric/'>LabelledGeneric</a>, <a class='category' href='/blog/categories/rust/'>Rust</a>, <a class='category' href='/blog/categories/boilerplate-free/'>boilerplate-free</a>, <a class='category' href='/blog/categories/generic-programming/'>generic programming</a>, <a class='category' href='/blog/categories/generic-programming/'>generic programming</a>
+  
+</span>
+
+
+        </p>
+        
+          <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/" data-via="meta_lloyd" data-counturl="https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="320" data-show-faces="false"></div>
+  
+</div>
+
+        
+        
+          <ul class="meta text-muted pager">
+            
+            <li class="previous"><a href="/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/" title="Previous Post: Gentle intro to type-level recursion in Rust: from zero to HList sculpting.">&laquo; Gentle intro to type-level recursion in Rust: from zero to HList sculpting.</a></li>
+            
+            
+          </ul>
+        
+      </footer>
+    </article>
+    
+      <section>
+        <h1>Comments</h1>
+        <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+      </section>
+    
+  </div>
+
+  
+  <aside class="sidebar col-md-3">
+    
+      <section class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Recent Posts</h3>
+  </div>
+  
+  <div id="recent_posts" class="list-group">
+    
+    <a class="list-group-item active" href="/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/">Boilerplate-free Struct Transforms in Rust.</a>
+    
+    <a class="list-group-item " href="/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">Gentle Intro to Type-level Recursion in Rust: From Zero to HList Sculpting.</a>
+    
+    <a class="list-group-item " href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric in Rust: What, Why, How?</a>
+    
+    <a class="list-group-item " href="/blog/2017/02/04/rust-generic-not-generics/">Rust Generic (Not Generics)</a>
+    
+    <a class="list-group-item " href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/">Rust Performance Testing on Travis CI</a>
+    
+  </div>
+</section>
+
+<script src="/javascripts/libs/jquery/jquery-2.0.3.min.js"></script>
+<section class="panel panel-default clearfix">
+  <div class="panel-heading">
+      <h3 class="panel-title">GitHub Repos</h3>
+  </div>
+  <div class="list-group" id="gh_repos">
+    <p class="loading">Status updating...</p>
+  </div>
+  
+    <div class="gh-profile-link pull-right text-muted">
+      <a href="https://github.com/lloydmeta">@lloydmeta</a> on GitHub
+    </div>
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'lloydmeta',
+            count: 5,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+<section>
+    <h1>Twitter</h1>
+    <a class="twitter-timeline" href="https://twitter.com/meta_Lloyd" data-widget-id="423278387365302272">Tweets by @meta_Lloyd</a>
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
+    </script>
+</section>
+
+
+
+
+
+<section>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- sidebar -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-1443957470904968"
+     data-ad-slot="4002731536"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+</section>
+
+    
+  </aside>
+  
+</div>
+
+        </div>
+      </div>
+    </div>
+    <footer role="contentinfo"><div class="container">
+    <p class="text-muted credits">
+  Copyright &copy; 2017 - Lloyd<br>
+  <small>
+      <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>,
+      <span class="credit">customized with <a href="https://github.com/kAworu/octostrap3">octostrap3</a></span>.
+  </small>
+</p>
+
+</div>
+</footer>
+    
+
+<script type="text/javascript">
+      var disqus_shortname = 'beachape';
+      
+        
+        var disqus_developer = 1;
+        var disqus_identifier = 'https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/';
+        var disqus_url = 'https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+<script src="/assets/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="/javascripts/modernizr-2.0.js"></script>
+
+
+  </body>
+</html>

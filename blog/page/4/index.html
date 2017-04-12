@@ -147,6 +147,60 @@
 
 
 
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2013-02-19T17:44:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Feb 19<span>th</span>, 2013</time>
+        
+      </p>
+    
+    
+      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2013/02/19/padrino-with-resque-web-ui/" itemprop="url">Padrino With Resque-web UI</a></h1>
+    
+  </header>
+
+
+  <div class="entry-content clearfix" itemprop="articleBody description"><p>Finally got a chance to play around with Padrino last week to build a <a href="https://github.com/lloydmeta/push_to_devices">Push to Devices notification server</a>, but ran into a bit of an issue trying to get Resque-web / Resque server UI to show up.</p>
+
+<p>Finally ran into <a href="http://d.hatena.ne.jp/hiro_nemu/20120809/1344476207">this great blog entry</a>. It’s written in Japanese so I decided to create a short version in English here in case anyone else runs into the same issue</p>
+
+<p>If you already have the following:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span>config.ru</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="c1"># snip</span>
+</span><span class="line"><span class="n">run</span> <span class="no">Rack</span><span class="o">::</span><span class="no">URLMap</span><span class="o">.</span><span class="n">new</span> <span class="p">\</span>
+</span><span class="line">  <span class="s2">&quot;/&quot;</span>       <span class="o">=&gt;</span> <span class="no">Padrino</span><span class="o">.</span><span class="n">application</span><span class="p">,</span>
+</span><span class="line">  <span class="s2">&quot;/resque&quot;</span> <span class="o">=&gt;</span> <span class="no">Resque</span><span class="o">::</span><span class="no">Server</span><span class="o">.</span><span class="n">new</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+<p>in your <code>config.ru</code> and yet don’t see anything when you hit /resque on your local environment, run your server with</p>
+
+<p><code>$rackup -p 3000</code></p>
+</div>
+  
+  
+
+
+        </article>
+      
+      
+        <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+          
+  <header class="page-header">
+    
+      <p class="meta text-muted text-uppercase">
+        
+
+
+
+
+
+
+
+
+
+
+
+
 <span class="glyphicon glyphicon-calendar"></span> <time datetime="2013-02-04T12:31:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Feb 4<span>th</span>, 2013</time>
         
       </p>
@@ -243,6 +297,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/">Boilerplate-free Struct Transforms in Rust.</a>
+    
     <a class="list-group-item " href="/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">Gentle Intro to Type-level Recursion in Rust: From Zero to HList Sculpting.</a>
     
     <a class="list-group-item " href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric in Rust: What, Why, How?</a>
@@ -250,8 +306,6 @@
     <a class="list-group-item " href="/blog/2017/02/04/rust-generic-not-generics/">Rust Generic (Not Generics)</a>
     
     <a class="list-group-item " href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/">Rust Performance Testing on Travis CI</a>
-    
-    <a class="list-group-item " href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Accumulating Results in Rust With Validated</a>
     
   </div>
 </section>

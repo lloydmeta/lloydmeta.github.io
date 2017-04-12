@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Hlist | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/hlist/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-03-17T00:20:07+09:00</updated>
+  <updated>2017-04-12T12:48:04+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -203,7 +203,7 @@ There isn’t a whole lot different to using <code>LabelledGeneric</code> vs usi
   <li>Instead of calling <code>convert_from</code>, call <code>labelled_convert_from</code></li>
 </ol>
 
-<p>These 2 changes buy you a lot more type-safety at compile time, with zero boilerplate. By the way, if you’d like the compiler to automatically “align”, the generic representations so that you <em>could</em> instantiate a <code>JumbledUser</code> from a <code>NewUser</code>, then stay tuned for a later post ;)</p>
+<p>These 2 changes buy you a lot more type-safety at compile time, with zero boilerplate. By the way, if you’d like the compiler to automatically “align”, the generic representations so that you <em>could</em> instantiate a <code>JumbledUser</code> from a <code>NewUser</code>, then stay tuned for a <a href="/blog/2017/03/13/boilerplate-free-struct-transforms-in-rust/">later post</a> ;)</p>
 
 <p>The tl;dr version of how this works is that deriving by <code>LabelledGeneric</code>, we make the struct an instance of the <code>LabelledGeneric</code> typeclass.  This typeclass is almost identical to the <code>Generic</code> typeclass, but the <code>derive</code> does something a bit different with the generic representation of the struct: it isn’t just an <code>HList</code> wrapping naked values.</p>
 

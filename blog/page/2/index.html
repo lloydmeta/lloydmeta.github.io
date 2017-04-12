@@ -147,6 +147,52 @@
 
 
 
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2016-03-05T00:30:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Mar 5<span>th</span>, 2016</time>
+        
+      </p>
+    
+    
+      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2016/03/05/opencv-sbt-plugin/" itemprop="url">OpenCV SBT Plugin</a></h1>
+    
+  </header>
+
+
+  <div class="entry-content clearfix" itemprop="articleBody description"><p>OpenCV is arguably the defacto free, open-source computer vision library, but setting it up for usage in a JVM project can be hard because OpenCV itself is written in C++, so there are a bunch of system-dependent things that you need to download/compile/install before you can use it.</p>
+
+<p><a href="https://github.com/bytedeco/javacv">JavaCV</a>, written by <a href="http://bytedeco.org/">Bytedeco</a> is a library that makes it more bearable to use OpenCV from JVM projects by providing a bunch of wrapper classes and logic around OpenCV (there’s a lot more to it, see their page for details).</p>
+
+<p>Still, because JavaCV depends on <a href="https://github.com/bytedeco/javacpp-presets">JavaCPP</a> for common and OpenCV C++ wrappers, and JavaCPP requires you to set your target platform (what platform you want to run on), I thought getting started could be easier still.</p>
+
+<p></div>
+  
+  
+    <footer>
+      <a class="btn btn-default" href="/blog/2016/03/05/opencv-sbt-plugin/">Read on &rarr;</a>
+    </footer>
+  
+
+
+        </article>
+      
+      
+        <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+          
+  <header class="page-header">
+    
+      <p class="meta text-muted text-uppercase">
+        
+
+
+
+
+
+
+
+
+
+
+
+
 <span class="glyphicon glyphicon-calendar"></span> <time datetime="2015-07-25T20:50:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Jul 25<span>th</span>, 2015</time>
         
       </p>
@@ -624,51 +670,6 @@
 
         </article>
       
-      
-        <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-          
-  <header class="page-header">
-    
-      <p class="meta text-muted text-uppercase">
-        
-
-
-
-
-
-
-
-
-
-
-
-
-<span class="glyphicon glyphicon-calendar"></span> <time datetime="2013-09-19T09:16:00+09:00"  data-updated="true" itemprop="datePublished dateCreated">Sep 19<span>th</span>, 2013</time>
-        
-      </p>
-    
-    
-      <h1 class="entry-title" itemprop="name headline"><a href="/blog/2013/09/19/schwatcher-v0-dot-0-3-released/" itemprop="url">Schwatcher v0.0.3 Released</a></h1>
-    
-  </header>
-
-
-  <div class="entry-content clearfix" itemprop="articleBody description"><p>Version 0.0.3 of Schwatcher upgrades the Akka library used by the plugin to 2.2.1 so that devs already using Akka 2.2.x are able to use this library.</p>
-
-<p>Those upgrading to 0.0.3 of Schwatcher who aren’t already using Akka 2.2.x should read the <a href="http://doc.akka.io/docs/akka/current/project/migration-guide-2.1.x-2.2.x.html">2.1.x to 2.2.x Akka migration guide</a> to make sure their projects don’t break.</p>
-
-<p>Relevent info:</p>
-
-<ul>
-  <li><a href="https://github.com/lloydmeta/schwatcher">Schwatcher Github repo</a></li>
-</ul>
-</div>
-  
-  
-
-
-        </article>
-      
     </div>
 
     <ul class="pager">
@@ -692,6 +693,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/">Boilerplate-free Struct Transforms in Rust.</a>
+    
     <a class="list-group-item " href="/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">Gentle Intro to Type-level Recursion in Rust: From Zero to HList Sculpting.</a>
     
     <a class="list-group-item " href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric in Rust: What, Why, How?</a>
@@ -699,8 +702,6 @@
     <a class="list-group-item " href="/blog/2017/02/04/rust-generic-not-generics/">Rust Generic (Not Generics)</a>
     
     <a class="list-group-item " href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/">Rust Performance Testing on Travis CI</a>
-    
-    <a class="list-group-item " href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">Accumulating Results in Rust With Validated</a>
     
   </div>
 </section>

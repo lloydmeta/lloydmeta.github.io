@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Frunk | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/frunk/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-03-17T00:20:07+09:00</updated>
+  <updated>2017-04-12T12:48:04+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -12,6 +12,138 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Boilerplate-free Struct Transforms in Rust.]]></title>
+    <link href="https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/"/>
+    <updated>2017-04-12T12:45:00+09:00</updated>
+    <id>https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust</id>
+    <content type="html"><![CDATA[<p>The last several posts have introduced a number of abstractions, namely HList, Generic, LabelledGeneric, as well as <code>pluck()</code> and <code>sculpt()</code>. Although each of those have impressive party tricks of their own, I’d like to share how you can use them to write a reuseable, generic function that handles converting between structs with mis-matched fields and thus have different <code>LabelledGeneric</code> representations.</p>
+
+<p><img class="center" src="/images/optimus-prime.gif" title="‘All together now’" ></p>
+
+<p>Unlike the last post, this one will be relatively light on recursion and mind-bending type-level stuff; it’s time to sit back and enjoy the fruits of our labour.</p>
+
+<!-- more -->
+
+<h2 id="adding-frunk-to-your-project">Adding Frunk to your project</h2>
+
+<p>Much of this post will make use of <a href="https://github.com/lloydmeta/frunk">Frunk’s</a> types (e.g. <code>HCons</code>, <code>HNil</code>), methods, macros (esp. for describing macro types via the <code>Hlist!</code> <a href="https://beachape.com/frunk/frunk_core/macro.Hlist.html">type macro</a>), and terminology.</p>
+
+<p>It might be easier to follow along if you add Frunk to your project and play around with it. <a href="https://github.com/lloydmeta/frunk">Frunk</a> is published to <a href="//crates.io/crates/frunk">Crates.io</a>, so to add it your list of dependencies, simply put this in your <code>Cargo.toml</code>:</p>
+
+<p><a href="https://crates.io/crates/frunk"><img src="https://img.shields.io/crates/v/frunk.svg" alt="Crates.io" /></a></p>
+
+<p><code>rust
+[dependencies]
+frunk = "${latest_version}"
+</code></p>
+
+<p>Alternatively, take a look at the <a href="https://beachape.com/frunk">published Rustdocs</a>.</p>
+
+<h2 id="boilerplate-free-conversions-between-structs">Boilerplate-free conversions between Structs</h2>
+
+<p>Suppose we have a bunch of structs that are similar-ish in terms of their data but ultimately, not necessarily
+exactly the same. This means we can’t just use the normal <code>LabelledGeneric</code> <code>convert_from</code> method to convert between them.</p>
+
+<p>```rust
+#[derive(LabelledGeneric)]
+struct UserFromDb&lt;’a&gt; {
+    id: u64,
+    first_name: &amp;’a str,
+    last_name: &amp;’a str,
+    email: &amp;’a str,
+    age: u32,
+    pw_hash: &amp;’a str,
+    is_admin: bool,
+    created_at: i64
+}</p>
+
+<p>// Holds User data for rendering in a front-end view
+// or for sending over an API. Striped of any sensitive
+// information
+#[derive(LabelledGeneric)]
+struct PresentableUser&lt;’a&gt; {
+    last_name: &amp;’a str,
+    first_name: &amp;’a str,
+    age: u32,
+    created_at: i64
+}</p>
+
+<p>// Holds data for sending a User over our internal API
+#[derive(LabelledGeneric)]
+struct InternalApiUser&lt;’a&gt; {
+    id: u64,
+    first_name: &amp;’a str,
+    last_name: &amp;’a str,
+    age: u32,
+    email: &amp;’a str,
+    is_admin: bool,
+    created_at: i64
+}
+```</p>
+
+<p>In our example, <code>PresentableUser</code> and <code>InternalApiUser</code> structs have fields that are subsets of the fields in <code>UserFromDb</code>, and not in the same order either. The scenario is that <code>UserFromDb</code> is a struct that we get from reading our persistence layer, and the other 2 are types that we use in our application for business logic.</p>
+
+<p>Assuming a flow where we want to be able to go from <code>UserFromDb</code> to either <code>PresentableUser</code> or <code>InternalApiUser</code>, the idea is that we don’t want be holding on to sensitive data like <code>pw_hash</code> when we don’t need to, thus lowering the risk of accidentally leaking said data (e.g. serialising it by accident, or by rendering it in debug messages, etc).</p>
+
+<p>While we could go about writing <code>From</code>s by hand for each of these, and for every other time a similar situation arises, that’s quite a lot of boilerplate to write and maintain. Thankfully, we can make use of Frunk’s <code>LabelledGeneric</code> and <code>Sculptor</code> to write a single, reuseable generic function.</p>
+
+<p>Note, for a review of:</p>
+
+<ul>
+  <li><code>LabelledGeneric</code>, see <a href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">this post</a></li>
+  <li><code>Sculptor</code>, see <a href="/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">this post</a></li>
+</ul>
+
+<p><code>rust
+/// Converts from another type A into B assuming that A and B have labelled generic representations
+/// that can be sculpted into each other.
+///
+/// Note that this method tosses away the "remainder" of the sculpted representation.
+fn transform_from&lt;A, B, Indices&gt;(a: A) -&gt; B
+    where A: LabelledGeneric,
+          B: LabelledGeneric,
+// The labelled representation of A must be sculpt-able into the labelled representation of Self
+          &lt;A as LabelledGeneric&gt;::Repr: Sculptor&lt;&lt;B as LabelledGeneric&gt;::Repr, Indices&gt; {
+    // Turn A into its labelled generic representation
+    let a_gen = &lt;A as LabelledGeneric&gt;::into(a);
+    // Sculpt the generic labelled representation of A into the labelled generic representation
+    // of B. We ignore the remainder.
+    let (b_gen, _): (&lt;B as LabelledGeneric&gt;::Repr, _) = a_gen.sculpt();
+    // Turn the lablled generic representation of B into B
+    &lt;B as LabelledGeneric&gt;::from(b_gen)
+}
+</code></p>
+
+<p>Not bad. The body of the function is literally 3 lines long :) Now we can do this:</p>
+
+<p>```rust
+let u_db = UserFromDb {
+    id: 3,
+    first_name: “Joe”,
+    last_name: “Blow”,
+    email: “joe@gmail.com”,
+    age: 30,
+    pw_hash: “asd35235adsf”,
+    is_admin: true,
+    created_at: 12345,
+};</p>
+
+<p>let p_user: PresentableUser = transform_from(udb);
+// or
+let i_user: InternalApiUser = transform_from(udb);
+```</p>
+
+<p>In actuality, Frunk already <a href="https://beachape.com/frunk/frunk_core/labelled/fn.transform_from.html">ships with this function</a> so you can use it out of the box.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Often times, you’ll hear that heterogeneous lists enable developers to write reuseable generic functions because they abstract over arity and types, and it might not be obvious exactly what that means on a practical level. The example shown in this post just scratches the surface of what is made possible through <code>HList</code> and <code>LabelledGeneric</code>, and there are definitely more creative usages out there, such as building of boilerplate-free (e.g. JSON) codecs (hint: look to Haskell and Scala libs for more).</p>
+
+<p>As usual, please give it a spin and chime in with any questions, corrections, and suggestions !</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Gentle Intro to Type-level Recursion in Rust: From Zero to HList Sculpting.]]></title>
@@ -803,7 +935,7 @@ fn sculpt(self) -&gt; (HCons&lt;THead, TTail&gt;, Self::Remainder) {
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>One last thing: the <code>Plucker</code> and <code>Sculptor</code> things aren’t just cute exercises; <code>Plucker</code> has already paid dividends when modeling <code>Sculptor</code>, and <code>Sculptor</code>, well, it’s instrumental in letting us do cool stuff like convert between structs with different <a href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric implementations</a> (to an extent, anyways), and other, even cooler generic functions. We’ll talk more about this in another post.</p>
+<p>One last thing: the <code>Plucker</code> and <code>Sculptor</code> things aren’t just cute exercises; <code>Plucker</code> has already paid dividends when modeling <code>Sculptor</code>, and <code>Sculptor</code>, well, it’s instrumental in letting us do cool stuff like convert between structs with different <a href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric implementations</a> (to an extent, anyways), and other, even cooler generic functions. We’ll talk more about this in <a href="/blog/2017/03/13/boilerplate-free-struct-transforms-in-rust/">another post</a>.</p>
 
 <p>If you do a search, you’ll find a number of articles on the Interwebs that introduce Rust’s trait system, but not many that go deep into how to use it when you need to do non-trivial type-level recursion in your trait implementations (though how often this need arises is … another topic altogether). I also find that people generally don’t talk about what they did <em>wrong</em>, so I wanted to share my failed approaches as well.</p>
 
@@ -1010,7 +1142,7 @@ There isn’t a whole lot different to using <code>LabelledGeneric</code> vs usi
   <li>Instead of calling <code>convert_from</code>, call <code>labelled_convert_from</code></li>
 </ol>
 
-<p>These 2 changes buy you a lot more type-safety at compile time, with zero boilerplate. By the way, if you’d like the compiler to automatically “align”, the generic representations so that you <em>could</em> instantiate a <code>JumbledUser</code> from a <code>NewUser</code>, then stay tuned for a later post ;)</p>
+<p>These 2 changes buy you a lot more type-safety at compile time, with zero boilerplate. By the way, if you’d like the compiler to automatically “align”, the generic representations so that you <em>could</em> instantiate a <code>JumbledUser</code> from a <code>NewUser</code>, then stay tuned for a <a href="/blog/2017/03/13/boilerplate-free-struct-transforms-in-rust/">later post</a> ;)</p>
 
 <p>The tl;dr version of how this works is that deriving by <code>LabelledGeneric</code>, we make the struct an instance of the <code>LabelledGeneric</code> typeclass.  This typeclass is almost identical to the <code>Generic</code> typeclass, but the <code>derive</code> does something a bit different with the generic representation of the struct: it isn’t just an <code>HList</code> wrapping naked values.</p>
 
@@ -1566,132 +1698,6 @@ assert_eq!(comb, Validated::Ok(hlist!(String::from("hello"), 1, 3)))
   <li><a href="https://crates.io/crates/frunk">Frunk on Crates.io</a></li>
 </ol>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Rust HLists (Heterogenous List)]]></title>
-    <link href="https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list/"/>
-    <updated>2016-10-23T13:05:00+09:00</updated>
-    <id>https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list</id>
-    <content type="html"><![CDATA[<p>A heterogeneous list (henceforth “HList”) is a useful abstraction that is implemented in many statically-typed functional programming languages. Unlike normal list-like structures (e.g. <code>Vec</code>, <code>Slice</code>, <code>Array</code>), a heterogenous list is able to hold elements of different types (hence heterogenous) and expose those types in its own type signature.</p>
-
-<p><code>rust
-let h = hlist!["Joe", "Blow", 30, true];
-// h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;
-</code></p>
-
-<p>Now, you might be thinking “Isn’t that just a tuple?”. The answer is: in a way. Indeed, in terms of data structure, a given implementation of HList is usually really nothing more than deeply nested pairs (tuple of 2 elements) that each hold an element of arbitrary type in its 1st element and knows that its 2nd element is itself an HList-like thing. While it may seem convoluted, HList buys us the ability to abstract over arity, which turns out to be extremely useful, as you can see from <a href="http://stackoverflow.com/questions/11825129/are-hlists-nothing-more-than-a-convoluted-way-of-writing-tuples">this Stackoverflow answer</a> by Miles Sabin, the creater of the <a href="https://github.com/milessabin/shapeless">Shapeless</a> library, which provides an HList implementation in Scala.</p>
-
-<p>Given that description and justification for the existence of HLists, let’s take a look at how to use <a href="https://github.com/lloydmeta/frunk">Frunk</a>’s implementation of HList in Rust.</p>
-
-<!-- more -->
-
-<p><a href="https://github.com/lloydmeta/frunk">Frunk</a> is published to <a href="//crates.io/crates/frunk">Crates.io</a>, so to begin, add the crate to your list of dependencies:</p>
-
-<p><code>rust
-[dependencies]
-frunk = "0.1.9"
-</code></p>
-
-<p>By the way, to take a dive into the deep end, jump <a href="https://beachape.com/frunk/frunk/hlist/index.html" target="_blank">straight to HList’s Rustdocs</a>.</p>
-
-<h3 id="imports">Imports</h3>
-
-<p>Next, let’s add a few imports. In particular, note that we have a <code>#[macro_use]</code> directive in order to enable the <code>hlist!</code> macro, which makes declaring <code>HList</code>s nicer by saving you the trouble of writing deeply nested <code>HCon</code>s.</p>
-
-<p><code>rust
-#[macro_use] extern crate frunk;
-use frunk::hlist::*;
-</code></p>
-
-<h3 id="creating-an-hlist">Creating an HList</h3>
-
-<p>Making an HList is easy if you use the <code>hlist!</code> macro:</p>
-
-<p>```rust
-let h = hlist![“Joe”, “Blow”, 30, true];</p>
-
-<p>// You can choose to explicitly annotate the type of HList
-let h2: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil»» = hlist![“Joe”, “Blow”, 30, true];
-```</p>
-
-<h3 id="writing-the-type-of-an-hlist">Writing the type of an HList</h3>
-
-<p>Since HLists are a bunch of nested <code>HCons</code>s, you may think that writing the type annotation for one would be a PITA. Well, it might have been if not for the type-level macros introduced in Rust 1.13.</p>
-
-<p><code>rust
-let h: Hlist!(&amp;str, &amp;str, i32, bool) = hlist!["Joe", "Blow", 30, true];
-// We use the Hlist! type macro to make it easier to write
-// a type signature for HLists, which is a series of nested HCons
-// h has an expanded static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;i32, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;
-</code></p>
-
-<h3 id="getting-the-head-of-an-hlist">Getting the head of an HList</h3>
-
-<p>To retrieve the head element of an HList, use the <code>.head</code> accessor</p>
-
-<p><code>rust
-let h = hList![ "Joe" ];
-let joe = h.head;
-</code></p>
-
-<h3 id="getting-multiple-elements-from-an-hlist">Getting multiple elements from an HList</h3>
-
-<p>To retrieve multiple elements, it’s highly recommended to use the <code>hlist_pat!</code> macro to deconstruct your <code>HList</code>.</p>
-
-<p>```rust
-let h = hlist![“Joe”, “Blow”, 30, true];
-// h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil»»</p>
-
-<p>let hlist_pat!(f_name, l_name, age, is_admin) = h;
-assert_eq!(f_name, “Joe”);
-assert_eq!(l_name, “Blow”);
-assert_eq!(age, 30);
-assert_eq!(is_admin, true);
-```</p>
-
-<h3 id="appending-hlists">Appending HLists</h3>
-
-<p>The <code>Add&lt;RHS&gt;</code> trait is implemented for <code>HList</code> so that you can simply call <code>+</code> to append to an existing HList</p>
-
-<p>```rust
-let joe = hlist![“Joe”, “Blow”, 30];
-let is_admin = hlist![true];</p>
-
-<p>let joe_is_admin = joe + is_admin;
-```</p>
-
-<h3 id="length">Length</h3>
-
-<p>To get the length of an HList, simply call its <code>length()</code> method</p>
-
-<p><code>rust
-let joe = hlist!["Joe", "Blow", 30];
-assert_eq!(joe.length(), 3);
-</code></p>
-
-<h2 id="have-fun-">Have fun !</h2>
-
-<p>It will be interesting to see what you can cook up with HList. As mentioned before, abstracting over arity allows you to do some really cool stuff, for example <a href="https://crates.io/crates/frunk">Frunk</a> already uses HList to define a <a href="https://beachape.com/frunk/frunk/validated/"><code>Validated</code> abstraction</a> to help accumulate errors over many different <code>Result&lt;T, E&gt;</code> (we’ll go through this in <a href="/blog/2016/10/24/accumulating-results-in-rust-with-validated/">another post</a>):</p>
-
-<p><code>rust
-pub enum Validated&lt;T, E&gt;
-    where T: HList
-{
-    Ok(T),
-    Err(Vec&lt;E&gt;),
-}
-</code></p>
-
-<p>So please check it out, take it for a spin, and come back with any ideas, criticisms, and PRs!</p>
-
-<h2 id="links">Links</h2>
-
-<ol>
-  <li><a href="https://github.com/lloydmeta/frunk">Frunk on Github</a></li>
-  <li><a href="https://crates.io/crates/frunk">Frunk on Crates.io</a></li>
-</ol>
 ]]></content>
   </entry>
   
