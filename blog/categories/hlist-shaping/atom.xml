@@ -4,7 +4,7 @@
   <title><![CDATA[Category: HList Shaping | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/hlist-shaping/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-04-12T12:48:04+09:00</updated>
+  <updated>2017-04-12T23:13:52+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -803,7 +803,7 @@ fn sculpt(self) -&gt; (HCons&lt;THead, TTail&gt;, Self::Remainder) {
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>One last thing: the <code>Plucker</code> and <code>Sculptor</code> things aren’t just cute exercises; <code>Plucker</code> has already paid dividends when modeling <code>Sculptor</code>, and <code>Sculptor</code>, well, it’s instrumental in letting us do cool stuff like convert between structs with different <a href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric implementations</a> (to an extent, anyways), and other, even cooler generic functions. We’ll talk more about this in <a href="/blog/2017/03/13/boilerplate-free-struct-transforms-in-rust/">another post</a>.</p>
+<p>One last thing: the <code>Plucker</code> and <code>Sculptor</code> things aren’t just cute exercises; <code>Plucker</code> has already paid dividends when modeling <code>Sculptor</code>, and <code>Sculptor</code>, well, it’s instrumental in letting us do cool stuff like convert between structs with different <a href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric implementations</a> (to an extent, anyways), and other, even cooler generic functions. We’ll talk more about this in <a href="/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/">another post</a>.</p>
 
 <p>If you do a search, you’ll find a number of articles on the Interwebs that introduce Rust’s trait system, but not many that go deep into how to use it when you need to do non-trivial type-level recursion in your trait implementations (though how often this need arises is … another topic altogether). I also find that people generally don’t talk about what they did <em>wrong</em>, so I wanted to share my failed approaches as well.</p>
 
