@@ -172,10 +172,9 @@
   <li>Use activator to generate a new Play app (<code>$ activator new slim-play play-scala</code>)</li>
   <li>Delete the auto-generated controller, public, and view directories (won’t be using them)</li>
   <li>Create a <code>AppLoader.scala</code> file in the <code>./app</code> directory, which holds an ApplicationLoader and the router, which is
-  super simple:</li>
-</ol>
-<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span>Play app in 38 lines including imports and comments (AppLoader.scala)</span> <a href="/downloads/code/scala/AppLoader.scala">download</a></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+  super simple:
+  &lt;div class=&#8217;bogus-wrapper&#8217;&gt;<notextile><figure class="code">&lt;figcaption&gt;<span>Play app in 38 lines including imports and comments (AppLoader.scala)</span> <a href="/downloads/code/scala/AppLoader.scala">download</a>&lt;/figcaption&gt;
+ &lt;div class=&#8221;highlight&#8221;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&#8221;gutter&#8221;&gt;&lt;pre class=&#8221;line-numbers&#8221;&gt;<span class="line-number">1</span>
 <span class="line-number">2</span>
 <span class="line-number">3</span>
 <span class="line-number">4</span>
@@ -212,8 +211,9 @@
 <span class="line-number">35</span>
 <span class="line-number">36</span>
 <span class="line-number">37</span>
-<span class="line-number">38</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">import</span> <span class="nn">play.api.ApplicationLoader.Context</span>
+<span class="line-number">38</span></figure></notextile></li>
+</ol>
+<p>&lt;/pre&gt;&lt;/td&gt;&lt;td class=&#8217;code&#8217;&gt;&lt;pre&gt;<code class="scala"><span class="line"><span></span><span class="k">import</span> <span class="nn">play.api.ApplicationLoader.Context</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">play.api._</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">play.api.libs.concurrent.Execution.Implicits._</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">play.api.mvc.Results._</span>
@@ -251,11 +251,9 @@
 </span><span class="line">  <span class="o">}.</span><span class="n">application</span>
 </span><span class="line">
 </span><span class="line"><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div>
-<ol>
-  <li>Add <code>play.application.loader=AppLoader</code> to <code>./conf/application.conf</code> so that Play knows to load our custom app (that
-  contains our simple router)</li>
-</ol>
+</span></code>&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/notextile&gt;&lt;/div&gt;
+4. Add <code>play.application.loader=AppLoader</code> to <code>./conf/application.conf</code> so that Play knows to load our custom app (that
+  contains our simple router)</p>
 
 <p>The end result is a small, one-file Play app powered by a custom router and compile-time dependency injection. For more information, take a look at the <a href="https://github.com/lloydmeta/slim-play">slim-play</a> repo on Github.</p>
 
@@ -359,6 +357,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2017/05/24/rust-from-scala/">Rust: A Scala Engineer's Perspective</a>
+    
     <a class="list-group-item " href="/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/">Boilerplate-free Struct Transforms in Rust.</a>
     
     <a class="list-group-item " href="/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">Gentle Intro to Type-level Recursion in Rust: From Zero to HList Sculpting.</a>
@@ -366,8 +366,6 @@
     <a class="list-group-item " href="/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">LabelledGeneric in Rust: What, Why, How?</a>
     
     <a class="list-group-item " href="/blog/2017/02/04/rust-generic-not-generics/">Rust Generic (Not Generics)</a>
-    
-    <a class="list-group-item " href="/blog/2016/11/02/rust-performance-testing-on-travis-ci/">Rust Performance Testing on Travis CI</a>
     
   </div>
 </section>

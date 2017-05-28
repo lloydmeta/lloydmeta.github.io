@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Record | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/record/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-04-12T23:17:08+09:00</updated>
+  <updated>2017-05-29T02:32:07+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -66,8 +66,8 @@ struct JumbledUser&lt;’a&gt; {
 
 <p>// This should fail at compile-time because last_name and first_name are swapped
 // even if they have the same type
-let d_user = <JumbledUser as="" LabelledGeneric="">::convert_from(s_user);
-```</JumbledUser></p>
+let d_user = <jumbleduser as="" labelledgeneric="">::convert_from(s_user);
+```</jumbleduser></p>
 
 <p>The solution to this sort of problem has been in <a href="https://github.com/milessabin/shapeless">Shapeless</a> for some time; by using <code>HList</code>s where each cell contains not just a value, but instead hold <em>named</em> fields, where each value is labelled <em>at the type level</em>.</p>
 
@@ -88,32 +88,32 @@ frunk = "${latest_version}"
 
 <h2 class="no_toc" id="outline">Outline</h2>
 <ul id="markdown-toc">
-  <li><a href="#derivelabelledgeneric" id="markdown-toc-derivelabelledgeneric">[derive(LabelledGeneric)]</a>    <ul>
-      <li><a href="#why-motivation" id="markdown-toc-why-motivation">Why? (Motivation)</a>        <ul>
-          <li><a href="#silent-runtime-errors-with-generic" id="markdown-toc-silent-runtime-errors-with-generic">Silent runtime errors with <code>Generic</code></a></li>
+  <li><a href="#derivelabelledgeneric">[derive(LabelledGeneric)]</a>    <ul>
+      <li><a href="#why-motivation">Why? (Motivation)</a>        <ul>
+          <li><a href="#silent-runtime-errors-with-generic">Silent runtime errors with <code>Generic</code></a></li>
         </ul>
       </li>
     </ul>
   </li>
-  <li><a href="#derivegeneric" id="markdown-toc-derivegeneric">[derive(Generic)]</a>    <ul>
-      <li><a href="#labelledgeneric-to-the-rescue" id="markdown-toc-labelledgeneric-to-the-rescue"><code>LabelledGeneric</code> to the rescue</a></li>
+  <li><a href="#derivegeneric">[derive(Generic)]</a>    <ul>
+      <li><a href="#labelledgeneric-to-the-rescue"><code>LabelledGeneric</code> to the rescue</a></li>
     </ul>
   </li>
-  <li><a href="#derivelabelledgeneric-1" id="markdown-toc-derivelabelledgeneric-1">[derive(LabelledGeneric)]</a></li>
-  <li><a href="#derivegeneric-1" id="markdown-toc-derivegeneric-1">[derive(Generic)]</a>    <ul>
-      <li><a href="#field-" id="markdown-toc-field-"><code>Field</code> ??</a></li>
-      <li><a href="#how-it-works" id="markdown-toc-how-it-works">How it works</a>        <ul>
-          <li><a href="#fieldname-type" id="markdown-toc-fieldname-type"><code>Field&lt;Name, Type&gt;</code></a>            <ul>
-              <li><a href="#type-level-characters-and-strings" id="markdown-toc-type-level-characters-and-strings">Type-level characters and strings</a></li>
+  <li><a href="#derivelabelledgeneric-1">[derive(LabelledGeneric)]</a></li>
+  <li><a href="#derivegeneric-1">[derive(Generic)]</a>    <ul>
+      <li><a href="#field-"><code>Field</code> ??</a></li>
+      <li><a href="#how-it-works">How it works</a>        <ul>
+          <li><a href="#fieldname-type"><code>Field&lt;Name, Type&gt;</code></a>            <ul>
+              <li><a href="#type-level-characters-and-strings">Type-level characters and strings</a></li>
             </ul>
           </li>
-          <li><a href="#anonymous-records" id="markdown-toc-anonymous-records">(Anonymous) Records!</a></li>
-          <li><a href="#field-and-labelledgeneric" id="markdown-toc-field-and-labelledgeneric"><code>Field</code> and <code>LabelledGeneric</code></a></li>
-          <li><a href="#how-the-labelledgeneric-derivation-is-generated" id="markdown-toc-how-the-labelledgeneric-derivation-is-generated">How the <code>LabelledGeneric</code> derivation is generated</a></li>
+          <li><a href="#anonymous-records">(Anonymous) Records!</a></li>
+          <li><a href="#field-and-labelledgeneric"><code>Field</code> and <code>LabelledGeneric</code></a></li>
+          <li><a href="#how-the-labelledgeneric-derivation-is-generated">How the <code>LabelledGeneric</code> derivation is generated</a></li>
         </ul>
       </li>
-      <li><a href="#conclusion" id="markdown-toc-conclusion">Conclusion</a></li>
-      <li><a href="#links" id="markdown-toc-links">Links</a></li>
+      <li><a href="#conclusion">Conclusion</a></li>
+      <li><a href="#links">Links</a></li>
     </ul>
   </li>
 </ul>

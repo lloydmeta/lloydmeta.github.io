@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Frunk | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/frunk/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-04-12T23:17:08+09:00</updated>
+  <updated>2017-05-29T02:32:07+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -190,31 +190,31 @@ let i_user: InternalApiUser = transform_from(udb);
 
 <h2 class="no_toc" id="outline">Outline</h2>
 <ul id="markdown-toc">
-  <li><a href="#basic-gist-of-rust-typeclasses-traits" id="markdown-toc-basic-gist-of-rust-typeclasses-traits">Basic Gist of Rust typeclasses (traits)</a>    <ul>
-      <li><a href="#dependent-trait-implementations" id="markdown-toc-dependent-trait-implementations">Dependent trait implementations</a></li>
-      <li><a href="#mental-model-for-type-level-recursion" id="markdown-toc-mental-model-for-type-level-recursion">Mental model for type-level recursion</a>        <ul>
-          <li><a href="#recursion-on-the-value-level" id="markdown-toc-recursion-on-the-value-level">Recursion on the value level</a></li>
-          <li><a href="#recursion-on-the-type-level" id="markdown-toc-recursion-on-the-type-level">Recursion on the type level</a></li>
+  <li><a href="#basic-gist-of-rust-typeclasses-traits">Basic Gist of Rust typeclasses (traits)</a>    <ul>
+      <li><a href="#dependent-trait-implementations">Dependent trait implementations</a></li>
+      <li><a href="#mental-model-for-type-level-recursion">Mental model for type-level recursion</a>        <ul>
+          <li><a href="#recursion-on-the-value-level">Recursion on the value level</a></li>
+          <li><a href="#recursion-on-the-type-level">Recursion on the type level</a></li>
         </ul>
       </li>
     </ul>
   </li>
-  <li><a href="#what-the-frunk" id="markdown-toc-what-the-frunk">What the Frunk?</a></li>
-  <li><a href="#plucking-from-hlists" id="markdown-toc-plucking-from-hlists">Plucking from HLists</a>    <ul>
-      <li><a href="#implementation-intuition" id="markdown-toc-implementation-intuition">Implementation intuition</a></li>
-      <li><a href="#first-attempt" id="markdown-toc-first-attempt">First attempt</a></li>
-      <li><a href="#second-attempt" id="markdown-toc-second-attempt">Second attempt</a></li>
-      <li><a href="#type-level-walkthrough" id="markdown-toc-type-level-walkthrough">Type-level walkthrough</a></li>
+  <li><a href="#what-the-frunk">What the Frunk?</a></li>
+  <li><a href="#plucking-from-hlists">Plucking from HLists</a>    <ul>
+      <li><a href="#implementation-intuition">Implementation intuition</a></li>
+      <li><a href="#first-attempt">First attempt</a></li>
+      <li><a href="#second-attempt">Second attempt</a></li>
+      <li><a href="#type-level-walkthrough">Type-level walkthrough</a></li>
     </ul>
   </li>
-  <li><a href="#sculpting-hlists" id="markdown-toc-sculpting-hlists">Sculpting HLists</a>    <ul>
-      <li><a href="#implementation-intuition-1" id="markdown-toc-implementation-intuition-1">Implementation intuition</a></li>
-      <li><a href="#first-attempt-1" id="markdown-toc-first-attempt-1">First attempt</a></li>
-      <li><a href="#second-attempt-1" id="markdown-toc-second-attempt-1">Second attempt</a></li>
+  <li><a href="#sculpting-hlists">Sculpting HLists</a>    <ul>
+      <li><a href="#implementation-intuition-1">Implementation intuition</a></li>
+      <li><a href="#first-attempt-1">First attempt</a></li>
+      <li><a href="#second-attempt-1">Second attempt</a></li>
     </ul>
   </li>
-  <li><a href="#conclusion" id="markdown-toc-conclusion">Conclusion</a>    <ul>
-      <li><a href="#credit" id="markdown-toc-credit">Credit</a></li>
+  <li><a href="#conclusion">Conclusion</a>    <ul>
+      <li><a href="#credit">Credit</a></li>
     </ul>
   </li>
 </ul>
@@ -440,7 +440,7 @@ assert_eq!(remainder, hlist![1, “Joe”, true]);
 
 <p>```rust
 // Our trait
-trait Plucker<Target> {</Target></p>
+trait Plucker<target> {</target></p>
 
 <p>type Remainder;</p>
 
@@ -452,7 +452,7 @@ trait Plucker<Target> {</Target></p>
 <p>The “exit-type” implementation is for when the current head of the <code>HList</code> contains the target type, so let’s jot that down that:</p>
 
 <p>```rust
-impl &lt;Target, Tail&gt; Plucker<Target> for HCons&lt;Target, Tail&gt; {</Target></p>
+impl &lt;Target, Tail&gt; Plucker<target> for HCons&lt;Target, Tail&gt; {</target></p>
 
 <p>// Target is the head element, so the Remainder type is the tail!
   type Remainder = Tail;</p>
@@ -466,19 +466,19 @@ impl &lt;Target, Tail&gt; Plucker<Target> for HCons&lt;Target, Tail&gt; {</Targe
 <p>Now let’s implement the second piece; the non-trivial part where the target type is <em>not</em> in <code>Head</code>, but in the <code>Tail</code> of our HList. I’ll sometimes refer to this as the “work-to-be-done” type.</p>
 
 <p>```rust
-impl &lt;Target, Head, Tail&gt; Plucker<Target> for HCons&lt;Head, Tail&gt;
-  where Tail: Plucker<Target></Target></Target></p>
+impl &lt;Target, Head, Tail&gt; Plucker<target> for HCons&lt;Head, Tail&gt;
+  where Tail: Plucker<target></target></target></p>
 
 <p>// Target is in the tail, so we add the current head type to the remainder
   // And use the Tail’s Plucker’s Remainder type as the tail :)
-  type Remainder = HCons&lt;Head, &lt;Tail as Plucker<Target>&gt;::Remainder&gt;;</Target></p>
+  type Remainder = HCons&lt;Head, &lt;Tail as Plucker<target>&gt;::Remainder&gt;;</target></p>
 
 <p>fn pluck(self) -&gt; (Target, Self::Remainder) {
-    let (tail_target, tail_remainder): (Target, &lt;Tail as Plucker<Target>&gt;::Remainder) = self.tail.pluck();
+    let (tail_target, tail_remainder): (Target, &lt;Tail as Plucker<target>&gt;::Remainder) = self.tail.pluck();
     (
       tail_target,
       HCons { head: self.head, tail: tail_remainder}
-    )</Target></p>
+    )</target></p>
 
 <p>}
 }
@@ -510,11 +510,11 @@ error[E0119]: conflicting implementations of trait `Plucker&lt;_&gt;` for type `
 
 <p>```rust
 // exit (work done) type implementation
-impl &lt;Target, Tail&gt;  Plucker<Target> for HCons&lt;Target, Tail&gt;</Target></p>
+impl &lt;Target, Tail&gt;  Plucker<target> for HCons&lt;Target, Tail&gt;</target></p>
 
 <p>// work-to-be-done implementation
-impl &lt;Target, Head, Tail&gt; Plucker<Target> for HCons&lt;Head, Tail&gt;
-```</Target></p>
+impl &lt;Target, Head, Tail&gt; Plucker<target> for HCons&lt;Head, Tail&gt;
+```</target></p>
 
 <p>The <code>Plucker&lt;Target&gt;</code> part is exactly the same, and sure, we’ve used <code>Target</code> instead of <code>Head</code> in the <code>for HCons&lt;..&gt;</code> part in the first case, but simply using different type parameters isn’t enough to distinguish between the two.</p>
 
@@ -585,13 +585,13 @@ enum Here {}</p>
 
 <p>```rust
 // Type for representing a not-here Index
-struct There<T>(PhantomData<T>);</T></T></p>
+struct There<t>(PhantomData<t>);</t></t></p>
 
-<p>impl&lt;Head, Tail, Target, TailIndex&gt; Plucker&lt;Target, There<TailIndex>&gt; for HCons&lt;Head, Tail&gt;
+<p>impl&lt;Head, Tail, Target, TailIndex&gt; Plucker&lt;Target, There<tailindex>&gt; for HCons&lt;Head, Tail&gt;
     // This where clause can be interpreted as "the target must be pluckable from the Tail"
     where Tail: Plucker&lt;Target, TailIndex&gt;
 {
-    type Remainder = HCons&lt;Head, &lt;Tail as Plucker&lt;Target, TailIndex&gt;&gt;::Remainder&gt;;</TailIndex></p>
+    type Remainder = HCons&lt;Head, &lt;Tail as Plucker&lt;Target, TailIndex&gt;&gt;::Remainder&gt;;</tailindex></p>
 
 <pre><code>fn pluck(self) -&gt; (Target, Self::Remainder) {
     let (target, tail_remainder): (Target, &lt;Tail as Plucker&lt;Target, TailIndex&gt;&gt;::Remainder) =
@@ -704,14 +704,14 @@ let (v, <em>): (f32,</em>) = h.pluck();
 
 <p>```rust
 // Remember Hlist![ … ] is just a type-macro to make it easier to write nested Hcons
-impl Plucker&lt; f32, There&lt;There<Here>&gt; &gt; for Hlist![ &amp;str, bool, f32, i32 ]
-   where Hlist![ bool, f32, i32 ]: Plucker&lt; f32, There<Here> &gt;
+impl Plucker&lt; f32, There&lt;There<here>&gt; &gt; for Hlist![ &amp;str, bool, f32, i32 ]
+   where Hlist![ bool, f32, i32 ]: Plucker&lt; f32, There<here> &gt;
 {
-  type Remainder = HList![ &amp;str, boo, i32 ];</Here></Here></p>
+  type Remainder = HList![ &amp;str, boo, i32 ];</here></here></p>
 
 <p>fn pluck(self) -&gt; (f32, Self::Remainder) {
-    let (target, tail_remainder): (f32, &lt; Hlist![bool, f32, i32] as Plucker&lt;f32, There<Here>&gt; &gt;::Remainder) =
-      &lt; Hlist![ bool, f32, i32 ] as Plucker&lt;f32, There<Here>&gt; &gt;::pluck(self.tail);
+    let (target, tail_remainder): (f32, &lt; Hlist![bool, f32, i32] as Plucker&lt;f32, There<here>&gt; &gt;::Remainder) =
+      &lt; Hlist![ bool, f32, i32 ] as Plucker&lt;f32, There<here>&gt; &gt;::pluck(self.tail);
     (target,
      HCons {
          head: self.head,
@@ -719,7 +719,7 @@ impl Plucker&lt; f32, There&lt;There<Here>&gt; &gt; for Hlist![ &amp;str, bool, 
      })
   }
 }
-```</Here></Here></p>
+```</here></here></p>
 
 <p>Whew! That took a while, but I hope it helps illustrate how you can use a mental model similar to the substitution model of evaluation, but with types, in order to prove the existence of implementations for a given type.</p>
 
@@ -1005,8 +1005,8 @@ struct JumbledUser&lt;’a&gt; {
 
 <p>// This should fail at compile-time because last_name and first_name are swapped
 // even if they have the same type
-let d_user = <JumbledUser as="" LabelledGeneric="">::convert_from(s_user);
-```</JumbledUser></p>
+let d_user = <jumbleduser as="" labelledgeneric="">::convert_from(s_user);
+```</jumbleduser></p>
 
 <p>The solution to this sort of problem has been in <a href="https://github.com/milessabin/shapeless">Shapeless</a> for some time; by using <code>HList</code>s where each cell contains not just a value, but instead hold <em>named</em> fields, where each value is labelled <em>at the type level</em>.</p>
 
@@ -1027,32 +1027,32 @@ frunk = "${latest_version}"
 
 <h2 class="no_toc" id="outline">Outline</h2>
 <ul id="markdown-toc">
-  <li><a href="#derivelabelledgeneric" id="markdown-toc-derivelabelledgeneric">[derive(LabelledGeneric)]</a>    <ul>
-      <li><a href="#why-motivation" id="markdown-toc-why-motivation">Why? (Motivation)</a>        <ul>
-          <li><a href="#silent-runtime-errors-with-generic" id="markdown-toc-silent-runtime-errors-with-generic">Silent runtime errors with <code>Generic</code></a></li>
+  <li><a href="#derivelabelledgeneric">[derive(LabelledGeneric)]</a>    <ul>
+      <li><a href="#why-motivation">Why? (Motivation)</a>        <ul>
+          <li><a href="#silent-runtime-errors-with-generic">Silent runtime errors with <code>Generic</code></a></li>
         </ul>
       </li>
     </ul>
   </li>
-  <li><a href="#derivegeneric" id="markdown-toc-derivegeneric">[derive(Generic)]</a>    <ul>
-      <li><a href="#labelledgeneric-to-the-rescue" id="markdown-toc-labelledgeneric-to-the-rescue"><code>LabelledGeneric</code> to the rescue</a></li>
+  <li><a href="#derivegeneric">[derive(Generic)]</a>    <ul>
+      <li><a href="#labelledgeneric-to-the-rescue"><code>LabelledGeneric</code> to the rescue</a></li>
     </ul>
   </li>
-  <li><a href="#derivelabelledgeneric-1" id="markdown-toc-derivelabelledgeneric-1">[derive(LabelledGeneric)]</a></li>
-  <li><a href="#derivegeneric-1" id="markdown-toc-derivegeneric-1">[derive(Generic)]</a>    <ul>
-      <li><a href="#field-" id="markdown-toc-field-"><code>Field</code> ??</a></li>
-      <li><a href="#how-it-works" id="markdown-toc-how-it-works">How it works</a>        <ul>
-          <li><a href="#fieldname-type" id="markdown-toc-fieldname-type"><code>Field&lt;Name, Type&gt;</code></a>            <ul>
-              <li><a href="#type-level-characters-and-strings" id="markdown-toc-type-level-characters-and-strings">Type-level characters and strings</a></li>
+  <li><a href="#derivelabelledgeneric-1">[derive(LabelledGeneric)]</a></li>
+  <li><a href="#derivegeneric-1">[derive(Generic)]</a>    <ul>
+      <li><a href="#field-"><code>Field</code> ??</a></li>
+      <li><a href="#how-it-works">How it works</a>        <ul>
+          <li><a href="#fieldname-type"><code>Field&lt;Name, Type&gt;</code></a>            <ul>
+              <li><a href="#type-level-characters-and-strings">Type-level characters and strings</a></li>
             </ul>
           </li>
-          <li><a href="#anonymous-records" id="markdown-toc-anonymous-records">(Anonymous) Records!</a></li>
-          <li><a href="#field-and-labelledgeneric" id="markdown-toc-field-and-labelledgeneric"><code>Field</code> and <code>LabelledGeneric</code></a></li>
-          <li><a href="#how-the-labelledgeneric-derivation-is-generated" id="markdown-toc-how-the-labelledgeneric-derivation-is-generated">How the <code>LabelledGeneric</code> derivation is generated</a></li>
+          <li><a href="#anonymous-records">(Anonymous) Records!</a></li>
+          <li><a href="#field-and-labelledgeneric"><code>Field</code> and <code>LabelledGeneric</code></a></li>
+          <li><a href="#how-the-labelledgeneric-derivation-is-generated">How the <code>LabelledGeneric</code> derivation is generated</a></li>
         </ul>
       </li>
-      <li><a href="#conclusion" id="markdown-toc-conclusion">Conclusion</a></li>
-      <li><a href="#links" id="markdown-toc-links">Links</a></li>
+      <li><a href="#conclusion">Conclusion</a></li>
+      <li><a href="#links">Links</a></li>
     </ul>
   </li>
 </ul>
@@ -1451,7 +1451,7 @@ let d_person: DomainPersion = convert_from(a_person); // done
 <p>At a glance, <code>Generic</code> might look magical and dangerous, but really it is no more mysterious than the <code>From</code> trait in the standard lib; the only difference (for now) is that every <code>Generic</code> instance is bidirectional (can turn an <code>A</code> into a <code>Repr</code> and a <code>Repr</code> into an <code>A</code>). If you don’t believe me, just look at the type signatures.</p>
 
 <p>```rust
-pub trait Generic<Repr> {</Repr></p>
+pub trait Generic<repr> {</repr></p>
 
 <pre><code>/// Go from something to Repr
 fn into(self) -&gt; Repr;
@@ -1461,17 +1461,17 @@ fn from(r: Repr) -&gt; Self; }
 </code></pre>
 
 <p>/// Given a generic Representation of an A, returns A
-pub fn from_generic&lt;A, Repr&gt;(gen: Repr) -&gt; A where A: Generic<Repr></Repr></p>
+pub fn from_generic&lt;A, Repr&gt;(gen: Repr) -&gt; A where A: Generic<repr></repr></p>
 
 <p>/// Given an A, returns its generic Representation
-pub fn into_generic&lt;A, Repr&gt;(a: A) -&gt; Repr where A: Generic<Repr></Repr></p>
+pub fn into_generic&lt;A, Repr&gt;(a: A) -&gt; Repr where A: Generic<repr></repr></p>
 
 <p>/// Converts one type into another assuming they have the same generic Representation
 pub fn convert_from&lt;A, B, Repr&gt;(a: A) -&gt; B
   where
-    A: Generic<Repr>,
-    B: Generic<Repr>
-```</Repr></Repr></p>
+    A: Generic<repr>,
+    B: Generic<repr>
+```</repr></repr></p>
 
 <p>Most of the magic resides in how the custom derive of Generic, made possible by the 1.15 release of Rust, is implemented. If you want to find out more, take a look at the <code>derives</code> directory of Frunk <a href="https://github.com/lloydmeta/frunk/tree/master/derives/src">on Github</a>. In regards to the end-result though, the following:</p>
 

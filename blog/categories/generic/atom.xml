@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Generic | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/generic/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-04-12T23:17:08+09:00</updated>
+  <updated>2017-05-29T02:32:07+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -120,7 +120,7 @@ let d_person: DomainPersion = convert_from(a_person); // done
 <p>At a glance, <code>Generic</code> might look magical and dangerous, but really it is no more mysterious than the <code>From</code> trait in the standard lib; the only difference (for now) is that every <code>Generic</code> instance is bidirectional (can turn an <code>A</code> into a <code>Repr</code> and a <code>Repr</code> into an <code>A</code>). If you don’t believe me, just look at the type signatures.</p>
 
 <p>```rust
-pub trait Generic<Repr> {</Repr></p>
+pub trait Generic<repr> {</repr></p>
 
 <pre><code>/// Go from something to Repr
 fn into(self) -&gt; Repr;
@@ -130,17 +130,17 @@ fn from(r: Repr) -&gt; Self; }
 </code></pre>
 
 <p>/// Given a generic Representation of an A, returns A
-pub fn from_generic&lt;A, Repr&gt;(gen: Repr) -&gt; A where A: Generic<Repr></Repr></p>
+pub fn from_generic&lt;A, Repr&gt;(gen: Repr) -&gt; A where A: Generic<repr></repr></p>
 
 <p>/// Given an A, returns its generic Representation
-pub fn into_generic&lt;A, Repr&gt;(a: A) -&gt; Repr where A: Generic<Repr></Repr></p>
+pub fn into_generic&lt;A, Repr&gt;(a: A) -&gt; Repr where A: Generic<repr></repr></p>
 
 <p>/// Converts one type into another assuming they have the same generic Representation
 pub fn convert_from&lt;A, B, Repr&gt;(a: A) -&gt; B
   where
-    A: Generic<Repr>,
-    B: Generic<Repr>
-```</Repr></Repr></p>
+    A: Generic<repr>,
+    B: Generic<repr>
+```</repr></repr></p>
 
 <p>Most of the magic resides in how the custom derive of Generic, made possible by the 1.15 release of Rust, is implemented. If you want to find out more, take a look at the <code>derives</code> directory of Frunk <a href="https://github.com/lloydmeta/frunk/tree/master/derives/src">on Github</a>. In regards to the end-result though, the following:</p>
 
