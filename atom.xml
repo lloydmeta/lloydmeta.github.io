@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-05-29T03:18:17+09:00</updated>
+  <updated>2017-05-29T03:18:52+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -64,7 +64,7 @@
       <li><a href="#strings">Strings</a></li>
       <li><a href="#cross-compiling">Cross compiling</a></li>
       <li><a href="#odd-headscratchers">Odd headscratchers</a>        <ul>
-          <li><a href="#scoping-of-lifetimes-with-braces">Scoping of lifetimes with braces</a></li>
+          <li><a href="#scoping-of-lifetimes-with-braces"><strong>Scoping of lifetimes with braces</strong></a></li>
         </ul>
       </li>
       <li><a href="#gimme">Gimme</a></li>
@@ -430,9 +430,9 @@
 </span><span class="line"><span class="n">hello</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="n">string</span><span class="p">);</span><span class="w"> </span><span class="c1">// why can&#39;t this just be hello(&amp; string) ??</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
-<h4 id="scoping-of-lifetimes-with-braces">Scoping of lifetimes with braces</h4>
+<h4 id="scoping-of-lifetimes-with-braces"><strong>Scoping of lifetimes with braces</strong></h4>
 
-<p>I somehow managed to code my way into a deadlock when using <code>RWLock</code> because the lifetime-scoping behaviour of <code>{}</code> braces when pattern matching is, in my opinion, non-intuitive. If you’re interested, more about it in <a href="https://github.com/rust-lang/rust/issues/37612">this issue</a>.</p>
+<p>I somehow managed to code my way into a deadlock when using <code>RWLock</code> because the lifetime-scoping behaviour of <code>{}</code> braces when used with pattern matching is, in my opinion, non-intuitive. If you’re interested, more about it in <a href="https://github.com/rust-lang/rust/issues/37612">this issue</a>.</p>
 
 <h3 id="gimme">Gimme</h3>
 
