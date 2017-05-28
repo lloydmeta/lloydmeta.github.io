@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Rust | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/rust/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-05-29T03:00:53+09:00</updated>
+  <updated>2017-05-29T03:04:27+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -230,10 +230,11 @@ pub fn validate_compressed_buffer(src: &amp;[u8]) -&gt; bool {
 
 <h3 id="the-current-zeitgeist">The current Zeitgeist</h3>
 
-<p>The current “feel” of Rust, and its community (or communities, since libraries/frameworks can have their own) is very welcoming and helpful. It’s very difficult to quantify this so I’ll list some observations</p>
+<p>The current “feel” of Rust, and its community (or communities, since libraries/frameworks can have their own) is very welcoming and helpful. It’s also very difficult to quantify so I’ll just list some observations:</p>
 
 <ul>
   <li>Rust stable is only 2 years old and yet there is an official <a href="https://blog.rust-lang.org/2017/03/02/lang-ergonomics.html">ergonomics initiative</a> to reduce friction</li>
+  <li>I’ve asked a hand full of questions on StackOverflow and have gotten prompt and helpful answers each time.</li>
   <li>Rust is the #1 “most loved” language in <a href="https://insights.stackoverflow.com/survey/2016#technology-most-loved-dreaded-and-wanted">StackOverflow’s 2017 survey</a></li>
   <li>Rust feels very community driven: its got a very lively <a href="https://github.com/rust-lang/rfcs/issues">RFC repo</a> and since I’ve started tinkering in it I’ve seen at least 3 RFCs make it into the language (type macros, custom derives, and <code>?</code> syntax for <code>Try</code>s).</li>
 </ul>
