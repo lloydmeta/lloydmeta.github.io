@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-05-29T03:16:54+09:00</updated>
+  <updated>2017-05-29T03:18:17+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -400,7 +400,7 @@
 
 <h4 class="no_toc" id="do-we-actually-need-ref"><strong>Do we actually need <code>ref</code>?</strong></h4>
 
-<p>In my opinion, <code>ref</code> is unnecessarily confusing, even thought it’s mostly used for binding pointers during pattern matching</p>
+<p>In my opinion, <code>ref</code> is unnecessarily confusing. From what I can tell, it’s mostly used for binding pointers during pattern matching</p>
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
 <span class="line-number">2</span>
