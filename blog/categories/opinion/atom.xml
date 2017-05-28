@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Opinion | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/opinion/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-05-29T03:18:52+09:00</updated>
+  <updated>2017-05-29T03:20:05+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -384,8 +384,8 @@ hello(&amp;mut string); // why can’t this just be hello(&amp; string) ??
 
 <ol>
   <li>Higher kinded types</li>
-  <li>“Specialisation”, aka finding the most specific implementations of a traits according to the type of value at the call site. Right now, if you implement a Rust trait <code>for A</code>, then it clashes with every other implementation you write. Specialisation should remedy that (<a href="https://github.com/rust-lang/rust/issues/31844">tracking RFC</a>)</li>
-  <li>A REPL. There’s <a href="https://github.com/murarth/rusti">Rusti</a> but I think Rust is missing a trick by not supplying one out of the box in this day and age.</li>
+  <li>“Specialisation”, aka finding the most specific implementation of a traits according to the type of value at the call site. Right now, if you implement a Rust trait <code>for A</code>, then it clashes with every other implementation you write. Specialisation should remedy that (<a href="https://github.com/rust-lang/rust/issues/31844">tracking RFC</a>)</li>
+  <li>A REPL. There’s <a href="https://github.com/murarth/rusti">Rusti</a> but I think Rust is missing a trick by not supplying one out-of-the-box, especially when it’s got such a strong dev-env-setup game.</li>
 </ol>
 
 <h2 id="conclusion">Conclusion</h2>
