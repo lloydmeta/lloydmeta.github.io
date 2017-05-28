@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Language Comparison | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/language-comparison/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-05-29T02:32:07+09:00</updated>
+  <updated>2017-05-29T03:00:53+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -99,7 +99,7 @@
 
 <h4 class="no_toc" id="editoride"><strong>Editor/IDE</strong></h4>
 
-<p>When I first started with Rust, I used IntelliJ’s Rust plugin, but later switched to <a href="https://code.visualstudio.com/">Microsoft Studio Code</a> with the <a href="https://github.com/editor-rs/vscode-rust">Rust plugin</a>, which interfaces very well with Rust Language Server (installable as a <a href="https://github.com/rust-lang-nursery/rls#step-3-install-the-rls">rustup toolchain component</a>). It feels very lightweight, and offers all the assistance I need.</p>
+<p>When I first started with Rust, I used IntelliJ and its Rust plugin, but later switched to <a href="https://code.visualstudio.com/">Microsoft Studio Code</a> with the <a href="https://github.com/editor-rs/vscode-rust">Rust plugin</a>, which interfaces very well with Rust Language Server (installable as a <a href="https://github.com/rust-lang-nursery/rls#step-3-install-the-rls">rustup toolchain component</a>). It feels very lightweight, and offers all the assistance I need.</p>
 
 <h3 id="type-system">Type System</h3>
 
