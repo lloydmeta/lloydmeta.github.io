@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Scala | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/scala/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-05-29T03:04:27+09:00</updated>
+  <updated>2017-05-29T03:16:54+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -305,7 +305,7 @@ x_cube + x_squared + x };
 
 <p>In Scala, most frameworks that deal with any sort of IO have embraced non-blocking IO by utilising some kind of wrapper data type, such as <code>Future[A]</code>, <code>Task[A]</code>, or <code>IO[A]</code> (usually a Monad), that separates the description of your program from its execution, and identify, by type, the effect of talking with the scary and dirty outside world. This allows you to not block the executing thread when waiting for stuff to happen (such as data to come back) by choosing a suitable execution strategy.</p>
 
-<p>In Rust land, most of the widely-used libraries that I’ve seen, such as the Redis client, and and Hyper (and all the various things built on it, such as Rusoto, Rocket, etc) are all blocking. While this works okay for stuff like single-user utilities, this is suboptimal for applications that are IO heavy and need to serve a large number of concurrent users because your application threads can get tied up just waiting for data, leaving it unable to serve other requests. Or, you end up with potentially huge thread pools (à la old school Java Servlet apps..), which seems to go against Rust’s spirit of efficiency.</p>
+<p>In Rust land, most of the widely-used libraries that I’ve seen, such as the Redis client, and and Hyper (and all the various things built on it, such as Rusoto, Rocket, etc) are all blocking. While this works okay for stuff like single-user utilities, this is suboptimal for applications that are IO heavy and need to serve a large number of concurrent users because your application’s threads can get tied up just waiting for data, leaving it unable to serve other requests. Or, you end up with potentially huge thread pools (à la old school Java Servlet apps..), which seems to go against Rust’s spirit of efficiency.</p>
 
 <p>Having said that I know that advances are being made in this area:</p>
 
