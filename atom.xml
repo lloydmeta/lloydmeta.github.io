@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-05-29T10:45:24+09:00</updated>
+  <updated>2017-05-29T12:05:17+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -48,7 +48,7 @@
       <li><a href="#batteries-included">Batteries included</a></li>
       <li><a href="#type-system">Type System</a></li>
       <li><a href="#macros">Macros</a></li>
-      <li><a href="#compiler-optimisations">Compiler optimisations</a></li>
+      <li><a href="#compile-time-optimisations">Compile-time optimisations</a></li>
       <li><a href="#syntax">Syntax</a></li>
       <li><a href="#interoperability-with-c">Interoperability with C</a></li>
       <li><a href="#the-current-zeitgeist">The current Zeitgeist</a></li>
@@ -147,7 +147,7 @@
 
 <p>Having said that, in addition to the legacy macro system, Rust will soon be getting <a href="https://github.com/rust-lang/rfcs/blob/master/text/1566-proc-macros.md">procedural macros</a>, which are more similar to what Scala devs are used to seeing. You can get a peek of what procedural macros are like by looking at <a href="https://doc.rust-lang.org/book/procedural-macros.html">custom derives</a>, which I’ve used to implement <a href="https://beachape.com/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/"><code>derive</code> for <code>LabelledGeneric</code> in Rust</a>.</p>
 
-<h3 id="compiler-optimisations">Compiler optimisations</h3>
+<h3 id="compile-time-optimisations">Compile-time optimisations</h3>
 
 <p>I think it’s not news to anyone that Rust is fast and efficient. The <a href="https://www.rust-lang.org">home page of the official site</a> says it runs “blazingly fast” and features “zero-cost abstractions”, and the Rust-faithfuls loudly trumpted <a href="https://www.reddit.com/r/rust/comments/5vcrvb/rust_is_now_the_fastest_language_on_knucleotide/">Rust’s defeat of GCC-C in in k-nucleotide</a> a few months ago. Even if you don’t strictly believe in the conclusion of Rust being faster than C as a result of these microbenchmarks, it’s not a big jump to say that Rust performance is in the same ballpark as C, or at least, there is no reason for it not to be (yes, language and implementation are different, compilers make a difference, etc.).</p>
 
