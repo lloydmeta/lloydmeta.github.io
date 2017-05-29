@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Opinion | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/opinion/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-05-29T13:31:25+09:00</updated>
+  <updated>2017-05-29T14:04:17+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -151,7 +151,7 @@
 
 <p>I think it’s not news to anyone that Rust is fast and efficient. The <a href="https://www.rust-lang.org">home page of the official site</a> says it runs “blazingly fast” and features “zero-cost abstractions”, and the Rust-faithfuls loudly trumpted <a href="https://www.reddit.com/r/rust/comments/5vcrvb/rust_is_now_the_fastest_language_on_knucleotide/">Rust’s defeat of GCC-C in in k-nucleotide</a> a few months ago. Even if you don’t completely buy into the “faster than C” part,  it’s not a big jump to say that Rust performance is in the same ballpark as C, or at least, there is no reason for it not to be (yes, language and implementation are different, compilers make a difference, etc.).</p>
 
-<p>I’m particularly impressed by the Rust compiler’s (though I’m not sure if it’s LLVM?) ability to compile abstractions away so that they operations they enable have zero cost. As a personal anecdote, when I wrote <a href="https://github.com/lloydmeta/frunk#labelledgeneric">LabelledGeneric in frunk</a>, I expected there to be <em>some</em> performance difference between using that abstraction for conversions between structs versus writing the conversions by hand (using <code>From</code>). After all, there are non-negligible differences in the Shapeless version of it in Scala land (<a href="https://github.com/lloydmeta/caseclass-conversion-benches#results">benchmark code</a>):</p>
+<p>I’m particularly impressed by the Rust compiler’s (though I’m not sure if it’s LLVM?) ability to compile abstractions away so that the operations they enable have zero overhead. As a personal anecdote, when I wrote <a href="https://github.com/lloydmeta/frunk#labelledgeneric">LabelledGeneric in frunk</a>, I expected there to be <em>some</em> performance difference between using that abstraction for conversions between structs versus writing the conversions by hand (using <code>From</code>). After all, there are non-negligible differences in the Shapeless version of it in Scala land (<a href="https://github.com/lloydmeta/caseclass-conversion-benches#results">benchmark code</a>):</p>
 
 <p>```
 // JMH benchmark results</p>
@@ -318,7 +318,7 @@ x_cube + x_squared + x };
 
 <h3 id="strings">Strings</h3>
 
-<p>In Rust there are a number of ways to represent Strings:</p>
+<p>In Rust there are a number of ways to represent Strings. Here are a few:</p>
 
 <ul>
   <li><code>String</code> runtime string value, with its contents allocated on the heap</li>
