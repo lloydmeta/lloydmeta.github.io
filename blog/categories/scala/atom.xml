@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Scala | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/scala/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-05-29T14:10:07+09:00</updated>
+  <updated>2017-05-29T14:31:41+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -163,7 +163,7 @@
 [info] Benchmarks.from25FieldsShapeless        avgt   30  4859.432 ± 104.763  ns/op
 ```</p>
 
-<p>To my surprise, Rust manages to compile frunk’s LabelledGeneric-based, non-trivial, multi-step, unoptimised (other than using the stack, no effort was spent) transform between structs into a zero-cost abstraction. That is, using LabelledGeneric for conversion adds <em>zero</em> overhead over writting the transform by hand (<a href="https://github.com/lloydmeta/frunk/blob/master/benches/labelled.rs">benchmark code</a>):</p>
+<p>To my surprise, Rust manages to compile frunk’s LabelledGeneric-based, non-trivial, multi-step, unoptimised (other than using the stack, no effort was spent) transform between structs into a zero-cost abstraction. That is, using LabelledGeneric for conversion adds <em>zero</em> overhead over writing the transform by hand (<a href="https://github.com/lloydmeta/frunk/blob/master/benches/labelled.rs">benchmark code</a>):</p>
 
 <p>```
 // Cargo benchmark results</p>
