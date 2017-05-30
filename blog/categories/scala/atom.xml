@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Scala | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/scala/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-05-30T02:41:04+09:00</updated>
+  <updated>2017-05-30T12:21:22+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -281,7 +281,7 @@ x_cube + x_squared + x };
 
 <p>There is also the matter of <em>where</em> things get allocated. In Scala (and perhaps with most JVM-based languages), there are a set of rules that decide whether or not something gets put on the stack or on the heap (and thus incur the future cost of garbage collection). In general, the only time something gets allocated on the stack are primitives that do not escape methods as fields of objects, and references to objects which themselves get allocated on the heap. There might be fun runtime tricks the runtime environment does, like escape analysis, but overall, you don’t get to choose.</p>
 
-<p>In Rust, you can choose to allocate things on the heap by instantiating them inside (or transferring ownership of them to) data structures such as <code>Box</code>es or <code>Mutex</code>es, etc. Or you can choose to work with plain values. You get to pick your abstraction based on the cost you want to pay for the features and guarantees they offer, such as safe multi-thread access (<a href="http://manishearth.github.io/blog/2015/05/27/wrapper-types-in-rust-choosing-your-guarantees/">this page</a> is a great reference point). Either way, Rust’s ownership system will, at compile time, make sure that you won’t get data races caused by, for instance, modifying naked values in different threads with no access control.</p>
+<p>In Rust, you can choose to allocate things on the heap by instantiating them inside (or transferring ownership of them to) data structures such as <code>Box</code>es or <code>Vec</code>s, etc. Or you can choose to work with plain values. You get to pick your abstraction based on the cost you want to pay for the features and guarantees they offer, such as safe multi-thread access (<a href="http://manishearth.github.io/blog/2015/05/27/wrapper-types-in-rust-choosing-your-guarantees/">this page</a> is a great reference point). Either way, Rust’s ownership system will, at compile time, make sure that you won’t get data races caused by, for instance, modifying naked values in different threads with no access control.</p>
 
 <p>Scala’s doesn’t give its users the same level of control, so naturally there is some adjustment to be made. However, contrary to the experiences of some others, I didn’t find the ownership stuff <strong>too</strong> hard to understand and get used to. Having experience with Scala’s rich type system meant that the lifetime annotation stuff was quite easy to come to grips with. Maybe doing C and C++ in Comsci courses in university helped too.</p>
 
