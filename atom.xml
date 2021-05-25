@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2017-05-30T12:21:22+09:00</updated>
+  <updated>2021-05-25T16:32:52+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -12,6 +12,807 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Structural Typing in Rust]]></title>
+    <link href="https://beachape.com/blog/2021/05/25/structural-typing-in-rust/"/>
+    <updated>2021-05-25T21:42:00+09:00</updated>
+    <id>https://beachape.com/blog/2021/05/25/structural-typing-in-rust</id>
+    <content type="html"><![CDATA[<p>Have you ever wanted to write a structurally typed function in Rust? Do you spend a lot of time and effort getting your Rust <code>struct</code>s <em>just so</em>, and want to DRY-out data access for common field paths without declaring a new <code>trait</code> and implementing it for each struct (let’s say, <code>Cat</code> and <code>Dog</code> both have a <code>name: String</code> field)? If so, read on.</p>
+
+<p><img class="center" src="https://beachape.com/images/shape-sorter-child-with-hammer.gif" title="'A child trying and failing to use a hammer to bash a shape into a shape sorter toy'" /></p>
+
+<p>This post talks about how we can leverage <code>LabelledGeneric</code> to build <code>Path</code> traversers (functionally similar to <a href="https://en.wikibooks.org/wiki/Haskell/Lenses_and_functional_references">lenses</a>), and use them to write clean and performant structurally typed functions with all the compile-time safety that you’ve come to expect from Rust.</p>
+
+<!-- more -->
+
+<h2 class="no_toc" id="re-radio-silence">Re: radio silence</h2>
+
+<p>It’s been a while (4 years!) since I last updated this blog. Why?</p>
+
+<ul>
+  <li>I started working on the <a href="https://cloud.elastic.co">Cloud</a> SWE team at <a href="https://www.elastic.co">Elastic</a> (we’re <a href="https://grnh.se/baff303b1">hiring!</a>). I’ve been busy leading project teams, implementing features, and writing (and deleting!) lots of Scala code (no Rust though, sadly 😭)</li>
+  <li>My kid gained sentience: Around the same time, my daughter turned 2, and it’s just been a complete whirlwind of activities, learning, viruses, emotions, etc. It’s been awesome and I wouldn’t trade it for the world, but people are DOWNRIGHT LYING if they claim having kids doesn’t change anything.</li>
+  <li>2020: Covid was a big one, but the whole year felt like a trainwreck in slow motion … if the train was pulling dumpster fires.</li>
+</ul>
+
+<p>Lastly, I just didn’t have the oomph to write a post that describes <code>transmogrify()</code> to follow up on <a href="https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/">the post on Struct transforms</a>. <code>Transmogrifier</code>, which allows flexibile <a href="https://docs.rs/frunk/0.3.0/frunk/labelled/trait.Transmogrifier.html#example">recursive transformation between similarly-structured <code>structs</code></a>, was added over 2.5 years ago, but writing about it was … intimidating.</p>
+
+<p>Still, I recently decided to <em>try</em> to start writing again, so I picked a topic that’s slightly simpler, but related: <a href="https://docs.rs/frunk/0.3.2/frunk/path/index.html"><code>Path</code></a>, which introduced <a href="https://blog.rust-lang.org/2015/05/11/traits.html">zero-overhead</a> structurally-typed functions that you could use with normal <code>struct</code>s to stable Rust <a href="https://github.com/lloydmeta/frunk/blob/master/CHANGELOG.md#024---2019-02-10">back in Februrary of 2019</a> <sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>.</p>
+
+<p>Is the post late? Yes. Better than never? I hope so 🙏</p>
+
+<h2 class="no_toc" id="overview">Overview</h2>
+<ul id="markdown-toc">
+  <li><a href="#structural-typing-you-say">Structural typing, you say?</a></li>
+  <li><a href="#show-me-yours">Show me yours</a></li>
+  <li><a href="#quick-review-of-labelledgeneric">Quick review of <code>LabelledGeneric</code></a></li>
+  <li><a href="#detour-plucking-by-labelled-field">Detour: Plucking by labelled field</a></li>
+  <li><a href="#pathtraverser"><code>PathTraverser</code></a></li>
+  <li><a href="#path-path-and-path"><code>Path</code>, <code>path!</code> and <code>Path!</code></a>    <ul>
+      <li><a href="#value-level">Value-level</a></li>
+      <li><a href="#type-level">Type-level</a></li>
+    </ul>
+  </li>
+  <li><a href="#another-example">Another example</a></li>
+  <li><a href="#conclusion">Conclusion</a></li>
+</ul>
+
+<h2 id="structural-typing-you-say">Structural typing, you say?</h2>
+
+<p>“Structural typing” was thrown around up there ↑, but what do we mean? To quote <a href="https://en.wikipedia.org/wiki/Structural_type_system">Wiki</a>:</p>
+
+<blockquote>
+  <p>A structural type system (or property-based type system) is a major class of type system in which type compatibility and equivalence are determined by the type’s actual structure or definition and not by other characteristics such as its name or place of declaration. Structural systems are used to determine if types are equivalent and whether a type is a subtype of another. It contrasts with nominative systems, where comparisons are based on the names of the types or explicit declarations, and duck typing, in which only the part of the structure accessed at runtime is checked for compatibility.</p>
+</blockquote>
+
+<p>Out-of-the-box-Rust has <a href="https://en.wikipedia.org/wiki/Nominal_type_system">nominally typed</a> functions <sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup> <sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>. For the purposes of this post (and <a href="https://github.com/lloydmeta/frunk">frunk</a>), we specifically mean <code>struct</code>s and their fields when it comes to “structure”, and <strong>not</strong> <a href="https://doc.rust-lang.org/rust-by-example/fn/methods.html">methods</a> that they get from <code>impl</code>s of themselves or <code>trait</code>s. Why? Well, you can’t spell “structural typing without <code>struct</code>, I’ve been mostly focused on <code>struct</code>s, and … simplicity 😂. Also, to my mind, <code>trait</code>s already enable a kind of part-way “structural typing” of methods <sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup>.</p>
+
+<h2 id="show-me-yours">Show me yours</h2>
+
+<p>I Read Somewhere ™ that giving a concrete example upfront helps people decide if they want to keep reading (if it aligns with their interests), plus there are lots of movies where the first scene you see is chronologically from the end of the story, followed by a rewinding sound and jump back to the beginning … and Hollywood knows engagement. Anyway, we’ll end up with something that allows us to do write this sort of thing:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="c1">/// Function that generically takes any struct `A` that is traversable with `.pet.name`, if</span>
+</span><span class="line"><span class="c1">/// doing so returns a `String`</span>
+</span><span class="line"><span class="c1">///</span>
+</span><span class="line"><span class="c1">/// This is done without declaring any traits specific to this traversal</span>
+</span><span class="line"><span class="k">fn</span> <span class="n">print_pet_name</span><span class="o">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">Idx</span><span class="o">&gt;</span><span class="p">(</span><span class="n">obj</span><span class="o">:</span> <span class="n">A</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">()</span>
+</span><span class="line">                                 <span class="c1">// ↓ dot-separated structural path</span>
+</span><span class="line">    <span class="n">where</span> <span class="n">A</span><span class="o">:</span> <span class="n">PathTraverser</span><span class="o">&lt;</span><span class="n">Path</span><span class="o">!</span><span class="p">(</span><span class="n">pet</span><span class="p">.</span><span class="n">name</span><span class="p">),</span> <span class="n">Idx</span><span class="p">,</span> <span class="n">TargetValue</span><span class="o">=</span><span class="n">String</span><span class="o">&gt;</span>
+</span><span class="line">                                 <span class="c1">// ↑ 🎉</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="n">println</span><span class="o">!</span><span class="p">(</span>
+</span><span class="line">        <span class="s">&quot;Pet name [{}]&quot;</span><span class="p">,</span>
+</span><span class="line">        <span class="n">path</span><span class="o">!</span><span class="p">(</span><span class="n">pet</span><span class="p">.</span><span class="n">name</span><span class="p">).</span><span class="n">get</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+</span><span class="line">    <span class="p">);</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// Pass it any object that has `pet.name`</span>
+</span><span class="line"><span class="n">print_pet_name</span><span class="p">(</span><span class="n">dog_person</span><span class="p">);</span>
+</span><span class="line"><span class="n">print_pet_name</span><span class="p">(</span><span class="n">cat_person</span><span class="p">);</span>
+</span><span class="line"><span class="n">print_pet_name</span><span class="p">(</span><span class="n">hamster_person</span><span class="p">);</span>
+</span><span class="line"><span class="n">print_pet_name</span><span class="p">(</span><span class="n">snake_person</span><span class="p">);</span>
+</span><span class="line"><span class="n">print_pet_name</span><span class="p">(</span><span class="n">goldfish_person</span><span class="p">);</span>
+</span><span class="line"><span class="n">print_pet_name</span><span class="p">(</span><span class="n">house</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>The objects you pass to the <code>print_pet_name</code> function don’t need to know anything specific to it nor structurally typed functions in general: their struct declarations just need to <code>derive(LabelledGeneric)</code> and have a structure that complies with the function’s type signature (i.e. have a <code>pet.name</code> path that returns a <code>String</code>):</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="cp">#[derive(LabelledGeneric)]</span>
+</span><span class="line"><span class="n">struct</span> <span class="n">Dog</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">name</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class="line">    <span class="n">age</span><span class="o">:</span> <span class="k">u32</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="cp">#[derive(LabelledGeneric)]</span>
+</span><span class="line"><span class="n">struct</span> <span class="n">Cat</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">name</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class="line">    <span class="n">age</span><span class="o">:</span> <span class="k">u32</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// The next two structs can both be traversed with `pet.age`</span>
+</span><span class="line">
+</span><span class="line"><span class="cp">#[derive(LabelledGeneric)]</span>
+</span><span class="line"><span class="n">struct</span> <span class="n">DogPerson</span> <span class="p">{</span>
+</span><span class="line">  <span class="n">name</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class="line">  <span class="n">pet</span><span class="o">:</span> <span class="n">Dog</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="cp">#[derive(LabelledGeneric)]</span>
+</span><span class="line"><span class="n">struct</span> <span class="n">CatPerson</span> <span class="p">{</span>
+</span><span class="line">  <span class="n">name</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class="line">  <span class="n">pet</span><span class="o">:</span> <span class="n">Cat</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// etc etc</span>
+</span><span class="line">
+</span><span class="line"><span class="k">let</span> <span class="n">dog</span> <span class="o">=</span> <span class="n">Dog</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">name</span><span class="o">:</span> <span class="s">&quot;Odie&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+</span><span class="line">    <span class="n">age</span><span class="o">:</span> <span class="m">32</span>
+</span><span class="line"><span class="p">};</span>
+</span><span class="line">
+</span><span class="line"><span class="k">let</span> <span class="n">cat</span> <span class="o">=</span> <span class="n">Cat</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">name</span><span class="o">:</span> <span class="s">&quot;Garfield&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+</span><span class="line">    <span class="n">age</span><span class="o">:</span> <span class="m">16</span>
+</span><span class="line"><span class="p">};</span>
+</span><span class="line">
+</span><span class="line"><span class="k">let</span> <span class="n">dog_person</span> <span class="o">=</span> <span class="n">DogPerson</span> <span class="p">{</span>
+</span><span class="line">  <span class="n">name</span><span class="o">:</span> <span class="s">&quot;Jon&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+</span><span class="line">  <span class="n">pet</span><span class="o">:</span> <span class="n">dog</span>
+</span><span class="line"><span class="p">};</span>
+</span><span class="line">
+</span><span class="line"><span class="k">let</span> <span class="n">cat_person</span> <span class="o">=</span> <span class="n">CatPerson</span> <span class="p">{</span>
+</span><span class="line">  <span class="n">name</span><span class="o">:</span> <span class="s">&quot;Jon&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+</span><span class="line">  <span class="n">pet</span><span class="o">:</span> <span class="n">cat</span>
+</span><span class="line"><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>That’s it. The API is relatively clean, simple to write, read, and understand (IMO), and there are no <code>unsafe</code> or <code>dyn</code> traits anywhere (even in the implementation). And, you can still treat your <code>struct</code>s as you normally would, passing them to nominally typed functions, implementing <code>trait</code>s as you normally would etc.</p>
+
+<p>Still, when used with structurally typed functions like <code>print_pet_name</code>, the compiler will as usual ensure that:</p>
+
+<ol>
+  <li>The paths accessed on the generic parameter <code>A</code> inside the structurally typed function are constrained by the function’s type signature.</li>
+  <li>The <code>LabelledGeneric</code> objects passed as arguments to the structurally typed function support the required path in the function’s type signature.</li>
+</ol>
+
+<p>The functions themselves are not constrained to just <em>getting</em> values, they can also <em>set</em> values too (see the <a href="#another-example">other example at the end of the post</a>)</p>
+
+<h2 id="quick-review-of-labelledgeneric">Quick review of <code>LabelledGeneric</code></h2>
+
+<p>By adding a <code>#[derive(LabelledGeneric)]</code> attribute to a struct, like so:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="cp">#[derive(LabelledGeneric)]</span>
+</span><span class="line"><span class="n">struct</span> <span class="n">Dog</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">name</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class="line">    <span class="n">age</span><span class="o">:</span> <span class="k">u32</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>we gain the ability to turn a <code>Dog</code> object into a labelled heterogenous list:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">let</span> <span class="n">dog</span> <span class="o">=</span> <span class="n">Dog</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">name</span><span class="o">:</span> <span class="s">&quot;Odie&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+</span><span class="line">    <span class="n">age</span><span class="o">:</span> <span class="m">32</span>
+</span><span class="line"><span class="p">};</span>
+</span><span class="line"><span class="k">let</span> <span class="n">as_labelled</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Dog</span> <span class="k">as</span> <span class="n">LabelledGeneric</span><span class="o">&gt;::</span><span class="n">into</span><span class="p">(</span><span class="n">dog</span><span class="p">);</span>
+</span><span class="line"><span class="k">let</span> <span class="n">expected_labelled</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span>
+</span><span class="line">    <span class="c1">// in reality the field label is a tuple of type-level chars, but ignore that for now</span>
+</span><span class="line">    <span class="n">field</span><span class="o">!</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s">&quot;Odie&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">()),</span>
+</span><span class="line">    <span class="n">field</span><span class="o">!</span><span class="p">(</span><span class="n">age</span><span class="p">,</span> <span class="m">32</span><span class="p">)</span>
+</span><span class="line"><span class="p">];</span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">expected_labelled</span><span class="p">,</span> <span class="n">as_labelled</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>This ability to turn a <code>struct</code> into a heterogenous List of “fields” (type-level labels and values, henceforth “labelled HList”) paves the way for us to go from nominative typing  (does this type have the right name?) to structural typing (does this type have a given structure?).</p>
+
+<p>For a more thorough review of HLists and <code>LabelledGeneric</code>, see <a href="https://beachape.com/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/">this post</a>.</p>
+
+<h2 id="detour-plucking-by-labelled-field">Detour: Plucking by labelled field</h2>
+
+<p>Given a labelled HList, it would be useful to be able to “pluck” a value out of it by using a type-level field name. That would allow us to have compile-time-checked access of a field in a labelled Hlist by type-level name:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="c1">// Following from the above `Dog` example</span>
+</span><span class="line"><span class="k">let</span> <span class="p">(</span><span class="n">age_field</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span><span class="o">:</span> <span class="p">(</span><span class="n">Field</span><span class="o">&lt;</span><span class="n">age</span><span class="p">,</span> <span class="n">_</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="o">=</span> <span class="n">as_labelled</span><span class="p">.</span><span class="n">pluck_by_name</span><span class="p">();</span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="m">32</span><span class="p">,</span> <span class="n">age_field</span><span class="p">.</span><span class="n">value</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>This is the equivalent of accessing a specific <code>.age</code> field on a <code>Dog</code> struct in the normal Rust Way ™, but we’re doing it our own way on its labelled HList equivalent, using user-declared types and taking advantage of the type system.</p>
+
+<p>The trait would look like this:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="n">pub</span> <span class="n">trait</span> <span class="n">ByNameFieldPlucker</span><span class="o">&lt;</span><span class="n">TargetKey</span><span class="p">,</span> <span class="n">Index</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class="line">    <span class="k">type</span> <span class="n">TargetValue</span><span class="p">;</span>
+</span><span class="line">    <span class="k">type</span> <span class="n">Remainder</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line">    <span class="c1">/// Returns a pair consisting of the value pointed to by the target key and the remainder.</span>
+</span><span class="line">    <span class="k">fn</span> <span class="n">pluck_by_name</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">Field</span><span class="o">&lt;</span><span class="n">TargetKey</span><span class="p">,</span> <span class="n">Self</span><span class="o">::</span><span class="n">TargetValue</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">);</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>The implementation of this “by-name-field” Plucker shares much with the normal <code>Plucker</code> mentioned in the previous post, so instead of re-explaining things like the <code>Index</code> type param, I’ll simply add <a href="https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/#plucking-from-hlists">a link to that section</a> and show the implementation for the exit and recursion implementations here:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="c1">/// Implementation when the pluck target key is in the head.</span>
+</span><span class="line"><span class="k">impl</span><span class="o">&lt;</span><span class="n">K</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">Tail</span><span class="o">&gt;</span> <span class="n">ByNameFieldPlucker</span><span class="o">&lt;</span><span class="n">K</span><span class="p">,</span> <span class="n">Here</span><span class="o">&gt;</span> <span class="k">for</span> <span class="n">HCons</span><span class="o">&lt;</span><span class="n">Field</span><span class="o">&lt;</span><span class="n">K</span><span class="p">,</span> <span class="n">V</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">Tail</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class="line">    <span class="k">type</span> <span class="n">TargetValue</span> <span class="o">=</span> <span class="n">V</span><span class="p">;</span>
+</span><span class="line">    <span class="k">type</span> <span class="n">Remainder</span> <span class="o">=</span> <span class="n">Tail</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line">    <span class="cp">#[inline(always)]</span>
+</span><span class="line">    <span class="k">fn</span> <span class="n">pluck_by_name</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">Field</span><span class="o">&lt;</span><span class="n">K</span><span class="p">,</span> <span class="n">Self</span><span class="o">::</span><span class="n">TargetValue</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">        <span class="k">let</span> <span class="n">field</span> <span class="o">=</span> <span class="n">field_with_name</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">head</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">self</span><span class="p">.</span><span class="n">head</span><span class="p">.</span><span class="n">value</span><span class="p">);</span>
+</span><span class="line">        <span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">self</span><span class="p">.</span><span class="n">tail</span><span class="p">)</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">/// Implementation when the pluck target key is in the tail.</span>
+</span><span class="line"><span class="k">impl</span><span class="o">&lt;</span><span class="n">Head</span><span class="p">,</span> <span class="n">Tail</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">TailIndex</span><span class="o">&gt;</span> <span class="n">ByNameFieldPlucker</span><span class="o">&lt;</span><span class="n">K</span><span class="p">,</span> <span class="n">There</span><span class="o">&lt;</span><span class="n">TailIndex</span><span class="o">&gt;&gt;</span> <span class="k">for</span> <span class="n">HCons</span><span class="o">&lt;</span><span class="n">Head</span><span class="p">,</span> <span class="n">Tail</span><span class="o">&gt;</span>
+</span><span class="line"><span class="n">where</span>
+</span><span class="line">    <span class="n">Tail</span><span class="o">:</span> <span class="n">ByNameFieldPlucker</span><span class="o">&lt;</span><span class="n">K</span><span class="p">,</span> <span class="n">TailIndex</span><span class="o">&gt;</span><span class="p">,</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="k">type</span> <span class="n">TargetValue</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Tail</span> <span class="k">as</span> <span class="n">ByNameFieldPlucker</span><span class="o">&lt;</span><span class="n">K</span><span class="p">,</span> <span class="n">TailIndex</span><span class="o">&gt;&gt;::</span><span class="n">TargetValue</span><span class="p">;</span>
+</span><span class="line">    <span class="k">type</span> <span class="n">Remainder</span> <span class="o">=</span> <span class="n">HCons</span><span class="o">&lt;</span><span class="n">Head</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">Tail</span> <span class="k">as</span> <span class="n">ByNameFieldPlucker</span><span class="o">&lt;</span><span class="n">K</span><span class="p">,</span> <span class="n">TailIndex</span><span class="o">&gt;&gt;::</span><span class="n">Remainder</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line">    <span class="cp">#[inline(always)]</span>
+</span><span class="line">    <span class="k">fn</span> <span class="n">pluck_by_name</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">Field</span><span class="o">&lt;</span><span class="n">K</span><span class="p">,</span> <span class="n">Self</span><span class="o">::</span><span class="n">TargetValue</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">Self</span><span class="o">::</span><span class="n">Remainder</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">        <span class="k">let</span> <span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">tail_remainder</span><span class="p">)</span> <span class="o">=</span>
+</span><span class="line">            <span class="o">&lt;</span><span class="n">Tail</span> <span class="k">as</span> <span class="n">ByNameFieldPlucker</span><span class="o">&lt;</span><span class="n">K</span><span class="p">,</span> <span class="n">TailIndex</span><span class="o">&gt;&gt;::</span><span class="n">pluck_by_name</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">tail</span><span class="p">);</span>
+</span><span class="line">        <span class="p">(</span>
+</span><span class="line">            <span class="n">target</span><span class="p">,</span>
+</span><span class="line">            <span class="n">HCons</span> <span class="p">{</span>
+</span><span class="line">                <span class="n">head</span><span class="o">:</span> <span class="n">self</span><span class="p">.</span><span class="n">head</span><span class="p">,</span>
+</span><span class="line">                <span class="n">tail</span><span class="o">:</span> <span class="n">tail_remainder</span><span class="p">,</span>
+</span><span class="line">            <span class="p">},</span>
+</span><span class="line">        <span class="p">)</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>In truth, it probably makes sense to re-write the <code>ByNameFieldPlucker</code> implementation(s) in terms of <code>Plucker</code>, but this felt somewhat more straightforward when I wrote it at the time for <code>transmogrify</code>ing.</p>
+
+<h2 id="pathtraverser"><code>PathTraverser</code></h2>
+
+<p><code>ByNameFieldPlucker</code> provides us with a way of accessing <em>a</em> field on <em>single</em> struct, but we want to be able to traverse multiple levels of structs. For instance, given the aformentioned <code>Dog</code> and <code>DogPerson</code> structs, Rust allows us to get the age of his dog by doing <code>dog_person.pet.age</code>, and we’d like to be able to do that structurally. Enter <code>PathTraverser</code>:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="n">pub</span> <span class="n">trait</span> <span class="n">PathTraverser</span><span class="o">&lt;</span><span class="n">Path</span><span class="p">,</span> <span class="n">Indices</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class="line">    <span class="k">type</span> <span class="n">TargetValue</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line">    <span class="c1">/// Returns a pair consisting of the value pointed to by the target key and the remainder.</span>
+</span><span class="line">    <span class="k">fn</span> <span class="n">get</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="o">::</span><span class="n">TargetValue</span><span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Instead of <code>Index</code>, its second type param is <code>Indices</code> to reflect the fact that we’re going to need multiple <code>Index</code>s to “pluck” by field name from. The “exit” (the last, aka no-more-dots, target field name and value type are on the current struct) and “recurse” (the last target field name and value type are in an “inner” struct) implementations of this trait are as follows:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="c1">// For the case where we have no more field names to traverse</span>
+</span><span class="line"><span class="k">impl</span><span class="o">&lt;</span><span class="n">Name</span><span class="p">,</span> <span class="n">PluckIndex</span><span class="p">,</span> <span class="n">Traversable</span><span class="o">&gt;</span> <span class="n">PathTraverser</span><span class="o">&lt;</span><span class="n">Path</span><span class="o">&lt;</span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">Name</span><span class="p">,</span> <span class="n">HNil</span><span class="o">&gt;&gt;</span><span class="p">,</span> <span class="n">PluckIndex</span><span class="o">&gt;</span>
+</span><span class="line">    <span class="k">for</span> <span class="n">Traversable</span>
+</span><span class="line"><span class="n">where</span>
+</span><span class="line">    <span class="n">Traversable</span><span class="o">:</span> <span class="n">IntoLabelledGeneric</span><span class="p">,</span>
+</span><span class="line">    <span class="o">&lt;</span><span class="n">Traversable</span> <span class="k">as</span> <span class="n">IntoLabelledGeneric</span><span class="o">&gt;::</span><span class="n">Repr</span><span class="o">:</span> <span class="n">ByNameFieldPlucker</span><span class="o">&lt;</span><span class="n">Name</span><span class="p">,</span> <span class="n">PluckIndex</span><span class="o">&gt;</span><span class="p">,</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="k">type</span> <span class="n">TargetValue</span> <span class="o">=</span> <span class="o">&lt;&lt;</span><span class="n">Traversable</span> <span class="k">as</span> <span class="n">IntoLabelledGeneric</span><span class="o">&gt;::</span><span class="n">Repr</span> <span class="k">as</span> <span class="n">ByNameFieldPlucker</span><span class="o">&lt;</span>
+</span><span class="line">        <span class="n">Name</span><span class="p">,</span>
+</span><span class="line">        <span class="n">PluckIndex</span><span class="p">,</span>
+</span><span class="line">    <span class="o">&gt;&gt;::</span><span class="n">TargetValue</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line">    <span class="cp">#[inline(always)]</span>
+</span><span class="line">    <span class="k">fn</span> <span class="n">get</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="o">::</span><span class="n">TargetValue</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">self</span><span class="p">.</span><span class="n">into</span><span class="p">().</span><span class="n">pluck_by_name</span><span class="p">().</span><span class="m">0.</span><span class="n">value</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// For the case where a path nests another path (e.g. nested traverse)</span>
+</span><span class="line"><span class="k">impl</span><span class="o">&lt;</span><span class="n">HeadName</span><span class="p">,</span> <span class="n">TailNames</span><span class="p">,</span> <span class="n">HeadPluckIndex</span><span class="p">,</span> <span class="n">TailPluckIndices</span><span class="p">,</span> <span class="n">Traversable</span><span class="o">&gt;</span>
+</span><span class="line">    <span class="n">PathTraverser</span><span class="o">&lt;</span><span class="n">Path</span><span class="o">&lt;</span><span class="n">HCons</span><span class="o">&lt;</span><span class="n">HeadName</span><span class="p">,</span> <span class="n">Path</span><span class="o">&lt;</span><span class="n">TailNames</span><span class="o">&gt;&gt;&gt;</span><span class="p">,</span> <span class="n">HCons</span><span class="o">&lt;</span><span class="n">HeadPluckIndex</span><span class="p">,</span> <span class="n">TailPluckIndices</span><span class="o">&gt;&gt;</span>
+</span><span class="line">    <span class="k">for</span> <span class="n">Traversable</span>
+</span><span class="line"><span class="n">where</span>
+</span><span class="line">    <span class="n">Traversable</span><span class="o">:</span> <span class="n">IntoLabelledGeneric</span><span class="p">,</span>
+</span><span class="line">    <span class="o">&lt;</span><span class="n">Traversable</span> <span class="k">as</span> <span class="n">IntoLabelledGeneric</span><span class="o">&gt;::</span><span class="n">Repr</span><span class="o">:</span> <span class="n">ByNameFieldPlucker</span><span class="o">&lt;</span><span class="n">HeadName</span><span class="p">,</span> <span class="n">HeadPluckIndex</span><span class="o">&gt;</span><span class="p">,</span>
+</span><span class="line">    <span class="o">&lt;&lt;</span><span class="n">Traversable</span> <span class="k">as</span> <span class="n">IntoLabelledGeneric</span><span class="o">&gt;::</span><span class="n">Repr</span> <span class="k">as</span> <span class="n">ByNameFieldPlucker</span><span class="o">&lt;</span><span class="n">HeadName</span><span class="p">,</span> <span class="n">HeadPluckIndex</span><span class="o">&gt;&gt;::</span><span class="n">TargetValue</span><span class="o">:</span>
+</span><span class="line">        <span class="n">PathTraverser</span><span class="o">&lt;</span><span class="n">Path</span><span class="o">&lt;</span><span class="n">TailNames</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">TailPluckIndices</span><span class="o">&gt;</span><span class="p">,</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="k">type</span> <span class="n">TargetValue</span> <span class="o">=</span> <span class="o">&lt;&lt;&lt;</span><span class="n">Traversable</span> <span class="k">as</span> <span class="n">IntoLabelledGeneric</span><span class="o">&gt;::</span><span class="n">Repr</span> <span class="k">as</span> <span class="n">ByNameFieldPlucker</span><span class="o">&lt;</span><span class="n">HeadName</span><span class="p">,</span> <span class="n">HeadPluckIndex</span><span class="o">&gt;&gt;::</span><span class="n">TargetValue</span> <span class="k">as</span>
+</span><span class="line">    <span class="n">PathTraverser</span><span class="o">&lt;</span><span class="n">Path</span><span class="o">&lt;</span><span class="n">TailNames</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">TailPluckIndices</span><span class="o">&gt;&gt;::</span><span class="n">TargetValue</span> <span class="p">;</span>
+</span><span class="line">
+</span><span class="line">    <span class="cp">#[inline(always)]</span>
+</span><span class="line">    <span class="k">fn</span> <span class="n">get</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="o">::</span><span class="n">TargetValue</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">self</span><span class="p">.</span><span class="n">into</span><span class="p">().</span><span class="n">pluck_by_name</span><span class="p">().</span><span class="m">0.</span><span class="n">value</span><span class="p">.</span><span class="n">get</span><span class="p">()</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>That type signature is a bit hairy.</p>
+
+<p>It’s a bit “Inceptiony” to think about what the <code>Indices</code> type param might look like at a given callsite, and for the most part it doesn’t matter for users (we make it the compiler’s job to fill it in or error out trying), but for the purposes of trying to understand what’s going on, it’s reasonable to imagine this as the <code>Indices</code> for structurally accessing <code>dog_person.pet.age</code>:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="n">HList</span><span class="o">!</span><span class="p">[</span>
+</span><span class="line">  <span class="o">&lt;</span><span class="n">There</span><span class="o">&lt;</span><span class="n">Here</span><span class="o">&gt;&gt;</span><span class="p">,</span> <span class="c1">// First access is `.pet`, which is the 2nd field on `DogUser`</span>
+</span><span class="line">  <span class="o">&lt;</span><span class="n">There</span><span class="o">&lt;</span><span class="n">Here</span><span class="o">&gt;&gt;</span><span class="p">,</span> <span class="c1">// First access is `.age`, which is the 2nd field on `Dog`</span>
+</span><span class="line"><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h2 id="path-path-and-path"><code>Path</code>, <code>path!</code> and <code>Path!</code></h2>
+
+<p>The last piece we need is something that allows us to describe a path (e.g. <code>pet.age</code>). Since the path is going to be itself a type-level thing (reminder: we pluck values by type-level field name), we can model this as a newtype wrapper around the zero-sized <a href="https://doc.rust-lang.org/std/marker/struct.PhantomData.html"><code>PhantomData&lt;T&gt;</code> type</a></p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="n">pub</span> <span class="n">struct</span> <span class="n">Path</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">PhantomData</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">);</span>
+</span><span class="line">
+</span><span class="line"><span class="k">impl</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">Path</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class="line">    <span class="c1">/// Creates a new Path</span>
+</span><span class="line">    <span class="n">pub</span> <span class="k">fn</span> <span class="n">new</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">Path</span><span class="p">(</span><span class="n">PhantomData</span><span class="p">)</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line">
+</span><span class="line">    <span class="c1">/// Gets something using the current path</span>
+</span><span class="line">    <span class="n">pub</span> <span class="k">fn</span> <span class="n">get</span><span class="o">&lt;</span><span class="n">V</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">O</span><span class="o">&gt;</span><span class="p">(</span><span class="o">&amp;</span><span class="n">self</span><span class="p">,</span> <span class="n">o</span><span class="o">:</span> <span class="n">O</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">V</span>
+</span><span class="line">    <span class="n">where</span>
+</span><span class="line">        <span class="n">O</span><span class="o">:</span> <span class="n">PathTraverser</span><span class="o">&lt;</span><span class="n">Self</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">TargetValue</span> <span class="o">=</span> <span class="n">V</span><span class="o">&gt;</span><span class="p">,</span>
+</span><span class="line">    <span class="p">{</span>
+</span><span class="line">        <span class="n">o</span><span class="p">.</span><span class="n">get</span><span class="p">()</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p><code>Path</code>s basically works like “lens”, only without the target type locked down (maybe that will be a future type in frunk…), enabling this sort of thing:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">let</span> <span class="n">p</span> <span class="o">=</span> <span class="n">path</span><span class="o">!</span><span class="p">(</span><span class="n">pet</span><span class="p">.</span><span class="n">name</span><span class="p">);</span>
+</span><span class="line">
+</span><span class="line"><span class="k">let</span> <span class="n">dog_age</span><span class="o">:</span> <span class="o">&amp;</span><span class="k">u32</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dog_person</span><span class="p">);</span>
+</span><span class="line"><span class="k">let</span> <span class="n">cat_age</span><span class="o">:</span> <span class="o">&amp;</span><span class="k">u32</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cat_person</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>That’s all fine and good. From here on though, things get a bit tricky because we need to create friendly ways to declare <code>Path</code>s, and <code>T</code> needs to be a type level path, one that needs to be <strong>easy</strong> to use <em>and</em> <strong>compatible</strong> with the way <a href="https://beachape.com/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/#type-level-characters-and-strings"><code>LabelledGeneric</code> encodes field names into type-level strings</a>. Rubber, meet road.</p>
+
+<p>To make declaring value and type level <code>Path</code>s easy to use, we’ll need to make use of procedural macros because they allow us to take user-defined expressions and turn them into type-level paths made of type-level field names, and doing so with <a href="https://doc.rust-lang.org/book/ch19-06-macros.html#declarative-macros-with-macro_rules-for-general-metaprogramming">declarative macros</a> is extremely difficult (I gave it a stab) if not impossible.</p>
+
+<p>A core function that is reused for generating value-level <strong>and</strong> type-value <code>Path</code>s is:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">fn</span> <span class="n">build_path_type</span><span class="p">(</span><span class="n">path_expr</span><span class="o">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="k">impl</span> <span class="n">ToTokens</span> <span class="p">{</span>
+</span><span class="line">    <span class="k">let</span> <span class="n">idents</span> <span class="o">=</span> <span class="n">find_idents_in_expr</span><span class="p">(</span><span class="n">path_expr</span><span class="p">);</span>
+</span><span class="line">    <span class="n">idents</span>
+</span><span class="line">        <span class="p">.</span><span class="n">iter</span><span class="p">()</span>
+</span><span class="line">        <span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">i</span><span class="o">|</span> <span class="n">build_label_type</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+</span><span class="line">        <span class="p">.</span><span class="n">fold</span><span class="p">(</span><span class="n">quote</span><span class="o">!</span><span class="p">(</span><span class="o">::</span><span class="n">frunk_core</span><span class="o">::</span><span class="n">hlist</span><span class="o">::</span><span class="n">HNil</span><span class="p">),</span> <span class="o">|</span><span class="n">acc</span><span class="p">,</span> <span class="n">t</span><span class="o">|</span> <span class="p">{</span>
+</span><span class="line">            <span class="n">quote</span><span class="o">!</span> <span class="p">{</span>
+</span><span class="line">            <span class="o">::</span><span class="n">frunk_core</span><span class="o">::</span><span class="n">path</span><span class="o">::</span><span class="n">Path</span><span class="o">&lt;</span>
+</span><span class="line">                <span class="o">::</span><span class="n">frunk_core</span><span class="o">::</span><span class="n">hlist</span><span class="o">::</span><span class="n">HCons</span><span class="o">&lt;</span>
+</span><span class="line">                   <span class="err">#</span><span class="n">t</span><span class="p">,</span>
+</span><span class="line">                   <span class="err">#</span><span class="n">acc</span>
+</span><span class="line">                <span class="o">&gt;</span>
+</span><span class="line">              <span class="o">&gt;</span>
+</span><span class="line">            <span class="p">}</span>
+</span><span class="line">        <span class="p">})</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Where <code>find_idents_in_expr</code> is a <a href="https://github.com/lloydmeta/frunk/blob/8eb9ccb08f9060c4aa008a4f1786bc441c97ee27/proc-macro-helpers/src/lib.rs#L193-L220">function</a> turns a path expression like <code>pet.age</code> into a vector of <a href="https://doc.rust-lang.org/proc_macro/struct.Ident.html"><code>Ident</code> identifiers</a>.</p>
+
+<p>We then pass those through to the <a href="https://github.com/lloydmeta/frunk/blob/8eb9ccb08f9060c4aa008a4f1786bc441c97ee27/proc-macro-helpers/src/lib.rs#L131-L146"><code>build_label_type</code> function</a>, which translates each <code>Ident</code> into a type-level name. This is also re-used by <code>LabelledGeneric</code>’s derivation macro, which is important because it ensures that the way field names are encoded as types for <code>Path</code>s is compatible with the way field names are encoded as types in <code>LabelledGeneric</code>-produced labelled HLists.</p>
+
+<h3 id="value-level">Value-level</h3>
+
+<p>The macro for creating a <code>Path</code> <em>value</em> simply instantiates a <code>Path</code>  using <code>Path::new()</code>, but with a type ascription based on what gets returned from <code>build_path_type</code>.</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="n">pub</span> <span class="k">fn</span> <span class="n">path</span><span class="p">(</span><span class="n">input</span><span class="o">:</span> <span class="n">TokenStream</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TokenStream</span> <span class="p">{</span>
+</span><span class="line">    <span class="k">let</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">parse_macro_input</span><span class="o">!</span><span class="p">(</span><span class="n">input</span> <span class="k">as</span> <span class="n">Expr</span><span class="p">);</span>
+</span><span class="line">    <span class="k">let</span> <span class="n">path_type</span> <span class="o">=</span> <span class="n">build_path_type</span><span class="p">(</span><span class="n">expr</span><span class="p">);</span>
+</span><span class="line">    <span class="k">let</span> <span class="n">ast</span> <span class="o">=</span> <span class="n">quote</span><span class="o">!</span> <span class="p">{</span>
+</span><span class="line">        <span class="p">{</span>
+</span><span class="line">            <span class="k">let</span> <span class="n">p</span><span class="o">:</span> <span class="err">#</span><span class="n">path_type</span> <span class="o">=</span> <span class="o">::</span><span class="n">frunk_core</span><span class="o">::</span><span class="n">path</span><span class="o">::</span><span class="n">Path</span><span class="o">::</span><span class="n">new</span><span class="p">();</span>
+</span><span class="line">            <span class="n">p</span>
+</span><span class="line">        <span class="p">}</span>
+</span><span class="line">    <span class="p">};</span>
+</span><span class="line">    <span class="c1">//    println!(&quot;ast: [{}]&quot;, ast);</span>
+</span><span class="line">    <span class="n">TokenStream</span><span class="o">::</span><span class="n">from</span><span class="p">(</span><span class="n">ast</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h3 id="type-level">Type-level</h3>
+
+<p>The macro for creating a <code>Path</code> <em>type</em> simply splices the type returned from <code>build_path_type</code>.</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="n">pub</span> <span class="k">fn</span> <span class="n">Path</span><span class="p">(</span><span class="n">input</span><span class="o">:</span> <span class="n">TokenStream</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TokenStream</span> <span class="p">{</span>
+</span><span class="line">    <span class="k">let</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">parse_macro_input</span><span class="o">!</span><span class="p">(</span><span class="n">input</span> <span class="k">as</span> <span class="n">Expr</span><span class="p">);</span>
+</span><span class="line">    <span class="k">let</span> <span class="n">path_type</span> <span class="o">=</span> <span class="n">build_path_type</span><span class="p">(</span><span class="n">expr</span><span class="p">);</span>
+</span><span class="line">    <span class="k">let</span> <span class="n">ast</span> <span class="o">=</span> <span class="n">quote</span><span class="o">!</span> <span class="p">{</span>
+</span><span class="line">        <span class="err">#</span><span class="n">path_type</span>
+</span><span class="line">    <span class="p">};</span>
+</span><span class="line">    <span class="c1">//    println!(&quot;ast: [{}]&quot;, ast);</span>
+</span><span class="line">    <span class="n">TokenStream</span><span class="o">::</span><span class="n">from</span><span class="p">(</span><span class="n">ast</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h2 id="another-example">Another example</h2>
+
+<p>Getting and setting ids of from <code>struct</code>s, without declaring a <code>GetId</code> or <code>SetId</code> trait and implementing it for each type:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+<span class="line-number">53</span>
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+<span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
+<span class="line-number">67</span>
+<span class="line-number">68</span>
+<span class="line-number">69</span>
+<span class="line-number">70</span>
+<span class="line-number">71</span>
+<span class="line-number">72</span>
+<span class="line-number">73</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="cp">#[derive(LabelledGeneric)]</span>
+</span><span class="line"><span class="n">struct</span> <span class="n">User</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">id</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class="line">    <span class="n">is_admin</span><span class="o">:</span> <span class="n">bool</span><span class="p">,</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="cp">#[derive(LabelledGeneric)]</span>
+</span><span class="line"><span class="n">struct</span> <span class="n">Book</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">id</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class="line">    <span class="n">title</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="cp">#[derive(LabelledGeneric)]</span>
+</span><span class="line"><span class="n">struct</span> <span class="n">Store</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">id</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class="line">    <span class="n">address</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// Object references passed to this function just need to have an `id: String`</span>
+</span><span class="line"><span class="c1">// in their struct defintion.</span>
+</span><span class="line"><span class="k">fn</span> <span class="n">get_id</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">Idx</span><span class="o">&gt;</span><span class="p">(</span><span class="n">obj</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">A</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span>
+</span><span class="line"><span class="n">where</span>
+</span><span class="line">    <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">A</span><span class="o">:</span> <span class="n">PathTraverser</span><span class="o">&lt;</span><span class="n">Path</span><span class="o">!</span><span class="p">(</span><span class="n">id</span><span class="p">),</span> <span class="n">Idx</span><span class="p">,</span> <span class="n">TargetValue</span> <span class="o">=</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">String</span><span class="o">&gt;</span><span class="p">,</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="n">path</span><span class="o">!</span><span class="p">(</span><span class="n">id</span><span class="p">).</span><span class="n">get</span><span class="p">(</span><span class="n">obj</span><span class="p">).</span><span class="n">as_str</span><span class="p">()</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// DRYed-out setter</span>
+</span><span class="line"><span class="k">fn</span> <span class="n">set_id</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">Idx</span><span class="o">&gt;</span><span class="p">(</span><span class="n">obj</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="k">mut</span> <span class="n">A</span><span class="p">,</span> <span class="n">set_to</span><span class="o">:</span> <span class="n">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">()</span>
+</span><span class="line"><span class="n">where</span>
+</span><span class="line">    <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="k">mut</span> <span class="n">A</span><span class="o">:</span> <span class="n">PathTraverser</span><span class="o">&lt;</span><span class="n">Path</span><span class="o">!</span><span class="p">(</span><span class="n">id</span><span class="p">),</span> <span class="n">Idx</span><span class="p">,</span> <span class="n">TargetValue</span> <span class="o">=</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="k">mut</span> <span class="n">String</span><span class="o">&gt;</span><span class="p">,</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="o">*</span><span class="n">path</span><span class="o">!</span><span class="p">(</span><span class="n">id</span><span class="p">).</span><span class="n">get</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">=</span> <span class="n">set_to</span><span class="p">;</span>
+</span><span class="line"><span class="p">}</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line"><span class="k">let</span> <span class="k">mut</span> <span class="n">user</span> <span class="o">=</span> <span class="n">User</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">id</span><span class="o">:</span> <span class="s">&quot;user_id&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+</span><span class="line">    <span class="n">is_admin</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span>
+</span><span class="line"><span class="p">};</span>
+</span><span class="line"><span class="k">let</span> <span class="k">mut</span> <span class="n">book</span> <span class="o">=</span> <span class="n">Book</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">id</span><span class="o">:</span> <span class="s">&quot;book_id&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+</span><span class="line">    <span class="n">title</span><span class="o">:</span> <span class="s">&quot;Tale of Three structs&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+</span><span class="line"><span class="p">};</span>
+</span><span class="line"><span class="k">let</span> <span class="k">mut</span> <span class="n">store</span> <span class="o">=</span> <span class="n">Store</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">id</span><span class="o">:</span> <span class="s">&quot;store_id&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+</span><span class="line">    <span class="n">address</span><span class="o">:</span> <span class="s">&quot;Sesame street&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+</span><span class="line"><span class="p">};</span>
+</span><span class="line">
+</span><span class="line"><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">get_id</span><span class="p">(</span><span class="o">&amp;</span><span class="n">user</span><span class="p">));</span>
+</span><span class="line"><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">get_id</span><span class="p">(</span><span class="o">&amp;</span><span class="n">book</span><span class="p">));</span>
+</span><span class="line"><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">get_id</span><span class="p">(</span><span class="o">&amp;</span><span class="n">store</span><span class="p">));</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// ↑ Prints:</span>
+</span><span class="line"><span class="c1">//</span>
+</span><span class="line"><span class="c1">// user_id</span>
+</span><span class="line"><span class="c1">// book_id</span>
+</span><span class="line"><span class="c1">// store_id</span>
+</span><span class="line">
+</span><span class="line"><span class="n">set_id</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span> <span class="n">user</span><span class="p">,</span> <span class="s">&quot;new_user_id&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">());</span>
+</span><span class="line"><span class="n">set_id</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span> <span class="n">book</span><span class="p">,</span> <span class="s">&quot;new_book_id&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">());</span>
+</span><span class="line"><span class="n">set_id</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span> <span class="n">store</span><span class="p">,</span> <span class="s">&quot;new_store_id&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">());</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// Print again</span>
+</span><span class="line"><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">get_id</span><span class="p">(</span><span class="o">&amp;</span><span class="n">user</span><span class="p">));</span>
+</span><span class="line"><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">get_id</span><span class="p">(</span><span class="o">&amp;</span><span class="n">book</span><span class="p">));</span>
+</span><span class="line"><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">get_id</span><span class="p">(</span><span class="o">&amp;</span><span class="n">store</span><span class="p">));</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">// ↑ Prints:</span>
+</span><span class="line"><span class="c1">//</span>
+</span><span class="line"><span class="c1">// new_user_id</span>
+</span><span class="line"><span class="c1">// new_book_id</span>
+</span><span class="line"><span class="c1">// new_store_id</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>The <code>PathTraverser</code> trait and <code>Path</code> type build on <code>LabelledGeneric</code> and <code>HList</code> as core abstractions, which is nice because we get some more mileage out of them, and it means that there are no additional traits that you need to import nor implement (even as a macro).</p>
+
+<p>As usual, it’s compile-time checked, but it’s also <strong>performant</strong>. In <a href="https://beachape.com/frunk/dev/bench/">benchmarks</a>, tests comparing <code>lens_path*</code> (structurally typed traversal) versus <code>normal_path*</code> (Rust lang built-in traversal) traversals show that they perform the same: in other words, using structural typing in this way adds zero overhead.</p>
+
+<p>As usual, please give it a spin and chime in with any questions, corrections, and suggestions !</p>
+
+<h4 class="no_toc" id="footnotes">Footnotes</h4>
+
+<div class="footnotes">
+  <ol>
+    <li id="fn:1">
+      <p>Technically, everything for writing basic structurally typed functions minus support for jumping through <code>.</code>-separated fields was available in frunk since <a href="https://github.com/lloydmeta/frunk/pull/124/files#diff-1dbf59e47bd20977b2b93de89dc0b1ca339be36509288a64602c2e33be4f7e25R552">October of 2018</a> at the latest because <code>ByNamePlucker</code> was available already by then.<a href="#fnref:1" rel="reference">&#8617;</a></p>
+    </li>
+    <li id="fn:2">
+      <p>In Rust, macros can and have been used to approximate structural typing (macro arguments aren’t typed, so you can just do something like <code>$x.access.some.path</code> and have the compiler expand and fail it if an object at the callsite doesn’t have that path). This is fine too, but macros can be hard to read and maintain (they have no type signature, so you’ll need to look in the implementation/docs to know what it expects), and they <a href="https://doc.rust-lang.org/book/ch19-06-macros.html#the-difference-between-macros-and-functions">aren’t functions</a>; they’re code that write code. Again, The Macro Way is Fine ™; this post just offers an alternative.<a href="#fnref:2" rel="reference">&#8617;</a></p>
+    </li>
+    <li id="fn:3">
+      <p>Rust <em>did</em> at one point have built-in support structural records, but <a href="https://github.com/rust-lang/rust/issues/3089">it was removed almost 9 years ago before 1.0 was released</a>. I found an <a href="https://internals.rust-lang.org/t/why-were-structural-records-removed/1553/2">answer to a question on the internal Rust lang forum</a> asking why, and the 3 reasons listed for removal at the time made sense; the <code>Path</code> implementation described here (and implemented in <a href="https://github.com/lloydmeta/frunk">frunk</a>) addresses 1, if not 2, of the 3 issues (field order requirement and recursion IIUC), leaving the issue of field visibility, which I believe can probably be addressed as an option to the <code>LabelledGeneric</code> derive.<a href="#fnref:3" rel="reference">&#8617;</a></p>
+    </li>
+    <li id="fn:4">
+      <p><code>trait</code>s can be adhoc and auto-implemented, and directly used as constraints in functions (though still nominally), so being structurally-typed on <code>trait</code>s feels a bit less of a problem that needs solving, and I get the feeling that it will be even less so with things like <a href="https://rust-lang.github.io/rfcs/1210-impl-specialization.html">specialization</a> coming down the pipeline, which will allow for more blanket and overlapping <code>impl</code>s.<a href="#fnref:4" rel="reference">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Rust: A Scala Engineer's Perspective]]></title>
@@ -5257,28 +6058,6 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
 <p>There are a few places where I needed to get my hands dirty and look at package source code to understand where and why things were failing. Hopefully this guide helps you to backport not only Ruby, but any Ubuntu/Debian package between different releases !</p>
 
 <p>If you have problems and questions, please leave a comment :)</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Schwatcher v0.0.7 Released]]></title>
-    <link href="https://beachape.com/blog/2013/12/04/schwatcher-v0-dot-0-7-released/"/>
-    <updated>2013-12-04T21:18:00+09:00</updated>
-    <id>https://beachape.com/blog/2013/12/04/schwatcher-v0-dot-0-7-released</id>
-    <content type="html"><![CDATA[<p>Version 0.0.7 of Schwatcher has been released.</p>
-
-<p>Changes:</p>
-
-<ul>
-  <li>No longer has external logging library dependencies. Thanks <a href="https://github.com/crdueck">crdueck</a> for the suggestion.</li>
-  <li>No longer uses any mutable members for extra thread-safety</li>
-</ul>
-
-<p>Relevent info:</p>
-
-<ul>
-  <li><a href="https://github.com/lloydmeta/schwatcher">Schwatcher Github repo</a></li>
-</ul>
 ]]></content>
   </entry>
   
