@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Java 7 | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/java-7/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2021-05-25T16:32:52+09:00</updated>
+  <updated>2021-05-25T17:13:29+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -82,8 +82,8 @@ Now, let’s create some basic <code>Observers</code> that we can pass to the <c
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
 <span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">val</span> <span class="n">createAndModifyObserver</span> <span class="k">=</span> <span class="nc">Observer</span><span class="o">[</span><span class="kt">EventAtPath</span><span class="o">](</span><span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">s&quot;Something was created or modified: </span><span class="si">$event</span><span class="s">&quot;</span><span class="o">)})</span>
-</span><span class='line'><span class="k">val</span> <span class="n">createOnlyObserver</span> <span class="k">=</span> <span class="nc">Observer</span><span class="o">[</span><span class="kt">EventAtPath</span><span class="o">](</span><span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">s&quot;Something was created: </span><span class="si">$event</span><span class="s">&quot;</span><span class="o">)})</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">val</span> <span class="n">createAndModifyObserver</span> <span class="k">=</span> <span class="nc">Observer</span><span class="o">[</span><span class="kt">EventAtPath</span><span class="o">](</span><span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Something was created or modified: $event&quot;</span><span class="o">)})</span>
+</span><span class='line'><span class="k">val</span> <span class="n">createOnlyObserver</span> <span class="k">=</span> <span class="nc">Observer</span><span class="o">[</span><span class="kt">EventAtPath</span><span class="o">](</span><span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Something was created: $event&quot;</span><span class="o">)})</span>
 </span><span class='line'>
 </span><span class='line'><span class="n">observable</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">createAndModifyObserver</span><span class="o">)</span>
 </span><span class='line'><span class="n">createsOnly</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">createOnlyObserver</span><span class="o">)</span>
@@ -98,7 +98,7 @@ Now, let’s create some basic <code>Observers</code> that we can pass to the <c
 </span><span class='line'><span class="cm"> * since Observer as a type is just a way of binding 3 different functions, onNext, onCompleted, and onError</span>
 </span><span class='line'><span class="cm"> *</span>
 </span><span class='line'><span class="cm"> */</span>
-</span><span class='line'><span class="n">scalaSourceCreatesOnly</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">s&quot;A Scala source file was created: </span><span class="si">$event</span><span class="s">&quot;</span><span class="o">)})</span>
+</span><span class='line'><span class="n">scalaSourceCreatesOnly</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;A Scala source file was created: $event&quot;</span><span class="o">)})</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>Now let’s make stuff happen in another terminal.</p>

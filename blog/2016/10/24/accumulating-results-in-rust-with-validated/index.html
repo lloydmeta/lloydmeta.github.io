@@ -166,12 +166,12 @@
 <span class="line-number">4</span>
 <span class="line-number">5</span>
 <span class="line-number">6</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">fn</span> <span class="nf">double_arg</span><span class="p">(</span><span class="k">mut</span><span class="w"> </span><span class="n">argv</span><span class="o">:</span><span class="w"> </span><span class="n">env</span><span class="o">::</span><span class="n">Args</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="nb">String</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">argv</span><span class="p">.</span><span class="n">nth</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"></span>
-</span><span class="line"><span class="w">        </span><span class="p">.</span><span class="n">ok_or</span><span class="p">(</span><span class="s">&quot;Please give at least one argument&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">())</span><span class="w"></span>
-</span><span class="line"><span class="w">        </span><span class="p">.</span><span class="n">and_then</span><span class="p">(</span><span class="o">|</span><span class="n">arg</span><span class="o">|</span><span class="w"> </span><span class="n">arg</span><span class="p">.</span><span class="n">parse</span><span class="o">::&lt;</span><span class="kt">i32</span><span class="o">&gt;</span><span class="p">().</span><span class="n">map_err</span><span class="p">(</span><span class="o">|</span><span class="n">err</span><span class="o">|</span><span class="w"> </span><span class="n">err</span><span class="p">.</span><span class="n">to_string</span><span class="p">()))</span><span class="w"></span>
-</span><span class="line"><span class="w">        </span><span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">n</span><span class="o">|</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"></span>
-</span><span class="line"><span class="p">}</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">fn</span> <span class="n">double_arg</span><span class="p">(</span><span class="k">mut</span> <span class="n">argv</span><span class="o">:</span> <span class="n">env</span><span class="o">::</span><span class="n">Args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="o">&lt;</span><span class="k">i32</span><span class="p">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">argv</span><span class="p">.</span><span class="n">nth</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+</span><span class="line">        <span class="p">.</span><span class="n">ok_or</span><span class="p">(</span><span class="s">&quot;Please give at least one argument&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">())</span>
+</span><span class="line">        <span class="p">.</span><span class="n">and_then</span><span class="p">(</span><span class="o">|</span><span class="n">arg</span><span class="o">|</span> <span class="n">arg</span><span class="p">.</span><span class="n">parse</span><span class="o">::&lt;</span><span class="k">i32</span><span class="o">&gt;</span><span class="p">().</span><span class="n">map_err</span><span class="p">(</span><span class="o">|</span><span class="n">err</span><span class="o">|</span> <span class="n">err</span><span class="p">.</span><span class="n">to_string</span><span class="p">()))</span>
+</span><span class="line">        <span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">n</span><span class="o">|</span> <span class="m">2</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>But .. what happens when you have multiple <code>Result</code>s that are independent of each other, and you want to accumulate not only their collective success case, but also <em>all</em> their collective errors in the failure case?</p>
@@ -186,8 +186,8 @@
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
 <span class="line-number">2</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="p">[</span><span class="n">dependencies</span><span class="p">]</span><span class="w"></span>
-</span><span class="line"><span class="n">frunk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.1.9&quot;</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="p">[</span><span class="n">dependencies</span><span class="p">]</span>
+</span><span class="line"><span class="n">frunk</span> <span class="o">=</span> <span class="s">&quot;0.1.9&quot;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>By the way, to take a dive into the deep end, jump <a href="https://beachape.com/frunk/frunk/validated/index.html" target="_blank">straight to Validated’s Rustdocs</a>.</p>
@@ -198,8 +198,8 @@
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
 <span class="line-number">2</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">use</span><span class="w"> </span><span class="n">frunk</span><span class="o">::</span><span class="n">hlist</span><span class="o">::*</span><span class="p">;</span><span class="w"> </span><span class="c1">// brings the .to_tuple2() method in scope so we can destructure our HList easily</span>
-</span><span class="line"><span class="k">use</span><span class="w"> </span><span class="n">frunk</span><span class="o">::</span><span class="n">validated</span><span class="o">::*</span><span class="p">;</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">use</span> <span class="n">frunk</span><span class="o">::</span><span class="n">hlist</span><span class="o">::*</span><span class="p">;</span> <span class="c1">// brings the .to_tuple2() method in scope so we can destructure our HList easily</span>
+</span><span class="line"><span class="k">use</span> <span class="n">frunk</span><span class="o">::</span><span class="n">validated</span><span class="o">::*</span><span class="p">;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <h3 id="scenario">Scenario</h3>
@@ -212,12 +212,12 @@
 <span class="line-number">4</span>
 <span class="line-number">5</span>
 <span class="line-number">6</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="cp">#[derive(PartialEq, Eq, Debug)]</span><span class="w"></span>
-</span><span class="line"><span class="k">struct</span> <span class="nc">Person</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="kt">i32</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">name</span><span class="o">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">email</span><span class="o">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="p">}</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="cp">#[derive(PartialEq, Eq, Debug)]</span>
+</span><span class="line"><span class="n">struct</span> <span class="n">Person</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">age</span><span class="o">:</span> <span class="k">i32</span><span class="p">,</span>
+</span><span class="line">    <span class="n">name</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class="line">    <span class="n">email</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class="line"><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>And, we have 3 methods that produce age, name and email for us, but all could potentially fail with a <code>Nope</code> error.</p>
@@ -257,41 +257,41 @@
 <span class="line-number">33</span>
 <span class="line-number">34</span>
 <span class="line-number">35</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="sd">/// For demonstrations purposes only</span>
-</span><span class="line"><span class="cp">#[derive(PartialEq, Eq, Debug)]</span><span class="w"></span>
-</span><span class="line"><span class="k">pub</span><span class="w"> </span><span class="k">enum</span> <span class="nc">YahNah</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">Yah</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">Nah</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="p">}</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="c1">/// For demonstrations purposes only</span>
+</span><span class="line"><span class="cp">#[derive(PartialEq, Eq, Debug)]</span>
+</span><span class="line"><span class="n">pub</span> <span class="k">enum</span> <span class="n">YahNah</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">Yah</span><span class="p">,</span>
+</span><span class="line">    <span class="n">Nah</span><span class="p">,</span>
+</span><span class="line"><span class="p">}</span>
 </span><span class="line">
-</span><span class="line"><span class="sd">/// Our Errors</span>
-</span><span class="line"><span class="cp">#[derive(PartialEq, Eq, Debug)]</span><span class="w"></span>
-</span><span class="line"><span class="k">pub</span><span class="w"> </span><span class="k">enum</span> <span class="nc">Nope</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">NameNope</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">AgeNope</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">EmailNope</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="c1">/// Our Errors</span>
+</span><span class="line"><span class="cp">#[derive(PartialEq, Eq, Debug)]</span>
+</span><span class="line"><span class="n">pub</span> <span class="k">enum</span> <span class="n">Nope</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">NameNope</span><span class="p">,</span>
+</span><span class="line">    <span class="n">AgeNope</span><span class="p">,</span>
+</span><span class="line">    <span class="n">EmailNope</span><span class="p">,</span>
+</span><span class="line"><span class="p">}</span>
 </span><span class="line">
-</span><span class="line"><span class="k">fn</span> <span class="nf">get_name</span><span class="p">(</span><span class="n">yah_nah</span><span class="o">:</span><span class="w"> </span><span class="n">YahNah</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="n">Nope</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="k">match</span><span class="w"> </span><span class="n">yah_nah</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">        </span><span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">::</span><span class="nb">Ok</span><span class="p">(</span><span class="s">&quot;James&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">()),</span><span class="w"></span>
-</span><span class="line"><span class="w">        </span><span class="n">_</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">::</span><span class="nb">Err</span><span class="p">(</span><span class="n">Nope</span><span class="o">::</span><span class="n">NameNope</span><span class="p">),</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="p">}</span><span class="w"></span>
-</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="k">fn</span> <span class="n">get_name</span><span class="p">(</span><span class="n">yah_nah</span><span class="o">:</span> <span class="n">YahNah</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span> <span class="n">Nope</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">match</span> <span class="n">yah_nah</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span> <span class="o">=&gt;</span> <span class="n">Result</span><span class="o">::</span><span class="n">Ok</span><span class="p">(</span><span class="s">&quot;James&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">()),</span>
+</span><span class="line">        <span class="n">_</span> <span class="o">=&gt;</span> <span class="n">Result</span><span class="o">::</span><span class="n">Err</span><span class="p">(</span><span class="n">Nope</span><span class="o">::</span><span class="n">NameNope</span><span class="p">),</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
 </span><span class="line">
-</span><span class="line"><span class="k">fn</span> <span class="nf">get_age</span><span class="p">(</span><span class="n">yah_nah</span><span class="o">:</span><span class="w"> </span><span class="n">YahNah</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="n">Nope</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="k">match</span><span class="w"> </span><span class="n">yah_nah</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">        </span><span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">::</span><span class="nb">Ok</span><span class="p">(</span><span class="mi">32</span><span class="p">),</span><span class="w"></span>
-</span><span class="line"><span class="w">        </span><span class="n">_</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">::</span><span class="nb">Err</span><span class="p">(</span><span class="n">Nope</span><span class="o">::</span><span class="n">AgeNope</span><span class="p">),</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="p">}</span><span class="w"></span>
-</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="k">fn</span> <span class="n">get_age</span><span class="p">(</span><span class="n">yah_nah</span><span class="o">:</span> <span class="n">YahNah</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="o">&lt;</span><span class="k">i32</span><span class="p">,</span> <span class="n">Nope</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">match</span> <span class="n">yah_nah</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span> <span class="o">=&gt;</span> <span class="n">Result</span><span class="o">::</span><span class="n">Ok</span><span class="p">(</span><span class="m">32</span><span class="p">),</span>
+</span><span class="line">        <span class="n">_</span> <span class="o">=&gt;</span> <span class="n">Result</span><span class="o">::</span><span class="n">Err</span><span class="p">(</span><span class="n">Nope</span><span class="o">::</span><span class="n">AgeNope</span><span class="p">),</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
 </span><span class="line">
-</span><span class="line"><span class="k">fn</span> <span class="nf">get_email</span><span class="p">(</span><span class="n">yah_nah</span><span class="o">:</span><span class="w"> </span><span class="n">YahNah</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="n">Nope</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="k">match</span><span class="w"> </span><span class="n">yah_nah</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">        </span><span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">::</span><span class="nb">Ok</span><span class="p">(</span><span class="s">&quot;hello@world.com&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">()),</span><span class="w"></span>
-</span><span class="line"><span class="w">        </span><span class="n">_</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">::</span><span class="nb">Err</span><span class="p">(</span><span class="n">Nope</span><span class="o">::</span><span class="n">EmailNope</span><span class="p">),</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="p">}</span><span class="w"></span>
-</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="k">fn</span> <span class="n">get_email</span><span class="p">(</span><span class="n">yah_nah</span><span class="o">:</span> <span class="n">YahNah</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span> <span class="n">Nope</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">match</span> <span class="n">yah_nah</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span> <span class="o">=&gt;</span> <span class="n">Result</span><span class="o">::</span><span class="n">Ok</span><span class="p">(</span><span class="s">&quot;hello@world.com&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">()),</span>
+</span><span class="line">        <span class="n">_</span> <span class="o">=&gt;</span> <span class="n">Result</span><span class="o">::</span><span class="n">Err</span><span class="p">(</span><span class="n">Nope</span><span class="o">::</span><span class="n">EmailNope</span><span class="p">),</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>In real life, these methods would probably be taking an HTML form as an argument and doing some kind of parsing/validation or making calls to a service somewhere, but for simplicity, in our example, each of them takes a single argument that will let us toggle between the success and error cases.</p>
@@ -321,27 +321,27 @@
 <span class="line-number">19</span>
 <span class="line-number">20</span>
 <span class="line-number">21</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_name</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span><span class="p">).</span><span class="n">into_validated</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"></span>
-</span><span class="line"><span class="w">           </span><span class="n">get_age</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"></span>
-</span><span class="line"><span class="w">           </span><span class="n">get_email</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span><span class="p">);</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">let</span> <span class="n">v</span> <span class="o">=</span> <span class="n">get_name</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span><span class="p">).</span><span class="n">into_validated</span><span class="p">()</span> <span class="o">+</span>
+</span><span class="line">           <span class="n">get_age</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span><span class="p">)</span> <span class="o">+</span>
+</span><span class="line">           <span class="n">get_email</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span><span class="p">);</span>
 </span><span class="line">
 </span><span class="line"><span class="c1">// Turn it into a result and then map, passing a lambda that takes the HList contained inside</span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">person</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">into_result</span><span class="p">()</span><span class="w"></span>
-</span><span class="line"><span class="w">              </span><span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">hlist</span><span class="o">|</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">                  </span><span class="kd">let</span><span class="w"> </span><span class="n">hlist_pat</span><span class="o">!</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hlist</span><span class="p">;</span><span class="w"></span>
-</span><span class="line"><span class="w">                  </span><span class="n">Person</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">                      </span><span class="n">name</span><span class="o">:</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">                      </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="n">age</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">                      </span><span class="n">email</span><span class="o">:</span><span class="w"> </span><span class="n">email</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">                  </span><span class="p">}</span><span class="w"></span>
-</span><span class="line"><span class="w">              </span><span class="p">});</span><span class="w"></span>
+</span><span class="line"><span class="k">let</span> <span class="n">person</span> <span class="o">=</span> <span class="n">v</span><span class="p">.</span><span class="n">into_result</span><span class="p">()</span>
+</span><span class="line">              <span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">hlist</span><span class="o">|</span> <span class="p">{</span>
+</span><span class="line">                  <span class="k">let</span> <span class="n">hlist_pat</span><span class="o">!</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">email</span><span class="p">)</span> <span class="o">=</span> <span class="n">hlist</span><span class="p">;</span>
+</span><span class="line">                  <span class="n">Person</span> <span class="p">{</span>
+</span><span class="line">                      <span class="n">name</span><span class="o">:</span> <span class="n">name</span><span class="p">,</span>
+</span><span class="line">                      <span class="n">age</span><span class="o">:</span> <span class="n">age</span><span class="p">,</span>
+</span><span class="line">                      <span class="n">email</span><span class="o">:</span> <span class="n">email</span><span class="p">,</span>
+</span><span class="line">                  <span class="p">}</span>
+</span><span class="line">              <span class="p">});</span>
 </span><span class="line">
-</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">person</span><span class="p">.</span><span class="n">unwrap</span><span class="p">(),</span><span class="w"></span>
-</span><span class="line"><span class="w">                   </span><span class="n">Person</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">                       </span><span class="n">name</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;James&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">(),</span><span class="w"></span>
-</span><span class="line"><span class="w">                       </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">                       </span><span class="n">email</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;hello@world.com&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">(),</span><span class="w"></span>
-</span><span class="line"><span class="w">                   </span><span class="p">});</span><span class="w"></span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">person</span><span class="p">.</span><span class="n">unwrap</span><span class="p">(),</span>
+</span><span class="line">                   <span class="n">Person</span> <span class="p">{</span>
+</span><span class="line">                       <span class="n">name</span><span class="o">:</span> <span class="s">&quot;James&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">(),</span>
+</span><span class="line">                       <span class="n">age</span><span class="o">:</span> <span class="m">32</span><span class="p">,</span>
+</span><span class="line">                       <span class="n">email</span><span class="o">:</span> <span class="s">&quot;hello@world.com&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">(),</span>
+</span><span class="line">                   <span class="p">});</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>As you can see, all we need to do is call <code>into_validated()</code> on a given <code>Result</code> to kick off the validation context, and use <code>+</code> to add subsequent <code>Result</code>s into it. At the end, you call <code>into_result()</code> on the <code>Validated</code> to turn it back into a <code>Result</code> and map on the <code>HList</code> that is contained inside.  Inside the lambda, we destructure the <code>HList</code> using the <code>hlist_pat!</code> macro, and then instantiate our <code>Person</code>.</p>
@@ -359,15 +359,15 @@
 <span class="line-number">7</span>
 <span class="line-number">8</span>
 <span class="line-number">9</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_name</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Nah</span><span class="p">).</span><span class="n">into_validated</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w">  </span><span class="c1">// get_name will fail</span>
-</span><span class="line"><span class="w">           </span><span class="n">get_age</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">  </span><span class="c1">// get_age will succeed</span>
-</span><span class="line"><span class="w">           </span><span class="n">get_email</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Nah</span><span class="p">);</span><span class="w"> </span><span class="c1">// get_email will fail</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">let</span> <span class="n">v</span> <span class="o">=</span> <span class="n">get_name</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Nah</span><span class="p">).</span><span class="n">into_validated</span><span class="p">()</span> <span class="o">+</span>  <span class="c1">// get_name will fail</span>
+</span><span class="line">           <span class="n">get_age</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Yah</span><span class="p">)</span> <span class="o">+</span>  <span class="c1">// get_age will succeed</span>
+</span><span class="line">           <span class="n">get_email</span><span class="p">(</span><span class="n">YahNah</span><span class="o">::</span><span class="n">Nah</span><span class="p">);</span> <span class="c1">// get_email will fail</span>
 </span><span class="line">
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">person</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">into_result</span><span class="p">()</span><span class="w"></span>
-</span><span class="line"><span class="w">              </span><span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">_</span><span class="o">|</span><span class="w"> </span><span class="n">unimplemented</span><span class="o">!</span><span class="p">());</span><span class="w"> </span><span class="c1">// won&#39;t get here anyways</span>
+</span><span class="line"><span class="k">let</span> <span class="n">person</span> <span class="o">=</span> <span class="n">v</span><span class="p">.</span><span class="n">into_result</span><span class="p">()</span>
+</span><span class="line">              <span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">_</span><span class="o">|</span> <span class="n">unimplemented</span><span class="o">!</span><span class="p">());</span> <span class="c1">// won&#39;t get here anyways</span>
 </span><span class="line">
-</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">person</span><span class="p">.</span><span class="n">unwrap_err</span><span class="p">(),</span><span class="w"></span>
-</span><span class="line"><span class="w">           </span><span class="n">vec</span><span class="o">!</span><span class="p">[</span><span class="n">Nope</span><span class="o">::</span><span class="n">NameNope</span><span class="p">,</span><span class="w"> </span><span class="n">Nope</span><span class="o">::</span><span class="n">EmailNope</span><span class="p">]);</span><span class="w"></span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">person</span><span class="p">.</span><span class="n">unwrap_err</span><span class="p">(),</span>
+</span><span class="line">           <span class="n">vec</span><span class="o">!</span><span class="p">[</span><span class="n">Nope</span><span class="o">::</span><span class="n">NameNope</span><span class="p">,</span> <span class="n">Nope</span><span class="o">::</span><span class="n">EmailNope</span><span class="p">]);</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>As you can see, the failure case is more interesting because <code>Validated</code> gives us the ability to accumulate <em>all</em> errors cleanly. For operations like parsing user input or checking parameters passed into our API, this non-early-abort behaviour is highly desirable compared with telling the user what went wrong One. Thing. At. At. Time.</p>
@@ -382,14 +382,14 @@
 <span class="line-number">6</span>
 <span class="line-number">7</span>
 <span class="line-number">8</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">r1</span><span class="o">:</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="nb">String</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Result</span><span class="o">::</span><span class="nb">Ok</span><span class="p">(</span><span class="nb">String</span><span class="o">::</span><span class="n">from</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">));</span><span class="w"></span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">r2</span><span class="o">:</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="nb">String</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Result</span><span class="o">::</span><span class="nb">Ok</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span><span class="w"></span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">r3</span><span class="o">:</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="nb">String</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Result</span><span class="o">::</span><span class="nb">Ok</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span><span class="w"></span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">v1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r1</span><span class="p">.</span><span class="n">into_validated</span><span class="p">();</span><span class="w"></span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">v2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r2</span><span class="p">.</span><span class="n">into_validated</span><span class="p">();</span><span class="w"></span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">v3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r3</span><span class="p">.</span><span class="n">into_validated</span><span class="p">();</span><span class="w"></span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">comb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">v2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">v3</span><span class="p">;</span><span class="w"></span>
-</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">comb</span><span class="p">,</span><span class="w"> </span><span class="n">Validated</span><span class="o">::</span><span class="nb">Ok</span><span class="p">(</span><span class="n">hlist</span><span class="o">!</span><span class="p">(</span><span class="nb">String</span><span class="o">::</span><span class="n">from</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">),</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)))</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">let</span> <span class="n">r1</span><span class="o">:</span> <span class="n">Result</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">Result</span><span class="o">::</span><span class="n">Ok</span><span class="p">(</span><span class="n">String</span><span class="o">::</span><span class="n">from</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">));</span>
+</span><span class="line"><span class="k">let</span> <span class="n">r2</span><span class="o">:</span> <span class="n">Result</span><span class="o">&lt;</span><span class="k">i32</span><span class="p">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">Result</span><span class="o">::</span><span class="n">Ok</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
+</span><span class="line"><span class="k">let</span> <span class="n">r3</span><span class="o">:</span> <span class="n">Result</span><span class="o">&lt;</span><span class="k">i32</span><span class="p">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">Result</span><span class="o">::</span><span class="n">Ok</span><span class="p">(</span><span class="m">3</span><span class="p">);</span>
+</span><span class="line"><span class="k">let</span> <span class="n">v1</span> <span class="o">=</span> <span class="n">r1</span><span class="p">.</span><span class="n">into_validated</span><span class="p">();</span>
+</span><span class="line"><span class="k">let</span> <span class="n">v2</span> <span class="o">=</span> <span class="n">r2</span><span class="p">.</span><span class="n">into_validated</span><span class="p">();</span>
+</span><span class="line"><span class="k">let</span> <span class="n">v3</span> <span class="o">=</span> <span class="n">r3</span><span class="p">.</span><span class="n">into_validated</span><span class="p">();</span>
+</span><span class="line"><span class="k">let</span> <span class="n">comb</span> <span class="o">=</span> <span class="n">v1</span> <span class="o">+</span> <span class="n">v2</span> <span class="o">+</span> <span class="n">v3</span><span class="p">;</span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">comb</span><span class="p">,</span> <span class="n">Validated</span><span class="o">::</span><span class="n">Ok</span><span class="p">(</span><span class="n">hlist</span><span class="o">!</span><span class="p">(</span><span class="n">String</span><span class="o">::</span><span class="n">from</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">),</span> <span class="m">1</span><span class="p">,</span> <span class="m">3</span><span class="p">)))</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <h2 id="conclusion">Conclusion</h2>

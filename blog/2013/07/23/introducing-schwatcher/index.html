@@ -195,7 +195,7 @@
 <p>The project is Mavenised and is availale from the Central Repository, so simply add the <code>libraryDependency</code> in your <code>build.sbt</code> (when you read this the versioning might be different so refer to the project’s Github page):</p>
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;com.beachape.filemanagement&quot;</span> <span class="o">%%</span> <span class="s">&quot;schwatcher&quot;</span> <span class="o">%</span> <span class="s">&quot;0.0.2&quot;</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;com.beachape.filemanagement&quot;</span> <span class="o">%%</span> <span class="s">&quot;schwatcher&quot;</span> <span class="o">%</span> <span class="s">&quot;0.0.2&quot;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>And to use it,</p>
@@ -251,7 +251,7 @@
 <span class="line-number">48</span>
 <span class="line-number">49</span>
 <span class="line-number">50</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">com.beachape.filemanagement.MonitorActor</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">com.beachape.filemanagement.RegistryTypes._</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">com.beachape.filemanagement.Messages._</span>
@@ -265,10 +265,10 @@
 </span><span class="line"><span class="k">val</span> <span class="n">fileMonitorActor</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">MonitorActor</span><span class="o">(</span><span class="n">concurrency</span> <span class="k">=</span> <span class="mi">2</span><span class="o">))</span>
 </span><span class="line">
 </span><span class="line"><span class="k">val</span> <span class="n">modifyCallbackFile</span><span class="k">:</span> <span class="kt">Callback</span> <span class="o">=</span> <span class="o">{</span>
-</span><span class="line">  <span class="n">path</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">s&quot;Something was modified in a file: </span><span class="si">$path</span><span class="s">&quot;</span><span class="o">)</span>
+</span><span class="line">  <span class="n">path</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Something was modified in a file: $path&quot;</span><span class="o">)</span>
 </span><span class="line"><span class="o">}</span>
 </span><span class="line"><span class="k">val</span> <span class="n">modifyCallbackDirectory</span><span class="k">:</span> <span class="kt">Callback</span> <span class="o">=</span> <span class="o">{</span>
-</span><span class="line">  <span class="n">path</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">s&quot;Something was modified in a directory: </span><span class="si">$path</span><span class="s">&quot;</span><span class="o">)</span>
+</span><span class="line">  <span class="n">path</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Something was modified in a directory: $path&quot;</span><span class="o">)</span>
 </span><span class="line"><span class="o">}</span>
 </span><span class="line">
 </span><span class="line"><span class="k">val</span> <span class="n">desktop</span> <span class="k">=</span> <span class="nc">Paths</span> <span class="n">get</span> <span class="s">&quot;/Users/lloyd/Desktop&quot;</span>

@@ -214,7 +214,7 @@
 <span class="line-number">8</span>
 <span class="line-number">9</span>
 <span class="line-number">10</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">val</span> <span class="n">grabber</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">OpenCVFrameGrabber</span><span class="o">(</span><span class="n">deviceId</span><span class="o">)</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">val</span> <span class="n">grabber</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">OpenCVFrameGrabber</span><span class="o">(</span><span class="n">deviceId</span><span class="o">)</span>
 </span><span class="line"><span class="n">grabber</span><span class="o">.</span><span class="n">setImageWidth</span><span class="o">(</span><span class="n">imageWidth</span><span class="o">)</span>
 </span><span class="line"><span class="n">grabber</span><span class="o">.</span><span class="n">setImageHeight</span><span class="o">(</span><span class="n">imageHeight</span><span class="o">)</span>
 </span><span class="line"><span class="n">grabber</span><span class="o">.</span><span class="n">setBitsPerPixel</span><span class="o">(</span><span class="n">bitsPerPixel</span><span class="o">)</span>
@@ -355,7 +355,7 @@
 <span class="line-number">111</span>
 <span class="line-number">112</span>
 <span class="line-number">113</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">package</span> <span class="nn">com.beachape.video</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">package</span> <span class="nn">com.beachape.video</span>
 </span><span class="line">
 </span><span class="line"><span class="k">import</span> <span class="nn">akka.actor.</span><span class="o">{</span> <span class="nc">DeadLetterSuppression</span><span class="o">,</span> <span class="nc">Props</span><span class="o">,</span> <span class="nc">ActorSystem</span><span class="o">,</span> <span class="nc">ActorLogging</span> <span class="o">}</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">akka.stream.actor.ActorPublisher</span>
@@ -445,7 +445,7 @@
 </span><span class="line">      <span class="k">case</span> <span class="k">_:</span> <span class="kt">Request</span> <span class="o">=&gt;</span> <span class="n">emitFrames</span><span class="o">()</span>
 </span><span class="line">      <span class="k">case</span> <span class="nc">Continue</span> <span class="k">=&gt;</span> <span class="n">emitFrames</span><span class="o">()</span>
 </span><span class="line">      <span class="k">case</span> <span class="nc">Cancel</span> <span class="k">=&gt;</span> <span class="n">onCompleteThenStop</span><span class="o">()</span>
-</span><span class="line">      <span class="k">case</span> <span class="n">unexpectedMsg</span> <span class="k">=&gt;</span> <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="o">(</span><span class="s">s&quot;Unexpected message: </span><span class="si">$unexpectedMsg</span><span class="s">&quot;</span><span class="o">)</span>
+</span><span class="line">      <span class="k">case</span> <span class="n">unexpectedMsg</span> <span class="k">=&gt;</span> <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Unexpected message: $unexpectedMsg&quot;</span><span class="o">)</span>
 </span><span class="line">    <span class="o">}</span>
 </span><span class="line">
 </span><span class="line">    <span class="k">private</span> <span class="k">def</span> <span class="n">emitFrames</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
@@ -477,7 +477,7 @@
 <span class="line-number">2</span>
 <span class="line-number">3</span>
 <span class="line-number">4</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="cm">/**</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="cm">/**</span>
 </span><span class="line"><span class="cm"> * Tuple-like class for holding width and height in pixels</span>
 </span><span class="line"><span class="cm"> */</span>
 </span><span class="line"><span class="k">case</span> <span class="k">class</span> <span class="nc">Dimensions</span><span class="o">(</span><span class="n">width</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">height</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
@@ -509,7 +509,7 @@
 <span class="line-number">19</span>
 <span class="line-number">20</span>
 <span class="line-number">21</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="cm">/**</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="cm">/**</span>
 </span><span class="line"><span class="cm"> * Holds conversion and transformation methods for media types</span>
 </span><span class="line"><span class="cm"> */</span>
 </span><span class="line"><span class="k">object</span> <span class="nc">MediaConversion</span> <span class="o">{</span>
@@ -549,7 +549,7 @@
 <span class="line-number">10</span>
 <span class="line-number">11</span>
 <span class="line-number">12</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">object</span> <span class="nc">Flip</span> <span class="o">{</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">object</span> <span class="nc">Flip</span> <span class="o">{</span>
 </span><span class="line">
 </span><span class="line">  <span class="cm">/**</span>
 </span><span class="line"><span class="cm">   * Clones the image and returns a flipped version of the given image matrix along the y axis (horizontally)</span>
@@ -598,7 +598,7 @@
 <span class="line-number">20</span>
 <span class="line-number">21</span>
 <span class="line-number">22</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">object</span> <span class="nc">WebcamWindow</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">object</span> <span class="nc">WebcamWindow</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
 </span><span class="line">
 </span><span class="line">  <span class="k">implicit</span> <span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">()</span>
 </span><span class="line">  <span class="k">implicit</span> <span class="k">val</span> <span class="n">materializer</span> <span class="k">=</span> <span class="nc">ActorMaterializer</span><span class="o">()</span>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Generic | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/generic/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2021-05-25T16:32:52+09:00</updated>
+  <updated>2021-05-25T17:13:29+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -76,10 +76,10 @@ assert_eq!(p,
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='rust'><span class='line'><span></span><span class="kd">let</span><span class="w"> </span><span class="n">validated</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_first_name</span><span class="p">().</span><span class="n">into_validated</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">get_last_name</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">get_age</span><span class="p">();</span><span class="w"></span>
-</span><span class='line'><span class="kd">let</span><span class="w"> </span><span class="n">person</span><span class="o">:</span><span class="w"> </span><span class="nb">Result</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">Person</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">validated</span><span class="w"></span>
-</span><span class='line'><span class="w">  </span><span class="p">.</span><span class="n">into_result</span><span class="p">()</span><span class="w"></span>
-</span><span class='line'><span class="w">  </span><span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">h</span><span class="o">|</span><span class="w"> </span><span class="n">from_generic</span><span class="p">(</span><span class="n">h</span><span class="p">));</span><span class="w"> </span><span class="c1">// &amp;lt;– much simpler !</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">validated</span> <span class="o">=</span> <span class="n">get_first_name</span><span class="p">().</span><span class="n">into_validated</span><span class="p">()</span> <span class="o">+</span> <span class="n">get_last_name</span><span class="p">()</span> <span class="o">+</span> <span class="n">get_age</span><span class="p">();</span>
+</span><span class='line'><span class="k">let</span> <span class="n">person</span><span class="o">:</span> <span class="n">Result</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">Person</span><span class="p">,</span> <span class="n">_</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="o">=</span> <span class="n">validated</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">into_result</span><span class="p">()</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">h</span><span class="o">|</span> <span class="n">from_generic</span><span class="p">(</span><span class="n">h</span><span class="p">));</span> <span class="c1">// &amp;lt;– much simpler !</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <h3 id="converting-between-structs">Converting between Structs</h3>

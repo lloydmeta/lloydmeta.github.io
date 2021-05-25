@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Continuous Integration | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/continuous-integration/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2021-05-25T16:32:52+09:00</updated>
+  <updated>2021-05-25T17:13:29+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -95,23 +95,23 @@ after_success:
 <span class='line-number'>16</span>
 <span class='line-number'>17</span>
 <span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span></span><span class="ch">#!/usr/bin/env bash</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="c">#!/usr/bin/env bash</span>
 </span><span class='line'>
-</span><span class='line'><span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">TRAVIS_PULL_REQUEST_BRANCH</span><span class="k">:-</span><span class="nv">$TRAVIS_BRANCH</span><span class="si">}</span><span class="s2">&quot;</span> !<span class="o">=</span> <span class="s2">&quot;master&quot;</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$TRAVIS_RUST_VERSION</span><span class="s2">&quot;</span> <span class="o">==</span> <span class="s2">&quot;nightly&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-</span><span class='line'>    <span class="nv">REMOTE_URL</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>git config --get remote.origin.url<span class="k">)</span><span class="s2">&quot;</span><span class="p">;</span>
-</span><span class='line'>    <span class="c1"># Clone the repository fresh..for some reason checking out master fails</span>
-</span><span class='line'>    <span class="c1"># from a normal PR build&#39;s provided directory</span>
-</span><span class='line'>    <span class="nb">cd</span> <span class="si">${</span><span class="nv">TRAVIS_BUILD_DIR</span><span class="si">}</span>/.. <span class="o">&amp;&amp;</span> <span class="se">\</span>
-</span><span class='line'>    git clone <span class="si">${</span><span class="nv">REMOTE_URL</span><span class="si">}</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">TRAVIS_REPO_SLUG</span><span class="si">}</span><span class="s2">-bench&quot;</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
-</span><span class='line'>    <span class="nb">cd</span>  <span class="s2">&quot;</span><span class="si">${</span><span class="nv">TRAVIS_REPO_SLUG</span><span class="si">}</span><span class="s2">-bench&quot;</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
-</span><span class='line'>    <span class="c1"># Bench master</span>
+</span><span class='line'><span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}&quot;</span> !<span class="o">=</span> <span class="s2">&quot;master&quot;</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="o">[</span> <span class="s2">&quot;$TRAVIS_RUST_VERSION&quot;</span> <span class="o">==</span> <span class="s2">&quot;nightly&quot;</span> <span class="o">]</span>; <span class="k">then</span>
+</span><span class='line'><span class="k">    </span><span class="nv">REMOTE_URL</span><span class="o">=</span><span class="s2">&quot;$(git config --get remote.origin.url)&quot;</span>;
+</span><span class='line'>    <span class="c"># Clone the repository fresh..for some reason checking out master fails</span>
+</span><span class='line'>    <span class="c"># from a normal PR build&#39;s provided directory</span>
+</span><span class='line'>    <span class="nb">cd</span> <span class="k">${</span><span class="nv">TRAVIS_BUILD_DIR</span><span class="k">}</span>/.. <span class="o">&amp;&amp;</span> <span class="se">\</span>
+</span><span class='line'>    git clone <span class="k">${</span><span class="nv">REMOTE_URL</span><span class="k">}</span> <span class="s2">&quot;${TRAVIS_REPO_SLUG}-bench&quot;</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
+</span><span class='line'>    <span class="nb">cd</span>  <span class="s2">&quot;${TRAVIS_REPO_SLUG}-bench&quot;</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
+</span><span class='line'>    <span class="c"># Bench master</span>
 </span><span class='line'>    git checkout master <span class="o">&amp;&amp;</span> <span class="se">\</span>
 </span><span class='line'>    cargo bench &gt; benches-control <span class="o">&amp;&amp;</span> <span class="se">\</span>
-</span><span class='line'>    <span class="c1"># Bench variable</span>
-</span><span class='line'>    git checkout <span class="si">${</span><span class="nv">TRAVIS_COMMIT</span><span class="si">}</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
+</span><span class='line'>    <span class="c"># Bench variable</span>
+</span><span class='line'>    git checkout <span class="k">${</span><span class="nv">TRAVIS_COMMIT</span><span class="k">}</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
 </span><span class='line'>    cargo bench &gt; benches-variable <span class="o">&amp;&amp;</span> <span class="se">\</span>
 </span><span class='line'>    cargo install cargo-benchcmp --force <span class="o">&amp;&amp;</span> <span class="se">\</span>
-</span><span class='line'>    cargo benchcmp benches-control benches-variable<span class="p">;</span>
+</span><span class='line'>    cargo benchcmp benches-control benches-variable;
 </span><span class='line'><span class="k">fi</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 

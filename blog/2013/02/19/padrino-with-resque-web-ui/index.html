@@ -166,10 +166,10 @@
 <span class="line-number">2</span>
 <span class="line-number">3</span>
 <span class="line-number">4</span>
-</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span></span><span class="c1"># snip</span>
-</span><span class="line"><span class="n">run</span> <span class="no">Rack</span><span class="o">::</span><span class="no">URLMap</span><span class="o">.</span><span class="n">new</span> <span class="p">\</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="c1"># snip</span>
+</span><span class="line"><span class="n">run</span> <span class="ss">Rack</span><span class="p">:</span><span class="ss">:URLMap</span><span class="o">.</span><span class="n">new</span> <span class="p">\</span>
 </span><span class="line">  <span class="s2">&quot;/&quot;</span>       <span class="o">=&gt;</span> <span class="no">Padrino</span><span class="o">.</span><span class="n">application</span><span class="p">,</span>
-</span><span class="line">  <span class="s2">&quot;/resque&quot;</span> <span class="o">=&gt;</span> <span class="no">Resque</span><span class="o">::</span><span class="no">Server</span><span class="o">.</span><span class="n">new</span>
+</span><span class="line">  <span class="s2">&quot;/resque&quot;</span> <span class="o">=&gt;</span> <span class="ss">Resque</span><span class="p">:</span><span class="ss">:Server</span><span class="o">.</span><span class="n">new</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 <p>in your <code>config.ru</code> and yet don’t see anything when you hit /resque on your local environment, run your server with</p>
 

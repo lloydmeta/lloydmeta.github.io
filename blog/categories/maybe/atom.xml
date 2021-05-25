@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Maybe | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/maybe/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2021-05-25T16:32:52+09:00</updated>
+  <updated>2021-05-25T17:13:29+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -46,7 +46,7 @@
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">def</span> <span class="n">incrementMaybeList</span><span class="o">(</span><span class="n">maybeList</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]],</span> <span class="n">increment</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1</span><span class="o">)</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]</span> <span class="k">=</span> <span class="o">{</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">def</span> <span class="n">incrementMaybeList</span><span class="o">(</span><span class="n">maybeList</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]],</span> <span class="n">increment</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1</span><span class="o">)</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]</span> <span class="k">=</span> <span class="o">{</span>
 </span><span class='line'>  <span class="n">maybeList</span><span class="o">.</span><span class="n">map</span><span class="o">{</span><span class="n">list</span> <span class="k">=&gt;</span>
 </span><span class='line'>    <span class="n">list</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="n">increment</span><span class="o">)</span>
 </span><span class='line'>  <span class="o">}</span>

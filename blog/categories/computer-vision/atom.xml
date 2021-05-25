@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Computer Vision | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/computer-vision/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2021-05-25T16:32:52+09:00</updated>
+  <updated>2021-05-25T17:13:29+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -115,7 +115,7 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="cm">/**</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="cm">/**</span>
 </span><span class='line'><span class="cm"> * Tuple-like class for holding width and height in pixels</span>
 </span><span class='line'><span class="cm"> */</span>
 </span><span class='line'><span class="k">case</span> <span class="k">class</span> <span class="nc">Dimensions</span><span class="o">(</span><span class="n">width</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">height</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
@@ -129,7 +129,7 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="cm">/**</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="cm">/**</span>
 </span><span class='line'><span class="cm">  * Holds an id and an OpenCV Rect defining the corners of a rectangle.</span>
 </span><span class='line'><span class="cm">  *</span>
 </span><span class='line'><span class="cm">  * There is nothing *face* specific in this class per say; it can hold ids and Rects for any detected</span>
@@ -149,7 +149,7 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">sealed</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">HaarDetectorFlag</span><span class="o">(</span><span class="k">val</span> <span class="n">flag</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">sealed</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">HaarDetectorFlag</span><span class="o">(</span><span class="k">val</span> <span class="n">flag</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">case</span> <span class="k">object</span> <span class="nc">HaarDetectorFlag</span> <span class="o">{</span>
 </span><span class='line'>
@@ -224,7 +224,7 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 <span class='line-number'>60</span>
 <span class='line-number'>61</span>
 <span class='line-number'>62</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">object</span> <span class="nc">FaceDetector</span> <span class="o">{</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">FaceDetector</span> <span class="o">{</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="cm">/**</span>
 </span><span class='line'><span class="cm">   * Builds a FaceDetector with the default Haar Cascade classifier in the resource directory</span>
@@ -325,7 +325,7 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 <span class='line-number'>28</span>
 <span class='line-number'>29</span>
 <span class='line-number'>30</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">class</span> <span class="nc">FaceDrawer</span><span class="o">(</span><span class="n">fontScale</span><span class="k">:</span> <span class="kt">Float</span> <span class="o">=</span> <span class="mf">0.6f</span><span class="o">)</span> <span class="o">{</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">class</span> <span class="nc">FaceDrawer</span><span class="o">(</span><span class="n">fontScale</span><span class="k">:</span> <span class="kt">Float</span> <span class="o">=</span> <span class="mf">0.6f</span><span class="o">)</span> <span class="o">{</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="k">private</span> <span class="k">val</span> <span class="nc">RedColour</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Scalar</span><span class="o">(</span><span class="nc">AbstractCvScalar</span><span class="o">.</span><span class="nc">RED</span><span class="o">)</span>
 </span><span class='line'>
@@ -351,7 +351,7 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 </span><span class='line'>
 </span><span class='line'>    <span class="c1">// draw the face number</span>
 </span><span class='line'>    <span class="k">val</span> <span class="n">cvPoint</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Point</span><span class="o">(</span><span class="n">f</span><span class="o">.</span><span class="n">faceRect</span><span class="o">.</span><span class="n">x</span><span class="o">,</span> <span class="n">f</span><span class="o">.</span><span class="n">faceRect</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="mi">20</span><span class="o">)</span>
-</span><span class='line'>    <span class="n">putText</span><span class="o">(</span><span class="n">clonedMat</span><span class="o">,</span> <span class="s">s&quot;Face </span><span class="si">${</span><span class="n">f</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s">&quot;</span><span class="o">,</span> <span class="n">cvPoint</span><span class="o">,</span> <span class="nc">FONT_HERSHEY_SIMPLEX</span><span class="o">,</span> <span class="n">fontScale</span><span class="o">,</span> <span class="nc">RedColour</span><span class="o">)</span>
+</span><span class='line'>    <span class="n">putText</span><span class="o">(</span><span class="n">clonedMat</span><span class="o">,</span> <span class="n">s</span><span class="s">&quot;Face ${f.id}&quot;</span><span class="o">,</span> <span class="n">cvPoint</span><span class="o">,</span> <span class="nc">FONT_HERSHEY_SIMPLEX</span><span class="o">,</span> <span class="n">fontScale</span><span class="o">,</span> <span class="nc">RedColour</span><span class="o">)</span>
 </span><span class='line'>  <span class="o">}</span>
 </span><span class='line'>
 </span><span class='line'><span class="o">}</span>
@@ -448,7 +448,7 @@ final case class WithGrey private (orig: Mat, grey: Mat)
 <span class='line-number'>77</span>
 <span class='line-number'>78</span>
 <span class='line-number'>79</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">object</span> <span class="nc">WebcamFaceDetector</span> <span class="k">extends</span> <span class="nc">SimpleSwingApplication</span> <span class="o">{</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">WebcamFaceDetector</span> <span class="k">extends</span> <span class="nc">SimpleSwingApplication</span> <span class="o">{</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="k">def</span> <span class="n">top</span><span class="k">:</span> <span class="kt">Frame</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">OptionsFrame</span>
 </span><span class='line'>
@@ -740,7 +740,7 @@ In order to create an Akka <code>Source[Frame]</code>, we will make use of the A
 <span class='line-number'>111</span>
 <span class='line-number'>112</span>
 <span class='line-number'>113</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">package</span> <span class="nn">com.beachape.video</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">package</span> <span class="nn">com.beachape.video</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">import</span> <span class="nn">akka.actor.</span><span class="o">{</span> <span class="nc">DeadLetterSuppression</span><span class="o">,</span> <span class="nc">Props</span><span class="o">,</span> <span class="nc">ActorSystem</span><span class="o">,</span> <span class="nc">ActorLogging</span> <span class="o">}</span>
 </span><span class='line'><span class="k">import</span> <span class="nn">akka.stream.actor.ActorPublisher</span>
@@ -830,7 +830,7 @@ In order to create an Akka <code>Source[Frame]</code>, we will make use of the A
 </span><span class='line'>      <span class="k">case</span> <span class="k">_:</span> <span class="kt">Request</span> <span class="o">=&gt;</span> <span class="n">emitFrames</span><span class="o">()</span>
 </span><span class='line'>      <span class="k">case</span> <span class="nc">Continue</span> <span class="k">=&gt;</span> <span class="n">emitFrames</span><span class="o">()</span>
 </span><span class='line'>      <span class="k">case</span> <span class="nc">Cancel</span> <span class="k">=&gt;</span> <span class="n">onCompleteThenStop</span><span class="o">()</span>
-</span><span class='line'>      <span class="k">case</span> <span class="n">unexpectedMsg</span> <span class="k">=&gt;</span> <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="o">(</span><span class="s">s&quot;Unexpected message: </span><span class="si">$unexpectedMsg</span><span class="s">&quot;</span><span class="o">)</span>
+</span><span class='line'>      <span class="k">case</span> <span class="n">unexpectedMsg</span> <span class="k">=&gt;</span> <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Unexpected message: $unexpectedMsg&quot;</span><span class="o">)</span>
 </span><span class='line'>    <span class="o">}</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="k">private</span> <span class="k">def</span> <span class="n">emitFrames</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
@@ -862,7 +862,7 @@ In order to create an Akka <code>Source[Frame]</code>, we will make use of the A
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="cm">/**</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="cm">/**</span>
 </span><span class='line'><span class="cm"> * Tuple-like class for holding width and height in pixels</span>
 </span><span class='line'><span class="cm"> */</span>
 </span><span class='line'><span class="k">case</span> <span class="k">class</span> <span class="nc">Dimensions</span><span class="o">(</span><span class="n">width</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">height</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
@@ -894,7 +894,7 @@ In order to create an Akka <code>Source[Frame]</code>, we will make use of the A
 <span class='line-number'>19</span>
 <span class='line-number'>20</span>
 <span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="cm">/**</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="cm">/**</span>
 </span><span class='line'><span class="cm"> * Holds conversion and transformation methods for media types</span>
 </span><span class='line'><span class="cm"> */</span>
 </span><span class='line'><span class="k">object</span> <span class="nc">MediaConversion</span> <span class="o">{</span>
@@ -934,7 +934,7 @@ In order to create an Akka <code>Source[Frame]</code>, we will make use of the A
 <span class='line-number'>10</span>
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">object</span> <span class="nc">Flip</span> <span class="o">{</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">Flip</span> <span class="o">{</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="cm">/**</span>
 </span><span class='line'><span class="cm">   * Clones the image and returns a flipped version of the given image matrix along the y axis (horizontally)</span>
@@ -983,7 +983,7 @@ In order to create an Akka <code>Source[Frame]</code>, we will make use of the A
 <span class='line-number'>20</span>
 <span class='line-number'>21</span>
 <span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">object</span> <span class="nc">WebcamWindow</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">WebcamWindow</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="k">implicit</span> <span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">()</span>
 </span><span class='line'>  <span class="k">implicit</span> <span class="k">val</span> <span class="n">materializer</span> <span class="k">=</span> <span class="nc">ActorMaterializer</span><span class="o">()</span>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Value Enums | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/value-enums/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2021-05-25T16:32:52+09:00</updated>
+  <updated>2021-05-25T17:13:29+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -130,7 +130,7 @@ Things.First // =&gt; java.lang.NoClassDefFoundError: Could not initialize class
 <span class='line-number'>26</span>
 <span class='line-number'>27</span>
 <span class='line-number'>28</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">import</span> <span class="nn">enumeratum.values._</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">enumeratum.values._</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">sealed</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">ContentType</span><span class="o">(</span><span class="k">val</span> <span class="n">value</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">LongEnumEntry</span>
 </span><span class='line'>
@@ -193,7 +193,7 @@ Things.First // =&gt; java.lang.NoClassDefFoundError: Could not initialize class
 <span class='line-number'>18</span>
 <span class='line-number'>19</span>
 <span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">import</span> <span class="nn">enumeratum._</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">enumeratum._</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">ShirtSize</span> <span class="k">extends</span> <span class="nc">EnumEntry</span>
 </span><span class='line'>

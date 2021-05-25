@@ -182,7 +182,7 @@
 <span class="line-number">11</span>
 <span class="line-number">12</span>
 <span class="line-number">13</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="cm">/*</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="cm">/*</span>
 </span><span class="line"><span class="cm">  This should replace if (true) { block of code }</span>
 </span><span class="line"><span class="cm">*/</span>
 </span><span class="line"><span class="n">when</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
@@ -213,7 +213,7 @@
 <span class="line-number">8</span>
 <span class="line-number">9</span>
 <span class="line-number">10</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">import</span> <span class="nn">scala.language.experimental.macros</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">import</span> <span class="nn">scala.language.experimental.macros</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">scala.reflect.macros._</span>
 </span><span class="line">
 </span><span class="line"><span class="k">object</span> <span class="nc">Example</span> <span class="o">{</span>
@@ -269,7 +269,7 @@
 <span class="line-number">3</span>
 <span class="line-number">4</span>
 <span class="line-number">5</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">aquasiquote</span> <span class="k">=</span> <span class="n">q</span><span class="s">&quot;a quasiquote&quot;</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">aquasiquote</span> <span class="k">=</span> <span class="n">q</span><span class="s">&quot;a quasiquote&quot;</span>
 </span><span class="line"><span class="n">aquasiquote</span><span class="k">:</span> <span class="kt">universe.Select</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">quasiquote</span>
 </span><span class="line">
 </span><span class="line"><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">tree</span> <span class="k">=</span> <span class="n">q</span><span class="s">&quot;i am { $aquasiquote }&quot;</span>
@@ -281,13 +281,13 @@
 <p>For <code>when</code>, we know that we roughly want the following:</p>
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="n">when</span> <span class="o">(</span><span class="n">someCondition</span><span class="o">)</span> <span class="o">{</span> <span class="n">result</span> <span class="o">}</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="n">when</span> <span class="o">(</span><span class="n">someCondition</span><span class="o">)</span> <span class="o">{</span> <span class="n">result</span> <span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>To expand via our macro into the following (yes we are using an inline if .. if you don’t like it, pretend we didn’t)</p>
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">if</span> <span class="o">(</span><span class="n">someCondition</span><span class="o">)</span> <span class="nc">Some</span><span class="o">(</span><span class="n">result</span><span class="o">)</span> <span class="k">else</span> <span class="nc">None</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">if</span> <span class="o">(</span><span class="n">someCondition</span><span class="o">)</span> <span class="nc">Some</span><span class="o">(</span><span class="n">result</span><span class="o">)</span> <span class="k">else</span> <span class="nc">None</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>Using what we know, the following should work:</p>
@@ -304,7 +304,7 @@
 <span class="line-number">10</span>
 <span class="line-number">11</span>
 <span class="line-number">12</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">import</span> <span class="nn">scala.language.experimental.macros</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">import</span> <span class="nn">scala.language.experimental.macros</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">scala.reflect.macros._</span>
 </span><span class="line">
 </span><span class="line"><span class="k">object</span> <span class="nc">Example</span> <span class="o">{</span>
@@ -331,7 +331,7 @@
 <span class="line-number">3</span>
 <span class="line-number">4</span>
 <span class="line-number">5</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">Example._</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">Example._</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">Example._</span>
 </span><span class="line">
 </span><span class="line"><span class="n">when</span><span class="o">(</span><span class="kc">true</span><span class="o">)(</span><span class="mi">3</span><span class="o">)</span>

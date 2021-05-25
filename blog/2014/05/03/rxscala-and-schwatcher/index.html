@@ -191,7 +191,7 @@
 <span class="line-number">10</span>
 <span class="line-number">11</span>
 <span class="line-number">12</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">import</span> <span class="nn">com.beachape.filemanagement.RxMonitor</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">import</span> <span class="nn">com.beachape.filemanagement.RxMonitor</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">com.beachape.filemanagement.Messages.EventAtPath</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">java.nio.file.Paths</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">java.nio.file.StandardWatchEventKinds._</span>
@@ -209,7 +209,7 @@
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
 <span class="line-number">2</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">val</span> <span class="n">createsOnly</span> <span class="k">=</span> <span class="n">observable</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">event</span> <span class="o">==</span> <span class="nc">ENTRY_CREATE</span><span class="o">)</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">val</span> <span class="n">createsOnly</span> <span class="k">=</span> <span class="n">observable</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">event</span> <span class="o">==</span> <span class="nc">ENTRY_CREATE</span><span class="o">)</span>
 </span><span class="line"><span class="k">val</span> <span class="n">scalaSourceCreatesOnly</span> <span class="k">=</span> <span class="n">createsOnly</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">toString</span><span class="o">.</span><span class="n">endsWith</span><span class="o">(</span><span class="s">&quot;.scala&quot;</span><span class="o">))</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 <p>Now, let’s create some basic <code>Observers</code> that we can pass to the <code>subscribe</code> method of our new <code>Observable</code>s. An <code>Observer</code> at minimum implements an onNext function, which takes an element that will be pushed to it from the <code>Observable</code> that it subscribes to and returns nothing (<code>Unit</code>). It may optionally implement onError (a function which takes a <code>Throwable</code> as an argument and returns nothing) and onCompleted (0 argument function that is called when the <code>Observable</code> it is subscribed to is finished and will no longer send further objects):</p>
@@ -232,8 +232,8 @@
 <span class="line-number">15</span>
 <span class="line-number">16</span>
 <span class="line-number">17</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">val</span> <span class="n">createAndModifyObserver</span> <span class="k">=</span> <span class="nc">Observer</span><span class="o">[</span><span class="kt">EventAtPath</span><span class="o">](</span><span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">s&quot;Something was created or modified: </span><span class="si">$event</span><span class="s">&quot;</span><span class="o">)})</span>
-</span><span class="line"><span class="k">val</span> <span class="n">createOnlyObserver</span> <span class="k">=</span> <span class="nc">Observer</span><span class="o">[</span><span class="kt">EventAtPath</span><span class="o">](</span><span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">s&quot;Something was created: </span><span class="si">$event</span><span class="s">&quot;</span><span class="o">)})</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">val</span> <span class="n">createAndModifyObserver</span> <span class="k">=</span> <span class="nc">Observer</span><span class="o">[</span><span class="kt">EventAtPath</span><span class="o">](</span><span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Something was created or modified: $event&quot;</span><span class="o">)})</span>
+</span><span class="line"><span class="k">val</span> <span class="n">createOnlyObserver</span> <span class="k">=</span> <span class="nc">Observer</span><span class="o">[</span><span class="kt">EventAtPath</span><span class="o">](</span><span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Something was created: $event&quot;</span><span class="o">)})</span>
 </span><span class="line">
 </span><span class="line"><span class="n">observable</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">createAndModifyObserver</span><span class="o">)</span>
 </span><span class="line"><span class="n">createsOnly</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">createOnlyObserver</span><span class="o">)</span>
@@ -248,7 +248,7 @@
 </span><span class="line"><span class="cm"> * since Observer as a type is just a way of binding 3 different functions, onNext, onCompleted, and onError</span>
 </span><span class="line"><span class="cm"> *</span>
 </span><span class="line"><span class="cm"> */</span>
-</span><span class="line"><span class="n">scalaSourceCreatesOnly</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">s&quot;A Scala source file was created: </span><span class="si">$event</span><span class="s">&quot;</span><span class="o">)})</span>
+</span><span class="line"><span class="n">scalaSourceCreatesOnly</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;A Scala source file was created: $event&quot;</span><span class="o">)})</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>Now let’s make stuff happen in another terminal.</p>
@@ -257,10 +257,10 @@
 <span class="line-number">2</span>
 <span class="line-number">3</span>
 <span class="line-number">4</span>
-</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>$ ~/Desktop/directory1: touch hello
-</span><span class="line">$ ~/Desktop/directory1: <span class="nb">echo</span> lol &gt;&gt; hello
-</span><span class="line">$ ~/Desktop/directory1: touch speedy.scala
-</span><span class="line">$ ~/Desktop/directory1: <span class="nb">echo</span> <span class="s1">&#39;println(&quot;hmm&quot;)&#39;</span> &gt;&gt; speedy.scala
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span class="nv">$ </span>~/Desktop/directory1: touch hello
+</span><span class="line"><span class="nv">$ </span>~/Desktop/directory1: <span class="nb">echo </span>lol &gt;&gt; hello
+</span><span class="line"><span class="nv">$ </span>~/Desktop/directory1: touch speedy.scala
+</span><span class="line"><span class="nv">$ </span>~/Desktop/directory1: <span class="nb">echo</span> <span class="s1">&#39;println(&quot;hmm&quot;)&#39;</span> &gt;&gt; speedy.scala
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>The following will be outputted</p>
@@ -272,19 +272,19 @@
 <span class="line-number">5</span>
 <span class="line-number">6</span>
 <span class="line-number">7</span>
-</pre></td><td class="code"><pre><code class="bash"><span class="line"><span></span>Something was created or modified: EventAtPath<span class="o">(</span>ENTRY_CREATE,/Users/lloyd/Desktop/directory1/hello<span class="o">)</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line">Something was created or modified: EventAtPath<span class="o">(</span>ENTRY_CREATE,/Users/lloyd/Desktop/directory1/hello<span class="o">)</span>
 </span><span class="line">Something was created: EventAtPath<span class="o">(</span>ENTRY_CREATE,/Users/lloyd/Desktop/directory1/hello<span class="o">)</span>
 </span><span class="line">Something was created or modified: EventAtPath<span class="o">(</span>ENTRY_MODIFY,/Users/lloyd/Desktop/directory1/hello<span class="o">)</span>
 </span><span class="line">Something was created or modified: EventAtPath<span class="o">(</span>ENTRY_CREATE,/Users/lloyd/Desktop/directory1/speedy.scala<span class="o">)</span>
 </span><span class="line">Something was created: EventAtPath<span class="o">(</span>ENTRY_CREATE,/Users/lloyd/Desktop/directory1/speedy.scala<span class="o">)</span>
-</span><span class="line">A Scala <span class="nb">source</span> file was created: EventAtPath<span class="o">(</span>ENTRY_CREATE,/Users/lloyd/Desktop/directory1/speedy.scala<span class="o">)</span>
+</span><span class="line">A Scala <span class="nb">source </span>file was created: EventAtPath<span class="o">(</span>ENTRY_CREATE,/Users/lloyd/Desktop/directory1/speedy.scala<span class="o">)</span>
 </span><span class="line">Something was created or modified: EventAtPath<span class="o">(</span>ENTRY_MODIFY,/Users/lloyd/Desktop/directory1/speedy.scala<span class="o">)</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>Lastly, since we’re done, let’s call the <code>stop()</code> method on the <code>RxMonitor</code> object so that subscribed <code>Observers</code> are notified and we stop the underlying <code>MonitorActor</code> as well. Cleaning up is A Good Thing (TM).</p>
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="n">monitor</span><span class="o">.</span><span class="n">stop</span><span class="o">()</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="n">monitor</span><span class="o">.</span><span class="n">stop</span><span class="o">()</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <h2 id="conclusion">Conclusion</h2>

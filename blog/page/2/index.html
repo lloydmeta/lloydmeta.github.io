@@ -519,7 +519,7 @@
 <span class="line-number">30</span>
 <span class="line-number">31</span>
 <span class="line-number">32</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">import</span> <span class="nn">com.beachape.filemanagement.RxMonitor</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">import</span> <span class="nn">com.beachape.filemanagement.RxMonitor</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">java.io.</span><span class="o">{</span><span class="nc">FileWriter</span><span class="o">,</span> <span class="nc">BufferedWriter</span><span class="o">}</span>
 </span><span class="line">
 </span><span class="line"><span class="k">import</span> <span class="nn">java.nio.file.Paths</span>
@@ -529,7 +529,7 @@
 </span><span class="line"><span class="k">val</span> <span class="n">observable</span> <span class="k">=</span> <span class="n">monitor</span><span class="o">.</span><span class="n">observable</span>
 </span><span class="line">
 </span><span class="line"><span class="k">val</span> <span class="n">subscription</span> <span class="k">=</span> <span class="n">observable</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span>
-</span><span class="line">  <span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">p</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">s&quot;Something was modified in a file mufufu: </span><span class="si">$p</span><span class="s">&quot;</span><span class="o">)},</span>
+</span><span class="line">  <span class="n">onNext</span> <span class="k">=</span> <span class="o">{</span> <span class="n">p</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Something was modified in a file mufufu: $p&quot;</span><span class="o">)},</span>
 </span><span class="line">  <span class="n">onError</span> <span class="k">=</span> <span class="o">{</span> <span class="n">t</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">t</span><span class="o">)},</span>
 </span><span class="line">  <span class="n">onCompleted</span> <span class="k">=</span> <span class="o">{</span> <span class="o">()</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;Monitor has been shut down&quot;</span><span class="o">)</span> <span class="o">}</span>
 </span><span class="line"><span class="o">)</span>

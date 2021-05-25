@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Back Porting | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/back-porting/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2021-05-25T16:32:52+09:00</updated>
+  <updated>2021-05-25T17:13:29+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -83,31 +83,31 @@
 <span class='line-number'>26</span>
 <span class='line-number'>27</span>
 <span class='line-number'>28</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span></span>: <span class="si">${</span><span class="nv">DIST</span><span class="p">:=</span><span class="k">$(</span>lsb_release --short --codename<span class="k">)</span><span class="si">}</span>
-</span><span class='line'>: <span class="si">${</span><span class="nv">ARCH</span><span class="p">:=</span><span class="k">$(</span>dpkg --print-architecture<span class="k">)</span><span class="si">}</span>
-</span><span class='line'><span class="nv">NAME</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$DIST</span><span class="s2">-</span><span class="nv">$ARCH</span><span class="s2">&quot;</span>
-</span><span class='line'><span class="nv">DISTRIBUTION</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$DIST</span><span class="s2">&quot;</span>
-</span><span class='line'><span class="nv">DEBOOTSTRAPOPTS</span><span class="o">=(</span><span class="s2">&quot;--arch&quot;</span> <span class="s2">&quot;</span><span class="nv">$ARCH</span><span class="s2">&quot;</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">DEBOOTSTRAPOPTS</span><span class="p">[@]</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">)</span>
-</span><span class='line'><span class="nv">BASETGZ</span><span class="o">=</span><span class="s2">&quot;`dirname </span><span class="nv">$BASETGZ</span><span class="s2">`/</span><span class="nv">$NAME</span><span class="s2">-base.tgz&quot;</span>
-</span><span class='line'><span class="nv">BUILDRESULT</span><span class="o">=</span><span class="s2">&quot;/var/cache/pbuilder/</span><span class="nv">$NAME</span><span class="s2">/result/&quot;</span>
-</span><span class='line'><span class="nv">APTCACHE</span><span class="o">=</span><span class="s2">&quot;/var/cache/pbuilder/</span><span class="nv">$NAME</span><span class="s2">/aptcache/&quot;</span>
-</span><span class='line'><span class="c1"># Don&#39;t rebuild source files (.diff.gz, .dsc), or list them in .changes</span>
-</span><span class='line'><span class="c1"># See Ubuntu bug 118181</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>: <span class="k">${</span><span class="nv">DIST</span><span class="p">:=</span><span class="k">$(</span>lsb_release --short --codename<span class="k">)}</span>
+</span><span class='line'>: <span class="k">${</span><span class="nv">ARCH</span><span class="p">:=</span><span class="k">$(</span>dpkg --print-architecture<span class="k">)}</span>
+</span><span class='line'><span class="nv">NAME</span><span class="o">=</span><span class="s2">&quot;$DIST-$ARCH&quot;</span>
+</span><span class='line'><span class="nv">DISTRIBUTION</span><span class="o">=</span><span class="s2">&quot;$DIST&quot;</span>
+</span><span class='line'><span class="nv">DEBOOTSTRAPOPTS</span><span class="o">=(</span><span class="s2">&quot;--arch&quot;</span> <span class="s2">&quot;$ARCH&quot;</span> <span class="s2">&quot;${DEBOOTSTRAPOPTS[@]}&quot;</span><span class="o">)</span>
+</span><span class='line'><span class="nv">BASETGZ</span><span class="o">=</span><span class="s2">&quot;`dirname $BASETGZ`/$NAME-base.tgz&quot;</span>
+</span><span class='line'><span class="nv">BUILDRESULT</span><span class="o">=</span><span class="s2">&quot;/var/cache/pbuilder/$NAME/result/&quot;</span>
+</span><span class='line'><span class="nv">APTCACHE</span><span class="o">=</span><span class="s2">&quot;/var/cache/pbuilder/$NAME/aptcache/&quot;</span>
+</span><span class='line'><span class="c"># Don&#39;t rebuild source files (.diff.gz, .dsc), or list them in .changes</span>
+</span><span class='line'><span class="c"># See Ubuntu bug 118181</span>
 </span><span class='line'><span class="nv">DEBBUILDOPTS</span><span class="o">=</span><span class="s2">&quot;-b -d&quot;</span>
 </span><span class='line'>
-</span><span class='line'><span class="k">case</span> <span class="s2">&quot;</span><span class="nv">$DIST</span><span class="s2">&quot;</span> in
-</span><span class='line'>    oneiric<span class="p">|</span>trusty<span class="p">|</span>lucid<span class="p">|</span>karmic<span class="p">|</span>jaunty<span class="p">|</span>intrepid<span class="p">|</span>hardy<span class="p">|</span>dapper<span class="o">)</span> <span class="c1"># ubuntu specific</span>
+</span><span class='line'><span class="k">case</span> <span class="s2">&quot;$DIST&quot;</span> in
+</span><span class='line'>    oneiric|trusty|lucid|karmic|jaunty|intrepid|hardy|dapper<span class="o">)</span> <span class="c"># ubuntu specific</span>
 </span><span class='line'>        <span class="nv">MIRRORSITE</span><span class="o">=</span><span class="s2">&quot;http://archive.ubuntu.com/ubuntu/&quot;</span>
 </span><span class='line'>        <span class="nv">COMPONENTS</span><span class="o">=</span><span class="s2">&quot;main restricted universe multiverse&quot;</span>
-</span><span class='line'>        <span class="p">;;</span>
-</span><span class='line'>    sid<span class="p">|</span>squeeze<span class="p">|</span>lenny<span class="p">|</span>etch<span class="o">)</span> <span class="c1"># debian specific</span>
+</span><span class='line'>        ;;
+</span><span class='line'>    sid|squeeze|lenny|etch<span class="o">)</span> <span class="c"># debian specific</span>
 </span><span class='line'>        <span class="nv">MIRRORSITE</span><span class="o">=</span><span class="s2">&quot;http://mirrors.kernel.org/debian/&quot;</span>
 </span><span class='line'>        <span class="nv">COMPONENTS</span><span class="o">=</span><span class="s2">&quot;main contrib non-free&quot;</span>
-</span><span class='line'>        <span class="p">;;</span>
+</span><span class='line'>        ;;
 </span><span class='line'>    *<span class="o">)</span>
-</span><span class='line'>        <span class="nb">echo</span> <span class="s2">&quot;Unknown distribution: </span><span class="nv">$DIST</span><span class="s2">&quot;</span>
-</span><span class='line'>        <span class="nb">exit</span> <span class="m">1</span>
-</span><span class='line'>        <span class="p">;;</span>
+</span><span class='line'>        <span class="nb">echo</span> <span class="s2">&quot;Unknown distribution: $DIST&quot;</span>
+</span><span class='line'>        <span class="nb">exit </span>1
+</span><span class='line'>        ;;
 </span><span class='line'><span class="k">esac</span>
 </span><span class='line'>
 </span><span class='line'><span class="nv">HOOKDIR</span><span class="o">=</span><span class="nv">$HOME</span>/.pbuilder-hooks

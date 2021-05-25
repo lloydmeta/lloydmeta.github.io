@@ -354,7 +354,7 @@
 </span><span class="line"><span class="p">};</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
-<p>That’s it. The API is relatively clean, simple to write, read, and understand (IMO), and there are no <code>unsafe</code> or <code>dyn</code> traits anywhere (even in the implementation). And, you can still treat your <code>struct</code>s as you normally would, passing them to nominally typed functions, implementing <code>trait</code>s as you normally would etc.</p>
+<p>That’s it. The API is relatively clean, simple to write, read, and understand (IMO), and there are no <code>unsafe</code> or <code>dyn</code> traits anywhere (even in the implementation). And, you can still declare and treat your <code>struct</code>s as you normally would, passing them to nominally typed functions, implementing <code>trait</code>s as you normally would etc.</p>
 
 <p>Still, when used with structurally typed functions like <code>print_pet_name</code>, the compiler will as usual ensure that:</p>
 

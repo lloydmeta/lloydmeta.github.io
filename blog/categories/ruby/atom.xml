@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ruby | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/ruby/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2021-05-25T16:32:52+09:00</updated>
+  <updated>2021-05-25T17:13:29+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -24,7 +24,7 @@
 
 <p>That said, a quick Google search brought me to this <a href="http://dev.af83.com/2012/11/22/ruby-2-0-enumerator-lazy.html">great page</a> where someone had already written a usable benchmark back in 2012 when the 2.0.0 preview release came out:</p>
 
-<p>File /Users/Lloyd/Documents/ruby_dev/blog/source/downloads/code/ruby/ruby<em>2</em>0_0_enum_lazy_bench.rb could not be found</p>
+<p>File /Users/lloyd/Documents/ruby_dev/beachape.com/source/downloads/code/ruby/ruby<em>2</em>0_0_enum_lazy_bench.rb could not be found</p>
 
 <p>And then the results, with Ruby 2.0.0p0</p>
 
@@ -107,7 +107,7 @@ chainable lazy 10000000  5.580000   0.140000   5.720000 (  6.079247)
 <span class='line-number'>29</span>
 <span class='line-number'>30</span>
 <span class='line-number'>31</span>
-</pre></td><td class='code'><pre><code class='rb'><span class='line'><span></span><span class="nb">require</span> <span class="s2">&quot;benchmark&quot;</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">require</span> <span class="s2">&quot;benchmark&quot;</span>
 </span><span class='line'>
 </span><span class='line'><span class="n">regex_compiled</span> <span class="o">=</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;qa&quot;</span><span class="p">)</span>
 </span><span class='line'><span class="n">regex_compiled</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;qa&quot;</span><span class="p">)</span>
@@ -234,7 +234,7 @@ in your <code>config.ru</code> and yet don’t see anything when you hit /resque
 <span class='line-number'>31</span>
 <span class='line-number'>32</span>
 <span class='line-number'>33</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span></span><span class="p">{</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
 </span><span class='line'>    <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Hilarious article&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;subtitle&quot;</span><span class="p">:</span> <span class="s2">&quot;Something people might find funny&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;super funny stuff&quot;</span><span class="p">,</span>
@@ -337,7 +337,7 @@ in your <code>config.ru</code> and yet don’t see anything when you hit /resque
 <span class='line-number'>57</span>
 <span class='line-number'>58</span>
 <span class='line-number'>59</span>
-</pre></td><td class='code'><pre><code class='rb'><span class='line'><span></span><span class="nb">require</span> <span class="s1">&#39;hash_walker&#39;</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">require</span> <span class="s1">&#39;hash_walker&#39;</span>
 </span><span class='line'>
 </span><span class='line'><span class="n">json_response</span> <span class="o">=</span> <span class="p">{</span>
 </span><span class='line'>    <span class="s2">&quot;title&quot;</span><span class="o">=&gt;</span> <span class="s2">&quot;Hilarious article&quot;</span><span class="p">,</span>

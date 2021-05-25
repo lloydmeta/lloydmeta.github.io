@@ -213,7 +213,7 @@
 <span class="line-number">37</span>
 <span class="line-number">38</span></figure></notextile></li>
 </ol>
-<p>&lt;/pre&gt;&lt;/td&gt;&lt;td class=&#8217;code&#8217;&gt;&lt;pre&gt;<code class="scala"><span class="line"><span></span><span class="k">import</span> <span class="nn">play.api.ApplicationLoader.Context</span>
+<p>&lt;/pre&gt;&lt;/td&gt;&lt;td class=&#8217;code&#8217;&gt;&lt;pre&gt;<code class="scala"><span class="line"><span class="k">import</span> <span class="nn">play.api.ApplicationLoader.Context</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">play.api._</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">play.api.libs.concurrent.Execution.Implicits._</span>
 </span><span class="line"><span class="k">import</span> <span class="nn">play.api.mvc.Results._</span>
@@ -234,7 +234,7 @@
 </span><span class="line">
 </span><span class="line">      <span class="c1">// Essentially copied verbatim from the SIRD example</span>
 </span><span class="line">      <span class="k">case</span> <span class="nc">GET</span><span class="o">(</span><span class="n">p</span><span class="s">&quot;/hello/$to&quot;</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Action</span> <span class="o">{</span>
-</span><span class="line">        <span class="nc">Ok</span><span class="o">(</span><span class="s">s&quot;Hello </span><span class="si">$to</span><span class="s">&quot;</span><span class="o">)</span>
+</span><span class="line">        <span class="nc">Ok</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Hello $to&quot;</span><span class="o">)</span>
 </span><span class="line">      <span class="o">}</span>
 </span><span class="line">
 </span><span class="line">      <span class="cm">/*</span>

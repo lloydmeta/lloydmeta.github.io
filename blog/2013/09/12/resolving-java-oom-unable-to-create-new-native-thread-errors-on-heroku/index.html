@@ -183,7 +183,7 @@
 <span class="line-number">9</span>
 <span class="line-number">10</span>
 <span class="line-number">11</span>
-</pre></td><td class="code"><pre><code class="c"><span class="line"><span></span><span class="k">if</span> <span class="p">(</span><span class="n">native_thread</span><span class="o">-&gt;</span><span class="n">osthread</span><span class="p">()</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+</pre></td><td class="code"><pre><code class="c"><span class="line"><span class="k">if</span> <span class="p">(</span><span class="n">native_thread</span><span class="o">-&gt;</span><span class="n">osthread</span><span class="p">()</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
 </span><span class="line">  <span class="c1">// No one should hold a reference to the &#39;native_thread&#39;.</span>
 </span><span class="line">  <span class="n">delete</span> <span class="n">native_thread</span><span class="p">;</span>
 </span><span class="line">  <span class="k">if</span> <span class="p">(</span><span class="n">JvmtiExport</span><span class="o">::</span><span class="n">should_post_resource_exhausted</span><span class="p">())</span> <span class="p">{</span>
@@ -229,7 +229,7 @@
 <span class="line-number">13</span>
 <span class="line-number">14</span>
 <span class="line-number">15</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="c1">// Http client</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="c1">// Http client</span>
 </span><span class="line"><span class="k">lazy</span> <span class="k">val</span> <span class="n">followRedirects</span> <span class="k">=</span> <span class="kc">true</span>
 </span><span class="line"><span class="k">lazy</span> <span class="k">val</span> <span class="n">connectionPooling</span> <span class="k">=</span> <span class="kc">true</span>
 </span><span class="line"><span class="k">lazy</span> <span class="k">val</span> <span class="n">httpExecutorService</span><span class="k">:</span> <span class="kt">ExecutorService</span> <span class="o">=</span> <span class="nc">Executors</span><span class="o">.</span><span class="n">newFixedThreadPool</span><span class="o">(</span><span class="n">httpExecutorThreads</span><span class="o">)</span>

@@ -392,28 +392,28 @@
 <span class="line-number">20</span>
 <span class="line-number">21</span>
 <span class="line-number">22</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="cp">#[derive(LabelledGeneric)]</span><span class="w"></span>
-</span><span class="line"><span class="k">struct</span> <span class="nc">NewUser</span><span class="o">&lt;</span><span class="na">&#39;a</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="kt">usize</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="p">}</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="cp">#[derive(LabelledGeneric)]</span>
+</span><span class="line"><span class="n">struct</span> <span class="n">NewUser</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">first_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
+</span><span class="line">    <span class="n">last_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
+</span><span class="line">    <span class="n">age</span><span class="o">:</span> <span class="n">usize</span><span class="p">,</span>
+</span><span class="line"><span class="p">}</span>
 </span><span class="line">
-</span><span class="line"><span class="cp">#[derive(LabelledGeneric)]</span><span class="w"></span>
-</span><span class="line"><span class="k">struct</span> <span class="nc">SavedUser</span><span class="o">&lt;</span><span class="na">&#39;a</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="kt">usize</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="p">}</span><span class="w"></span>
+</span><span class="line"><span class="cp">#[derive(LabelledGeneric)]</span>
+</span><span class="line"><span class="n">struct</span> <span class="n">SavedUser</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">first_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
+</span><span class="line">    <span class="n">last_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
+</span><span class="line">    <span class="n">age</span><span class="o">:</span> <span class="n">usize</span><span class="p">,</span>
+</span><span class="line"><span class="p">}</span>
 </span><span class="line">
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">n_user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NewUser</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">                    </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Moe&quot;</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">                    </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Ali&quot;</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">                    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="mi">30</span><span class="w"></span>
-</span><span class="line"><span class="w">                </span><span class="p">};</span><span class="w"></span>
+</span><span class="line"><span class="k">let</span> <span class="n">n_user</span> <span class="o">=</span> <span class="n">NewUser</span> <span class="p">{</span>
+</span><span class="line">                    <span class="n">first_name</span><span class="o">:</span> <span class="s">&quot;Moe&quot;</span><span class="p">,</span>
+</span><span class="line">                    <span class="n">last_name</span><span class="o">:</span> <span class="s">&quot;Ali&quot;</span><span class="p">,</span>
+</span><span class="line">                    <span class="n">age</span><span class="o">:</span> <span class="m">30</span>
+</span><span class="line">                <span class="p">};</span>
 </span><span class="line">
 </span><span class="line"><span class="c1">// Convert from NewUser to SavedUser</span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">s_user</span><span class="o">:</span><span class="w"> </span><span class="n">SavedUser</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">labelled_convert_from</span><span class="p">(</span><span class="n">n_user</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="k">let</span> <span class="n">s_user</span><span class="o">:</span> <span class="n">SavedUser</span> <span class="o">=</span> <span class="n">labelled_convert_from</span><span class="p">(</span><span class="n">n_user</span><span class="p">);</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>but the following fails at compile-time because the fields are mis-matched (<code>first_name</code> and <code>last_name</code> have been swapped):</p>
@@ -429,17 +429,17 @@
 <span class="line-number">9</span>
 <span class="line-number">10</span>
 <span class="line-number">11</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="c1">// Uh-oh! Fields are jumbled :(</span>
-</span><span class="line"><span class="cp">#[derive(LabelledGeneric)]</span><span class="w"></span>
-</span><span class="line"><span class="k">struct</span> <span class="nc">JumbledUser</span><span class="o">&lt;</span><span class="na">&#39;a</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">last_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">first_name</span><span class="o">:</span><span class="w"> </span><span class="o">&amp;</span><span class="na">&#39;a</span><span class="w"> </span><span class="kt">str</span><span class="p">,</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">age</span><span class="o">:</span><span class="w"> </span><span class="kt">usize</span><span class="w"></span>
-</span><span class="line"><span class="p">}</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="c1">// Uh-oh! Fields are jumbled :(</span>
+</span><span class="line"><span class="cp">#[derive(LabelledGeneric)]</span>
+</span><span class="line"><span class="n">struct</span> <span class="n">JumbledUser</span><span class="o">&lt;</span><span class="err">&#39;</span><span class="n">a</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">last_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
+</span><span class="line">    <span class="n">first_name</span><span class="o">:</span> <span class="o">&amp;</span><span class="err">&#39;</span><span class="n">a</span> <span class="n">str</span><span class="p">,</span>
+</span><span class="line">    <span class="n">age</span><span class="o">:</span> <span class="n">usize</span>
+</span><span class="line"><span class="p">}</span>
 </span><span class="line">
 </span><span class="line"><span class="c1">// This should fail at compile-time because last_name and first_name are swapped</span>
 </span><span class="line"><span class="c1">// even if they have the same type</span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">d_user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">JumbledUser</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">LabelledGeneric</span><span class="o">&gt;::</span><span class="n">convert_from</span><span class="p">(</span><span class="n">s_user</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="k">let</span> <span class="n">d_user</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">JumbledUser</span> <span class="k">as</span> <span class="n">LabelledGeneric</span><span class="o">&gt;::</span><span class="n">convert_from</span><span class="p">(</span><span class="n">s_user</span><span class="p">);</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>The solution to this sort of problem has been in <a href="https://github.com/milessabin/shapeless">Shapeless</a> for some time; by using <code>HList</code>s where each cell contains not just a value, but instead hold <em>named</em> fields, where each value is labelled <em>at the type level</em>.</p>
@@ -598,12 +598,12 @@
 <span class="line-number">4</span>
 <span class="line-number">5</span>
 <span class="line-number">6</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">fn</span> <span class="nf">double_arg</span><span class="p">(</span><span class="k">mut</span><span class="w"> </span><span class="n">argv</span><span class="o">:</span><span class="w"> </span><span class="n">env</span><span class="o">::</span><span class="n">Args</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="nb">String</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="n">argv</span><span class="p">.</span><span class="n">nth</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"></span>
-</span><span class="line"><span class="w">        </span><span class="p">.</span><span class="n">ok_or</span><span class="p">(</span><span class="s">&quot;Please give at least one argument&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">())</span><span class="w"></span>
-</span><span class="line"><span class="w">        </span><span class="p">.</span><span class="n">and_then</span><span class="p">(</span><span class="o">|</span><span class="n">arg</span><span class="o">|</span><span class="w"> </span><span class="n">arg</span><span class="p">.</span><span class="n">parse</span><span class="o">::&lt;</span><span class="kt">i32</span><span class="o">&gt;</span><span class="p">().</span><span class="n">map_err</span><span class="p">(</span><span class="o">|</span><span class="n">err</span><span class="o">|</span><span class="w"> </span><span class="n">err</span><span class="p">.</span><span class="n">to_string</span><span class="p">()))</span><span class="w"></span>
-</span><span class="line"><span class="w">        </span><span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">n</span><span class="o">|</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"></span>
-</span><span class="line"><span class="p">}</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">fn</span> <span class="n">double_arg</span><span class="p">(</span><span class="k">mut</span> <span class="n">argv</span><span class="o">:</span> <span class="n">env</span><span class="o">::</span><span class="n">Args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="o">&lt;</span><span class="k">i32</span><span class="p">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">argv</span><span class="p">.</span><span class="n">nth</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+</span><span class="line">        <span class="p">.</span><span class="n">ok_or</span><span class="p">(</span><span class="s">&quot;Please give at least one argument&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">())</span>
+</span><span class="line">        <span class="p">.</span><span class="n">and_then</span><span class="p">(</span><span class="o">|</span><span class="n">arg</span><span class="o">|</span> <span class="n">arg</span><span class="p">.</span><span class="n">parse</span><span class="o">::&lt;</span><span class="k">i32</span><span class="o">&gt;</span><span class="p">().</span><span class="n">map_err</span><span class="p">(</span><span class="o">|</span><span class="n">err</span><span class="o">|</span> <span class="n">err</span><span class="p">.</span><span class="n">to_string</span><span class="p">()))</span>
+</span><span class="line">        <span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="o">|</span><span class="n">n</span><span class="o">|</span> <span class="m">2</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span>
+</span><span class="line"><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>But .. what happens when you have multiple <code>Result</code>s that are independent of each other, and you want to accumulate not only their collective success case, but also <em>all</em> their collective errors in the failure case?</p>
@@ -656,7 +656,7 @@
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
 <span class="line-number">2</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Blow&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">];</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">let</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">,</span> <span class="k">true</span><span class="p">];</span>
 </span><span class="line"><span class="c1">// h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 

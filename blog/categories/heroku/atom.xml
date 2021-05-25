@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Heroku | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/heroku/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2021-05-25T16:32:52+09:00</updated>
+  <updated>2021-05-25T17:13:29+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -132,7 +132,7 @@ lazy val httpClient = new Http(asyncHttpClient)
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
 <span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span></span><span class="p">{</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
 </span><span class='line'>    <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;app&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;0.0.1&quot;</span><span class="p">,</span>
@@ -181,7 +181,7 @@ lazy val httpClient = new Http(asyncHttpClient)
 <span class='line-number'>23</span>
 <span class='line-number'>24</span>
 <span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='js'><span class='line'><span></span><span class="cm">/**</span>
+</pre></td><td class='code'><pre><code class='js'><span class='line'><span class="cm">/**</span>
 </span><span class='line'><span class="cm"> * New Relic agent configuration.</span>
 </span><span class='line'><span class="cm"> *</span>
 </span><span class='line'><span class="cm"> * See lib/config.defaults.js in the agent distribution for a more complete</span>

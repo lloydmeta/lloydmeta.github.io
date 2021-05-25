@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Functional | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/functional/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2021-05-25T16:32:52+09:00</updated>
+  <updated>2021-05-25T17:13:29+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -46,7 +46,7 @@
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">def</span> <span class="n">incrementMaybeList</span><span class="o">(</span><span class="n">maybeList</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]],</span> <span class="n">increment</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1</span><span class="o">)</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]</span> <span class="k">=</span> <span class="o">{</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">def</span> <span class="n">incrementMaybeList</span><span class="o">(</span><span class="n">maybeList</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]],</span> <span class="n">increment</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1</span><span class="o">)</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]</span> <span class="k">=</span> <span class="o">{</span>
 </span><span class='line'>  <span class="n">maybeList</span><span class="o">.</span><span class="n">map</span><span class="o">{</span><span class="n">list</span> <span class="k">=&gt;</span>
 </span><span class='line'>    <span class="n">list</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="n">increment</span><span class="o">)</span>
 </span><span class='line'>  <span class="o">}</span>
@@ -154,7 +154,7 @@ incrementMaybeList(incrementMaybeList(None))
 <span class='line-number'>31</span>
 <span class='line-number'>32</span>
 <span class='line-number'>33</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span></span><span class="p">{</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
 </span><span class='line'>    <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Hilarious article&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;subtitle&quot;</span><span class="p">:</span> <span class="s2">&quot;Something people might find funny&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;super funny stuff&quot;</span><span class="p">,</span>
@@ -257,7 +257,7 @@ incrementMaybeList(incrementMaybeList(None))
 <span class='line-number'>57</span>
 <span class='line-number'>58</span>
 <span class='line-number'>59</span>
-</pre></td><td class='code'><pre><code class='rb'><span class='line'><span></span><span class="nb">require</span> <span class="s1">&#39;hash_walker&#39;</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">require</span> <span class="s1">&#39;hash_walker&#39;</span>
 </span><span class='line'>
 </span><span class='line'><span class="n">json_response</span> <span class="o">=</span> <span class="p">{</span>
 </span><span class='line'>    <span class="s2">&quot;title&quot;</span><span class="o">=&gt;</span> <span class="s2">&quot;Hilarious article&quot;</span><span class="p">,</span>

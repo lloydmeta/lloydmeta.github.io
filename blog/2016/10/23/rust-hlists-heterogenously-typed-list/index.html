@@ -160,7 +160,7 @@
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
 <span class="line-number">2</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Blow&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">];</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">let</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">,</span> <span class="k">true</span><span class="p">];</span>
 </span><span class="line"><span class="c1">// h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
@@ -174,8 +174,8 @@
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
 <span class="line-number">2</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="p">[</span><span class="n">dependencies</span><span class="p">]</span><span class="w"></span>
-</span><span class="line"><span class="n">frunk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.1.9&quot;</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="p">[</span><span class="n">dependencies</span><span class="p">]</span>
+</span><span class="line"><span class="n">frunk</span> <span class="o">=</span> <span class="s">&quot;0.1.9&quot;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>By the way, to take a dive into the deep end, jump <a href="https://beachape.com/frunk/frunk/hlist/index.html" target="_blank">straight to HList’s Rustdocs</a>.</p>
@@ -186,8 +186,8 @@
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
 <span class="line-number">2</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="cp">#[macro_use]</span><span class="w"> </span><span class="k">extern</span><span class="w"> </span><span class="k">crate</span><span class="w"> </span><span class="n">frunk</span><span class="p">;</span><span class="w"></span>
-</span><span class="line"><span class="k">use</span><span class="w"> </span><span class="n">frunk</span><span class="o">::</span><span class="n">hlist</span><span class="o">::*</span><span class="p">;</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="cp">#[macro_use]</span> <span class="n">extern</span> <span class="n">crate</span> <span class="n">frunk</span><span class="p">;</span>
+</span><span class="line"><span class="k">use</span> <span class="n">frunk</span><span class="o">::</span><span class="n">hlist</span><span class="o">::*</span><span class="p">;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <h3 id="creating-an-hlist">Creating an HList</h3>
@@ -198,10 +198,10 @@
 <span class="line-number">2</span>
 <span class="line-number">3</span>
 <span class="line-number">4</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Blow&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">];</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">let</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">,</span> <span class="k">true</span><span class="p">];</span>
 </span><span class="line">
 </span><span class="line"><span class="c1">// You can choose to explicitly annotate the type of HList</span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">h2</span><span class="o">:</span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;&amp;</span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;&amp;</span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;</span><span class="p">{</span><span class="n">integer</span><span class="p">},</span><span class="w"> </span><span class="n">HCons</span><span class="o">&lt;</span><span class="kt">bool</span><span class="p">,</span><span class="w"> </span><span class="n">HNil</span><span class="o">&gt;&gt;&gt;&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Blow&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">];</span><span class="w"></span>
+</span><span class="line"><span class="k">let</span> <span class="n">h2</span><span class="o">:</span> <span class="n">HCons</span><span class="o">&lt;&amp;</span><span class="n">str</span><span class="p">,</span> <span class="n">HCons</span><span class="o">&lt;&amp;</span><span class="n">str</span><span class="p">,</span> <span class="n">HCons</span><span class="o">&lt;</span><span class="p">{</span><span class="n">integer</span><span class="p">},</span> <span class="n">HCons</span><span class="o">&lt;</span><span class="n">bool</span><span class="p">,</span> <span class="n">HNil</span><span class="o">&gt;&gt;&gt;&gt;</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">,</span> <span class="k">true</span><span class="p">];</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <h3 id="writing-the-type-of-an-hlist">Writing the type of an HList</h3>
@@ -212,7 +212,7 @@
 <span class="line-number">2</span>
 <span class="line-number">3</span>
 <span class="line-number">4</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">h</span><span class="o">:</span><span class="w"> </span><span class="n">Hlist</span><span class="o">!</span><span class="p">(</span><span class="o">&amp;</span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="kt">str</span><span class="p">,</span><span class="w"> </span><span class="kt">i32</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Blow&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">];</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">let</span> <span class="n">h</span><span class="o">:</span> <span class="n">Hlist</span><span class="o">!</span><span class="p">(</span><span class="o">&amp;</span><span class="n">str</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">str</span><span class="p">,</span> <span class="k">i32</span><span class="p">,</span> <span class="n">bool</span><span class="p">)</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">,</span> <span class="k">true</span><span class="p">];</span>
 </span><span class="line"><span class="c1">// We use the Hlist! type macro to make it easier to write</span>
 </span><span class="line"><span class="c1">// a type signature for HLists, which is a series of nested HCons</span>
 </span><span class="line"><span class="c1">// h has an expanded static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;i32, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;</span>
@@ -224,8 +224,8 @@
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
 <span class="line-number">2</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hList</span><span class="o">!</span><span class="p">[</span><span class="w"> </span><span class="s">&quot;Joe&quot;</span><span class="w"> </span><span class="p">];</span><span class="w"></span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">joe</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">h</span><span class="p">.</span><span class="n">head</span><span class="p">;</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">let</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hList</span><span class="o">!</span><span class="p">[</span> <span class="s">&quot;Joe&quot;</span> <span class="p">];</span>
+</span><span class="line"><span class="k">let</span> <span class="n">joe</span> <span class="o">=</span> <span class="n">h</span><span class="p">.</span><span class="n">head</span><span class="p">;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <h3 id="getting-multiple-elements-from-an-hlist">Getting multiple elements from an HList</h3>
@@ -240,14 +240,14 @@
 <span class="line-number">6</span>
 <span class="line-number">7</span>
 <span class="line-number">8</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Blow&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">];</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">let</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">,</span> <span class="k">true</span><span class="p">];</span>
 </span><span class="line"><span class="c1">// h has a static type of: HCons&lt;&amp;str, HCons&lt;&amp;str, HCons&lt;{integer}, HCons&lt;bool, HNil&gt;&gt;&gt;&gt;</span>
 </span><span class="line">
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">hlist_pat</span><span class="o">!</span><span class="p">(</span><span class="n">f_name</span><span class="p">,</span><span class="w"> </span><span class="n">l_name</span><span class="p">,</span><span class="w"> </span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="n">is_admin</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">h</span><span class="p">;</span><span class="w"></span>
-</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">f_name</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Joe&quot;</span><span class="p">);</span><span class="w"></span>
-</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">l_name</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Blow&quot;</span><span class="p">);</span><span class="w"></span>
-</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">);</span><span class="w"></span>
-</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">is_admin</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">);</span><span class="w"></span>
+</span><span class="line"><span class="k">let</span> <span class="n">hlist_pat</span><span class="o">!</span><span class="p">(</span><span class="n">f_name</span><span class="p">,</span> <span class="n">l_name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">is_admin</span><span class="p">)</span> <span class="o">=</span> <span class="n">h</span><span class="p">;</span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">f_name</span><span class="p">,</span> <span class="s">&quot;Joe&quot;</span><span class="p">);</span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">l_name</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">);</span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">age</span><span class="p">,</span> <span class="m">30</span><span class="p">);</span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">is_admin</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <h3 id="appending-hlists">Appending HLists</h3>
@@ -258,10 +258,10 @@
 <span class="line-number">2</span>
 <span class="line-number">3</span>
 <span class="line-number">4</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">joe</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Blow&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">];</span><span class="w"></span>
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">is_admin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="kc">true</span><span class="p">];</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">let</span> <span class="n">joe</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">];</span>
+</span><span class="line"><span class="k">let</span> <span class="n">is_admin</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="k">true</span><span class="p">];</span>
 </span><span class="line">
-</span><span class="line"><span class="kd">let</span><span class="w"> </span><span class="n">joe_is_admin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">joe</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">is_admin</span><span class="p">;</span><span class="w"></span>
+</span><span class="line"><span class="k">let</span> <span class="n">joe_is_admin</span> <span class="o">=</span> <span class="n">joe</span> <span class="o">+</span> <span class="n">is_admin</span><span class="p">;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <h3 id="length">Length</h3>
@@ -270,8 +270,8 @@
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
 <span class="line-number">2</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="kd">let</span><span class="w"> </span><span class="n">joe</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Blow&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">];</span><span class="w"></span>
-</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">joe</span><span class="p">.</span><span class="n">length</span><span class="p">(),</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">let</span> <span class="n">joe</span> <span class="o">=</span> <span class="n">hlist</span><span class="o">!</span><span class="p">[</span><span class="s">&quot;Joe&quot;</span><span class="p">,</span> <span class="s">&quot;Blow&quot;</span><span class="p">,</span> <span class="m">30</span><span class="p">];</span>
+</span><span class="line"><span class="n">assert_eq</span><span class="o">!</span><span class="p">(</span><span class="n">joe</span><span class="p">.</span><span class="n">length</span><span class="p">(),</span> <span class="m">3</span><span class="p">);</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <h2 id="have-fun-">Have fun !</h2>
@@ -284,12 +284,12 @@
 <span class="line-number">4</span>
 <span class="line-number">5</span>
 <span class="line-number">6</span>
-</pre></td><td class="code"><pre><code class="rust"><span class="line"><span></span><span class="k">pub</span><span class="w"> </span><span class="k">enum</span> <span class="nc">Validated</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">E</span><span class="o">&gt;</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">T</span><span class="o">:</span><span class="w"> </span><span class="n">HList</span><span class="w"></span>
-</span><span class="line"><span class="p">{</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="nb">Ok</span><span class="p">(</span><span class="n">T</span><span class="p">),</span><span class="w"></span>
-</span><span class="line"><span class="w">    </span><span class="nb">Err</span><span class="p">(</span><span class="nb">Vec</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;</span><span class="p">),</span><span class="w"></span>
-</span><span class="line"><span class="p">}</span><span class="w"></span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="n">pub</span> <span class="k">enum</span> <span class="n">Validated</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">E</span><span class="o">&gt;</span>
+</span><span class="line">    <span class="n">where</span> <span class="n">T</span><span class="o">:</span> <span class="n">HList</span>
+</span><span class="line"><span class="p">{</span>
+</span><span class="line">    <span class="n">Ok</span><span class="p">(</span><span class="n">T</span><span class="p">),</span>
+</span><span class="line">    <span class="n">Err</span><span class="p">(</span><span class="n">Vec</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;</span><span class="p">),</span>
+</span><span class="line"><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>So please check it out, take it for a spin, and come back with any ideas, criticisms, and PRs!</p>

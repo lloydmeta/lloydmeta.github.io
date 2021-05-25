@@ -197,7 +197,7 @@
 <span class="line-number">11</span>
 <span class="line-number">12</span>
 <span class="line-number">13</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">def</span> <span class="n">toGreyScale</span><span class="o">(</span><span class="n">mat</span><span class="k">:</span> <span class="kt">Mat</span><span class="o">)</span><span class="k">:</span> <span class="kt">Mat</span> <span class="o">=</span> <span class="o">{</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">def</span> <span class="n">toGreyScale</span><span class="o">(</span><span class="n">mat</span><span class="k">:</span> <span class="kt">Mat</span><span class="o">)</span><span class="k">:</span> <span class="kt">Mat</span> <span class="o">=</span> <span class="o">{</span>
 </span><span class="line">  <span class="k">if</span> <span class="o">(</span><span class="n">mat</span><span class="o">.</span><span class="n">channels</span><span class="o">()</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
 </span><span class="line">    <span class="n">mat</span> <span class="c1">// just hand back the matrix as is; it is already grey</span>
 </span><span class="line">  <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
@@ -236,7 +236,7 @@
 <span class="line-number">20</span>
 <span class="line-number">21</span>
 <span class="line-number">22</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">object</span> <span class="nc">WithGrey</span> <span class="o">{</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">object</span> <span class="nc">WithGrey</span> <span class="o">{</span>
 </span><span class="line">
 </span><span class="line">  <span class="cm">/**</span>
 </span><span class="line"><span class="cm">   * Simple transformer method that produces a [[WithGrey]]</span>
@@ -286,7 +286,7 @@
 <span class="line-number">2</span>
 <span class="line-number">3</span>
 <span class="line-number">4</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="cm">/**</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="cm">/**</span>
 </span><span class="line"><span class="cm"> * Tuple-like class for holding width and height in pixels</span>
 </span><span class="line"><span class="cm"> */</span>
 </span><span class="line"><span class="k">case</span> <span class="k">class</span> <span class="nc">Dimensions</span><span class="o">(</span><span class="n">width</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">height</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
@@ -300,7 +300,7 @@
 <span class="line-number">5</span>
 <span class="line-number">6</span>
 <span class="line-number">7</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="cm">/**</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="cm">/**</span>
 </span><span class="line"><span class="cm">  * Holds an id and an OpenCV Rect defining the corners of a rectangle.</span>
 </span><span class="line"><span class="cm">  *</span>
 </span><span class="line"><span class="cm">  * There is nothing *face* specific in this class per say; it can hold ids and Rects for any detected</span>
@@ -320,7 +320,7 @@
 <span class="line-number">8</span>
 <span class="line-number">9</span>
 <span class="line-number">10</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">sealed</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">HaarDetectorFlag</span><span class="o">(</span><span class="k">val</span> <span class="n">flag</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">sealed</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">HaarDetectorFlag</span><span class="o">(</span><span class="k">val</span> <span class="n">flag</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
 </span><span class="line">
 </span><span class="line"><span class="k">case</span> <span class="k">object</span> <span class="nc">HaarDetectorFlag</span> <span class="o">{</span>
 </span><span class="line">
@@ -395,7 +395,7 @@
 <span class="line-number">60</span>
 <span class="line-number">61</span>
 <span class="line-number">62</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">object</span> <span class="nc">FaceDetector</span> <span class="o">{</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">object</span> <span class="nc">FaceDetector</span> <span class="o">{</span>
 </span><span class="line">
 </span><span class="line">  <span class="cm">/**</span>
 </span><span class="line"><span class="cm">   * Builds a FaceDetector with the default Haar Cascade classifier in the resource directory</span>
@@ -496,7 +496,7 @@
 <span class="line-number">28</span>
 <span class="line-number">29</span>
 <span class="line-number">30</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">class</span> <span class="nc">FaceDrawer</span><span class="o">(</span><span class="n">fontScale</span><span class="k">:</span> <span class="kt">Float</span> <span class="o">=</span> <span class="mf">0.6f</span><span class="o">)</span> <span class="o">{</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">class</span> <span class="nc">FaceDrawer</span><span class="o">(</span><span class="n">fontScale</span><span class="k">:</span> <span class="kt">Float</span> <span class="o">=</span> <span class="mf">0.6f</span><span class="o">)</span> <span class="o">{</span>
 </span><span class="line">
 </span><span class="line">  <span class="k">private</span> <span class="k">val</span> <span class="nc">RedColour</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Scalar</span><span class="o">(</span><span class="nc">AbstractCvScalar</span><span class="o">.</span><span class="nc">RED</span><span class="o">)</span>
 </span><span class="line">
@@ -522,7 +522,7 @@
 </span><span class="line">
 </span><span class="line">    <span class="c1">// draw the face number</span>
 </span><span class="line">    <span class="k">val</span> <span class="n">cvPoint</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Point</span><span class="o">(</span><span class="n">f</span><span class="o">.</span><span class="n">faceRect</span><span class="o">.</span><span class="n">x</span><span class="o">,</span> <span class="n">f</span><span class="o">.</span><span class="n">faceRect</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="mi">20</span><span class="o">)</span>
-</span><span class="line">    <span class="n">putText</span><span class="o">(</span><span class="n">clonedMat</span><span class="o">,</span> <span class="s">s&quot;Face </span><span class="si">${</span><span class="n">f</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s">&quot;</span><span class="o">,</span> <span class="n">cvPoint</span><span class="o">,</span> <span class="nc">FONT_HERSHEY_SIMPLEX</span><span class="o">,</span> <span class="n">fontScale</span><span class="o">,</span> <span class="nc">RedColour</span><span class="o">)</span>
+</span><span class="line">    <span class="n">putText</span><span class="o">(</span><span class="n">clonedMat</span><span class="o">,</span> <span class="n">s</span><span class="s">&quot;Face ${f.id}&quot;</span><span class="o">,</span> <span class="n">cvPoint</span><span class="o">,</span> <span class="nc">FONT_HERSHEY_SIMPLEX</span><span class="o">,</span> <span class="n">fontScale</span><span class="o">,</span> <span class="nc">RedColour</span><span class="o">)</span>
 </span><span class="line">  <span class="o">}</span>
 </span><span class="line">
 </span><span class="line"><span class="o">}</span>
@@ -619,7 +619,7 @@
 <span class="line-number">77</span>
 <span class="line-number">78</span>
 <span class="line-number">79</span>
-</pre></td><td class="code"><pre><code class="scala"><span class="line"><span></span><span class="k">object</span> <span class="nc">WebcamFaceDetector</span> <span class="k">extends</span> <span class="nc">SimpleSwingApplication</span> <span class="o">{</span>
+</pre></td><td class="code"><pre><code class="scala"><span class="line"><span class="k">object</span> <span class="nc">WebcamFaceDetector</span> <span class="k">extends</span> <span class="nc">SimpleSwingApplication</span> <span class="o">{</span>
 </span><span class="line">
 </span><span class="line">  <span class="k">def</span> <span class="n">top</span><span class="k">:</span> <span class="kt">Frame</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">OptionsFrame</span>
 </span><span class="line">

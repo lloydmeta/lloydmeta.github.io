@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Metascraper | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/metascraper/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2021-05-25T16:32:52+09:00</updated>
+  <updated>2021-05-25T17:13:29+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -147,7 +147,7 @@ libraryDependencies += "com.beachape.metascraper" %% "metascraper" % "0.0.2"
 <span class='line-number'>37</span>
 <span class='line-number'>38</span>
 <span class='line-number'>39</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
 </span><span class='line'><span class="k">import</span> <span class="nn">com.beachape.metascraper.Messages._</span>
 </span><span class='line'><span class="k">import</span> <span class="nn">com.beachape.metascraper.ScraperActor</span>
 </span><span class='line'><span class="k">import</span> <span class="nn">scala.concurrent.Await</span>

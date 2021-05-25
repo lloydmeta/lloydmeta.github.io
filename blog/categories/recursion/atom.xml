@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Recursion | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/recursion/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2021-05-25T16:32:52+09:00</updated>
+  <updated>2021-05-25T17:13:29+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -869,7 +869,7 @@ fn sculpt(self) -&gt; (HCons&lt;THead, TTail&gt;, Self::Remainder) {
 <span class='line-number'>31</span>
 <span class='line-number'>32</span>
 <span class='line-number'>33</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span></span><span class="p">{</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
 </span><span class='line'>    <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Hilarious article&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;subtitle&quot;</span><span class="p">:</span> <span class="s2">&quot;Something people might find funny&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;super funny stuff&quot;</span><span class="p">,</span>
@@ -972,7 +972,7 @@ fn sculpt(self) -&gt; (HCons&lt;THead, TTail&gt;, Self::Remainder) {
 <span class='line-number'>57</span>
 <span class='line-number'>58</span>
 <span class='line-number'>59</span>
-</pre></td><td class='code'><pre><code class='rb'><span class='line'><span></span><span class="nb">require</span> <span class="s1">&#39;hash_walker&#39;</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">require</span> <span class="s1">&#39;hash_walker&#39;</span>
 </span><span class='line'>
 </span><span class='line'><span class="n">json_response</span> <span class="o">=</span> <span class="p">{</span>
 </span><span class='line'>    <span class="s2">&quot;title&quot;</span><span class="o">=&gt;</span> <span class="s2">&quot;Hilarious article&quot;</span><span class="p">,</span>

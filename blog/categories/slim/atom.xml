@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Slim | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/slim/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2021-05-25T16:32:52+09:00</updated>
+  <updated>2021-05-25T17:13:29+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -74,7 +74,7 @@
 <span class='line-number'>36</span>
 <span class='line-number'>37</span>
 <span class='line-number'>38</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span></span><span class="k">import</span> <span class="nn">play.api.ApplicationLoader.Context</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">import</span> <span class="nn">play.api.ApplicationLoader.Context</span>
 </span><span class='line'><span class="k">import</span> <span class="nn">play.api._</span>
 </span><span class='line'><span class="k">import</span> <span class="nn">play.api.libs.concurrent.Execution.Implicits._</span>
 </span><span class='line'><span class="k">import</span> <span class="nn">play.api.mvc.Results._</span>
@@ -95,7 +95,7 @@
 </span><span class='line'>
 </span><span class='line'>      <span class="c1">// Essentially copied verbatim from the SIRD example</span>
 </span><span class='line'>      <span class="k">case</span> <span class="nc">GET</span><span class="o">(</span><span class="n">p</span><span class="s">&quot;/hello/$to&quot;</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Action</span> <span class="o">{</span>
-</span><span class='line'>        <span class="nc">Ok</span><span class="o">(</span><span class="s">s&quot;Hello </span><span class="si">$to</span><span class="s">&quot;</span><span class="o">)</span>
+</span><span class='line'>        <span class="nc">Ok</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Hello $to&quot;</span><span class="o">)</span>
 </span><span class='line'>      <span class="o">}</span>
 </span><span class='line'>
 </span><span class='line'>      <span class="cm">/*</span>

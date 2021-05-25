@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Generic Programming | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/generic-programming/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2021-05-25T16:32:52+09:00</updated>
+  <updated>2021-05-25T17:13:29+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -158,7 +158,7 @@ struct Dog {
 };
 ```</p>
 
-<p>That’s it. The API is relatively clean, simple to write, read, and understand (IMO), and there are no <code>unsafe</code> or <code>dyn</code> traits anywhere (even in the implementation). And, you can still treat your <code>struct</code>s as you normally would, passing them to nominally typed functions, implementing <code>trait</code>s as you normally would etc.</p>
+<p>That’s it. The API is relatively clean, simple to write, read, and understand (IMO), and there are no <code>unsafe</code> or <code>dyn</code> traits anywhere (even in the implementation). And, you can still declare and treat your <code>struct</code>s as you normally would, passing them to nominally typed functions, implementing <code>trait</code>s as you normally would etc.</p>
 
 <p>Still, when used with structurally typed functions like <code>print_pet_name</code>, the compiler will as usual ensure that:</p>
 
