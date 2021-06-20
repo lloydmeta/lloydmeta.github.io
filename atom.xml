@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2021-05-25T17:13:29+09:00</updated>
+  <updated>2021-06-20T21:09:50+09:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -66,7 +66,7 @@
   <p>A structural type system (or property-based type system) is a major class of type system in which type compatibility and equivalence are determined by the type’s actual structure or definition and not by other characteristics such as its name or place of declaration. Structural systems are used to determine if types are equivalent and whether a type is a subtype of another. It contrasts with nominative systems, where comparisons are based on the names of the types or explicit declarations, and duck typing, in which only the part of the structure accessed at runtime is checked for compatibility.</p>
 </blockquote>
 
-<p>Out-of-the-box-Rust has <a href="https://en.wikipedia.org/wiki/Nominal_type_system">nominally typed</a> functions <sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup> <sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>. For the purposes of this post (and <a href="https://github.com/lloydmeta/frunk">frunk</a>), we specifically mean <code>struct</code>s and their fields when it comes to “structure”, and <strong>not</strong> <a href="https://doc.rust-lang.org/rust-by-example/fn/methods.html">methods</a> that they get from <code>impl</code>s of themselves or <code>trait</code>s. Why? Well, you can’t spell “structural typing without <code>struct</code>, I’ve been mostly focused on <code>struct</code>s, and … simplicity 😂. Also, to my mind, <code>trait</code>s already enable a kind of part-way “structural typing” of methods <sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup>.</p>
+<p>Out-of-the-box-Rust has <a href="https://en.wikipedia.org/wiki/Nominal_type_system">nominally typed</a> functions <sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup> <sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>. For the purposes of this post (and <a href="https://github.com/lloydmeta/frunk">frunk</a>), we specifically mean <code>struct</code>s and their fields when it comes to “structure”<sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup>, and <strong>not</strong> <a href="https://doc.rust-lang.org/rust-by-example/fn/methods.html">methods</a> that they get from <code>impl</code>s of themselves or <code>trait</code>s. Why? Well, you can’t spell “structural typing without <code>struct</code>, I’ve been mostly focused on <code>struct</code>s, and … simplicity 😂. Also, to my mind, <code>trait</code>s already enable a kind of part-way “structural typing” of methods <sup id="fnref:5"><a href="#fn:5" rel="footnote">5</a></sup>.</p>
 
 <h2 id="show-me-yours">Show me yours</h2>
 
@@ -807,7 +807,10 @@
       <p>Rust <em>did</em> at one point have built-in support structural records, but <a href="https://github.com/rust-lang/rust/issues/3089">it was removed almost 9 years ago before 1.0 was released</a>. I found an <a href="https://internals.rust-lang.org/t/why-were-structural-records-removed/1553/2">answer to a question on the internal Rust lang forum</a> asking why, and the 3 reasons listed for removal at the time made sense; the <code>Path</code> implementation described here (and implemented in <a href="https://github.com/lloydmeta/frunk">frunk</a>) addresses 1, if not 2, of the 3 issues (field order requirement and recursion IIUC), leaving the issue of field visibility, which I believe can probably be addressed as an option to the <code>LabelledGeneric</code> derive.<a href="#fnref:3" rel="reference">&#8617;</a></p>
     </li>
     <li id="fn:4">
-      <p><code>trait</code>s can be adhoc and auto-implemented, and directly used as constraints in functions (though still nominally), so being structurally-typed on <code>trait</code>s feels a bit less of a problem that needs solving, and I get the feeling that it will be even less so with things like <a href="https://rust-lang.github.io/rfcs/1210-impl-specialization.html">specialization</a> coming down the pipeline, which will allow for more blanket and overlapping <code>impl</code>s.<a href="#fnref:4" rel="reference">&#8617;</a></p>
+      <p>There are some who would call this “row polymorphism”, which is maybe (more) correct, but it’s also a term that is much more niche (pronounced: “less generally known” or “less searched for”). Indeed, depending on whom you ask, “row polymorphism” is regarded as being under the “structural typing” umbrella (<a href="https://www.cs.cmu.edu/~aldrich/courses/819/slides/rows.pdf">1</a>, <a href="https://journal.infinitenegativeutility.com/structural-types-and-duck-typing">2</a>), but in any case, I personally find the distinction to be of questionable value in the context of Rust 🤷‍♂️. Having said that, feel free to substitute “row polymorphism” in place of “structural typing” when reading this post if it helps you slog through the actual important bits :)<a href="#fnref:4" rel="reference">&#8617;</a></p>
+    </li>
+    <li id="fn:5">
+      <p><code>trait</code>s can be adhoc and auto-implemented, and directly used as constraints in functions (though still nominally), so being structurally-typed on <code>trait</code>s feels a bit less of a problem that needs solving, and I get the feeling that it will be even less so with things like <a href="https://rust-lang.github.io/rfcs/1210-impl-specialization.html">specialization</a> coming down the pipeline, which will allow for more blanket and overlapping <code>impl</code>s.<a href="#fnref:5" rel="reference">&#8617;</a></p>
     </li>
   </ol>
 </div>
