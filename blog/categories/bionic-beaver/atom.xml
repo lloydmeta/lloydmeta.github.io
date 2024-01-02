@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Bionic Beaver | BeachApe.]]></title>
+  <link href="https://beachape.com/blog/categories/bionic-beaver/atom.xml" rel="self"/>
+  <link href="https://beachape.com/"/>
+  <updated>2024-01-02T05:15:08+00:00</updated>
+  <id>https://beachape.com/</id>
+  <author>
+    <name><![CDATA[Lloyd]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Containerising an Octopress 2.0 Blog]]></title>
+    <link href="https://beachape.com/blog/2024/01/01/containerising-an-octopress-2-dot-0-blog/"/>
+    <updated>2024-01-01T13:41:00+00:00</updated>
+    <id>https://beachape.com/blog/2024/01/01/containerising-an-octopress-2-dot-0-blog</id>
+    <content type="html"><![CDATA[<p>This blog was started almost 11 years ago, on Octopress 2.0. It was a different world: Ruby 1.x was king of the hill, and Docker wasn’t even a thing yet. It was an amazing thing to use.</p>
+
+<p>Over the years, every time I switched machines, I noticed it was getting harder and harder for me to get the blog and in particular Octopress 2.0 working on it. It was plagued by incompatibility between system versions, tooling, and dependencies on various levels (OS, Gem, Ruby, etc), but I was also getting more and more out of touch with the Ruby world, having long jumped over to other languages.</p>
+
+<p>Still, I loved this <a href="https://daringfireball.net/projects/markdown/">Markdown</a>-based blog, and didn’t think it was time to move to a newer version (Octpress 3.0) or another tool (I’d heard good things about <a href="https://gohugo.io">Hugo</a>). I simply didn’t have the time to upgrade or port, nor did I feel the need to: it may be using old versions of things, but at the end of the day, it was generating and deploying simple static HTML files that get served. Finally, this year, I decided to take a stab at containerising it so that I could hopefully easily keep using it for years to come (and lose another excuse to not write..).</p>
+
+<p><img class="center" src="/images/octopress_with_container.png" title="Octopress logo + shipping container" ></p>
+
+<!-- more -->
+
+<h2 class="no_toc" id="overview">Overview</h2>
+
+<ul id="markdown-toc">
+  <li><a href="#references-vs-whats-new">References vs what’s new</a></li>
+  <li><a href="#target-audience">Target audience</a></li>
+  <li><a href="#dockerfile"><code>Dockerfile</code></a></li>
+  <li><a href="#system-dependencies-including-those-required-to-install-ruby">System dependencies, including those required to install Ruby</a></li>
+  <li><a href="#install-ruby-build-and-ruby-23">Install ruby-build and Ruby 2.3</a></li>
+  <li><a href="#add-blogger-user-so-we-dont-use-the-root-user-and-use-it">Add blogger user so we don’t use the root user and use it</a></li>
+  <li><a href="#initialise-ruby-encording">Initialise ruby encording</a></li>
+  <li><a href="#directory-for-the-blog-files">Directory for the blog files</a></li>
+  <li><a href="#set-permissions-so-blogger-can-install-gems">Set permissions so blogger can install gems</a></li>
+  <li><a href="#expose-port-4000-so-we-can-preview-the-blog"># Expose port 4000 so we can preview the blog</a></li>
+  <li><a href="#add-the-gemfile-and-install-the-gems">Add the Gemfile and install the gems</a></li>
+  <li><a href="#git-config-file-because-octopress-pushes-using-git-but-we-might">Git config file because Octopress pushes using Git but we might</a>    <ul>
+      <li><a href="#ubuntu-1804-bionic-beaver">Ubuntu 18.04 (Bionic Beaver)</a></li>
+      <li><a href="#installing-ruby-23">Installing Ruby 2.3</a></li>
+    </ul>
+  </li>
+  <li><a href="#install-ruby-build-and-ruby-23-1">Install ruby-build and Ruby 2.3</a>    <ul>
+      <li><a href="#gemfilelock-file-for-project-dependencies">Gemfile.lock file for project dependencies</a></li>
+      <li><a href="#rakefile">Rakefile</a></li>
+      <li><a href="#docker">Docker</a>        <ul>
+          <li><a href="#with-rancher-desktop">With Rancher Desktop</a></li>
+          <li><a href="#makefile-to-work-with-all-of-the-above">Makefile to work with all of the above</a></li>
+        </ul>
+      </li>
+      <li><a href="#conclusion">Conclusion</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="references-vs-whats-new">References vs what’s new</h2>
+
+<p>I didn’t come up with everything from scratch and followed in the footsteps of those who already did most of the heavy lifting.</p>
+
+<ul>
+  <li><a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a></li>
+  <li><a href="https://github.com/rbenv/ruby-build">ruby-build</a></li>
+</ul>
+
+<p>I just updated some things here and there:
+* Ubuntu LTS 18.04
+* Rancher Desktop</p>
+
+<h2 id="target-audience">Target audience</h2>
+
+<ul>
+  <li>People who have their own Octopress 2.0 blog already and want to continue to use it. You may have already containerised but it are looking to another take on it.</li>
+  <li>Geeks: Octopress says it’s for “hackers”</li>
+</ul>
+
+<h2 id="dockerfile"><code>Dockerfile</code></h2>
+
+<p>To start with the conclusion, here is the complete <code>Dockerfile</code> in the root dir of my Octopress 2.0 project</p>
+
+<p>```
+FROM ubuntu:18.04</p>
+
+<h1 id="system-dependencies-including-those-required-to-install-ruby">System dependencies, including those required to install Ruby</h1>
+<p>RUN apt-get update -y &amp;&amp; apt-get -y install \
+  sudo \
+  gcc make \
+  git \
+  vim less \
+  curl \
+  build-essential \
+  libreadline-dev \
+  # We need this for Ruby 2.3
+  libssl1.0-dev \ 
+  zlib1g-dev \
+  python2.7 python-pip python-dev</p>
+
+<h1 id="install-ruby-build-and-ruby-23">Install ruby-build and Ruby 2.3</h1>
+<p>WORKDIR ~/
+RUN curl -L https://github.com/rbenv/ruby-build/archive/refs/tags/v20231225.tar.gz &gt; ruby-build.tar.gz
+RUN tar -xzf ruby-build.tar.gz 
+RUN PREFIX=/usr/local ./ruby-build-*/install.sh
+RUN ruby-build 2.3.3 /usr/local</p>
+
+<h1 id="add-blogger-user-so-we-dont-use-the-root-user-and-use-it">Add blogger user so we don’t use the root user and use it</h1>
+<p>RUN adduser –disabled-password –gecos “” blogger &amp;&amp; \
+echo “blogger ALL=(root) NOPASSWD:ALL” &gt; /etc/sudoers
+USER blogger</p>
+
+<h1 id="initialise-ruby-encording">Initialise ruby encording</h1>
+<p>ENV RUBYOPT -EUTF-8</p>
+
+<h1 id="directory-for-the-blog-files">Directory for the blog files</h1>
+<p>RUN sudo mkdir /octopress
+WORKDIR /octopress</p>
+
+<h1 id="set-permissions-so-blogger-can-install-gems">Set permissions so blogger can install gems</h1>
+<p>RUN sudo chown -Rv blogger:blogger /octopress
+RUN sudo chown -Rv blogger:blogger /usr/local/lib/ruby/gems
+RUN sudo chown -Rv blogger:blogger /usr/local/bin</p>
+
+<h1 id="expose-port-4000-so-we-can-preview-the-blog"># Expose port 4000 so we can preview the blog</h1>
+<p>EXPOSE 4000</p>
+
+<h1 id="add-the-gemfile-and-install-the-gems">Add the Gemfile and install the gems</h1>
+<p>ADD Gemfile /octopress/Gemfile
+ADD Gemfile.lock /octopress/Gemfile.lock
+RUN gem install bundler -v 2.3
+RUN bundle install</p>
+
+<h1 id="git-config-file-because-octopress-pushes-using-git-but-we-might">Git config file because Octopress pushes using Git but we might</h1>
+<p># not want it to use the exact same settings as our host (e.g. signing)
+ADD .gitconfig /home/blogger/.gitconfig
+```</p>
+
+<p>I’ll go through the things that are <em>different</em> from the awesome article at <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a>. Whatever I don’t call out below should be taken as unchanged from that article, so use it as a reference.</p>
+
+<h3 id="ubuntu-1804-bionic-beaver">Ubuntu 18.04 (Bionic Beaver)</h3>
+
+<p>The <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a> article uses Ubuntu but at version 16.04. I love Ubuntu and think it’s a great choice for an Octropess dev env, but since it’s Jan 2024, I wanted to use the latest Ubuntu LTS release, 18.04, instead (knowing full well that the next LTS is slated for release in a few months..). Hence</p>
+
+<p><code>
+FROM ubuntu:18.04
+</code></p>
+
+<p>That brought interesting challenges, mostly stemming from the fact that the default <code>apt-get install</code> for ruby would be too new for (my) Octopress installation’s dependencies.</p>
+
+<h3 id="installing-ruby-23">Installing Ruby 2.3</h3>
+
+<p>There are different ways to install Ruby on a system, but I opted for <a href="https://github.com/rbenv/ruby-build">ruby-build</a>, in particular the <a href="https://github.com/rbenv/ruby-build#install-manually-as-a-standalone-program">standalone install option</a> because it was simple.</p>
+
+<p>```
+# System dependencies, including those required to install Ruby
+RUN apt-get update -y &amp;&amp; apt-get -y install \
+  sudo \
+  gcc make \
+  git \
+  vim less \
+  curl \
+  build-essential \
+  libreadline-dev \
+  # We need this for Ruby 2.3
+  libssl1.0-dev \ 
+  zlib1g-dev \
+  python2.7 python-pip python-dev</p>
+
+<h1 id="install-ruby-build-and-ruby-23-1">Install ruby-build and Ruby 2.3</h1>
+<p>WORKDIR ~/
+RUN curl -L https://github.com/rbenv/ruby-build/archive/refs/tags/v20231225.tar.gz &gt; ruby-build.tar.gz
+RUN tar -xzf ruby-build.tar.gz 
+RUN PREFIX=/usr/local ./ruby-build-*/install.sh
+RUN ruby-build 2.3.3 /usr/local
+```</p>
+
+<h3 id="gemfilelock-file-for-project-dependencies">Gemfile.lock file for project dependencies</h3>
+
+<p>Since my goal was to get this working with an old Octopress blog and I didn’t want to mess around with version conflicts, I <code>ADD</code>ed the <code>Gemfile.lock</code> file as well, before <code>RUN</code>ning <code>bundle install</code></p>
+
+<p><code>
+# Add the Gemfile and install the gems
+ADD Gemfile /octopress/Gemfile
+ADD Gemfile.lock /octopress/Gemfile.lock
+RUN gem install bundler -v 2.3
+RUN bundle install
+</code></p>
+
+<h2 id="rakefile">Rakefile</h2>
+
+<p>This is mentioned in the <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a> article as well, but I’ll mention it here too: in order to preview the blog, you need to change the <code>Rakefile</code> from</p>
+
+<p><code>ruby
+rackupPid = Process.spawn("rackup --port #{server_port}")
+</code></p>
+
+<p>to </p>
+
+<p><code>ruby
+rackupPid = Process.spawn("rackup -o 0.0.0.0 --port #{server_port}")
+</code></p>
+
+<h2 id="docker">Docker</h2>
+
+<h3 id="with-rancher-desktop">With Rancher Desktop</h3>
+
+<p>Since it’s 2024, I also wanted to try using a Docker Desktop alternative, and chose <a href="https://rancherdesktop.io">Rancher Desktop</a>. Overall, the entire experience was really smooth and in my Octopress usage so far, I. haven’t noticed much difference between Rancher Desktop and Docker Desktop, but I’ve only been lightly using <code>docker</code> CLI.</p>
+
+<p>I did notice that the auto-regenerate-based-on-changes feature of <code>rake preview</code> worked better (faster, more reliably) with the <code>VZ</code> <a href="https://docs.rancherdesktop.io/ui/preferences/virtual-machine/emulation/">emulation</a> mode and <code>virtiofs</code> <a href="https://docs.rancherdesktop.io/ui/preferences/virtual-machine/volumes#virtiofs">volume mount type</a>.</p>
+
+<p><img class="center" src="/images/rancher-desktop-emulation.png" title="Rancher preferences showing VZ mode for emulation" ></p>
+
+<p><img class="center" src="/images/rancher-desktop-fs.png" title="Rancher preferences showing virtiofs mode for volume mount type" ></p>
+
+<h3 id="makefile-to-work-with-all-of-the-above">Makefile to work with all of the above</h3>
+
+<p>I added a <code>Makefile</code> to make it simpler for future me to deal with building the image and working with it</p>
+
+<p>```sh
+build-image:
+	docker build . -t blog/octopress</p>
+
+<p>start-env:
+	docker run -p 4000:4000 –rm –volume $$(pwd):/octopress –volume ${HOME}/.ssh:/home/blogger/.ssh -ti blog/octopress /bin/bash
+```</p>
+
+<p>This is entirely optional/subjective but I find <code>make start-env</code> more manageable for starting an Octopress env that has everything mounted properly.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>So that’s it: yet another containerised-Octopress-2.0 article, with this entry being the first beachape.com one that was written and published entirely using it.</p>
+]]></content>
+  </entry>
+  
+</feed>

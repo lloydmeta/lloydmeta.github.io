@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Travis CI | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/travis-ci/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Rust Performance Testing on Travis CI]]></title>
     <link href="https://beachape.com/blog/2016/11/02/rust-performance-testing-on-travis-ci/"/>
-    <updated>2016-11-02T15:39:00+09:00</updated>
+    <updated>2016-11-02T15:39:00+00:00</updated>
     <id>https://beachape.com/blog/2016/11/02/rust-performance-testing-on-travis-ci</id>
     <content type="html"><![CDATA[<p><a href="https://www.rust-lang.org/en-US/">Rust</a>  describes itself as:</p>
 

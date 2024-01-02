@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Concurrent | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/concurrent/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Slim Play App]]></title>
     <link href="https://beachape.com/blog/2015/07/25/slim-play-app/"/>
-    <updated>2015-07-25T20:50:00+09:00</updated>
+    <updated>2015-07-25T20:50:00+00:00</updated>
     <id>https://beachape.com/blog/2015/07/25/slim-play-app</id>
     <content type="html"><![CDATA[<p><a href="https://www.playframework.com/">Play</a> is one of two officially-supported web frameworks from Typesafe, the company behind Scala (the other is <a href="http://spray.io/">Spray</a>). It runs on its own webserver, is non-blocking, and encourages the use of idiomatic Scala. It is often compared with Rails because of its emphasis on convention over configuration and because it’s a full-on framework that comes with most of the bells and whistles needed to build a full-featured webapp. Spray is considered by many to be the defacto API-centric alternative to Play, offering a Sinatra-esque DSL for routing and being slimmer to boot (from a files + LOC perspective).</p>
 

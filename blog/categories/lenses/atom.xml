@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Lenses | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/lenses/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Structural Typing in Rust]]></title>
     <link href="https://beachape.com/blog/2021/05/25/structural-typing-in-rust/"/>
-    <updated>2021-05-25T21:42:00+09:00</updated>
+    <updated>2021-05-25T21:42:00+00:00</updated>
     <id>https://beachape.com/blog/2021/05/25/structural-typing-in-rust</id>
     <content type="html"><![CDATA[<p>Have you ever wanted to write a structurally typed function in Rust? Do you spend a lot of time and effort getting your Rust <code>struct</code>s <em>just so</em>, and want to DRY-out data access for common field paths without declaring a new <code>trait</code> and implementing it for each struct (let’s say, <code>Cat</code> and <code>Dog</code> both have a <code>name: String</code> field)? If so, read on.</p>
 

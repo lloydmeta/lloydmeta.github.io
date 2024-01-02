@@ -4,7 +4,7 @@
   <title><![CDATA[Category: HList Sculpting | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/hlist-sculpting/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Boilerplate-free Struct Transforms in Rust.]]></title>
     <link href="https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/"/>
-    <updated>2017-04-12T12:45:00+09:00</updated>
+    <updated>2017-04-12T12:45:00+00:00</updated>
     <id>https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust</id>
     <content type="html"><![CDATA[<p>The last several posts have introduced a number of abstractions, namely HList, Generic, LabelledGeneric, as well as <code>pluck()</code> and <code>sculpt()</code>. Although each of those have impressive party tricks of their own, I’d like to share how you can use them to write a reuseable, generic function that handles converting between structs with mis-matched fields and thus have different <code>LabelledGeneric</code> representations.</p>
 
@@ -148,7 +148,7 @@ let i_user: InternalApiUser = transform_from(udb);
   <entry>
     <title type="html"><![CDATA[Gentle Intro to Type-level Recursion in Rust: From Zero to HList Sculpting.]]></title>
     <link href="https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/"/>
-    <updated>2017-03-12T12:03:00+09:00</updated>
+    <updated>2017-03-12T12:03:00+00:00</updated>
     <id>https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting</id>
     <content type="html"><![CDATA[<blockquote>
   <p>Getting the type signature right was 99% of the work in implementing <code>pluck</code> and <code>sculpt</code> for <code>HList</code>s in Frunk.</p>

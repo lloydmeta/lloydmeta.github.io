@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Type-level Programming | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/type-level-programming/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Gentle Intro to Type-level Recursion in Rust: From Zero to HList Sculpting.]]></title>
     <link href="https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/"/>
-    <updated>2017-03-12T12:03:00+09:00</updated>
+    <updated>2017-03-12T12:03:00+00:00</updated>
     <id>https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting</id>
     <content type="html"><![CDATA[<blockquote>
   <p>Getting the type signature right was 99% of the work in implementing <code>pluck</code> and <code>sculpt</code> for <code>HList</code>s in Frunk.</p>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Maven | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/maven/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Introducing Metascraper - a Scala Library for Scraping Page Metadata]]></title>
     <link href="https://beachape.com/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata/"/>
-    <updated>2013-09-05T10:26:00+09:00</updated>
+    <updated>2013-09-05T10:26:00+00:00</updated>
     <id>https://beachape.com/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata</id>
     <content type="html"><![CDATA[<p>Scraping metadata (e.g. <code>title</code>, <code>description</code>, <code>url</code>, etc.) from a URL is something that <a href="https://www.facebook.com/">Facebook</a> currently does for you when you paste a URL into the “Update Status” box. For a service that I’m currently building out, we wanted to do this as well for our users. Thus <a href="https://github.com/lloydmeta/metascraper">Metascraper</a> was born.</p>
 
@@ -151,7 +151,7 @@ libraryDependencies += "com.beachape.metascraper" %% "metascraper" % "0.0.2"
   <entry>
     <title type="html"><![CDATA[Introducing Schwatcher]]></title>
     <link href="https://beachape.com/blog/2013/07/23/introducing-schwatcher/"/>
-    <updated>2013-07-23T07:55:00+09:00</updated>
+    <updated>2013-07-23T07:55:00+00:00</updated>
     <id>https://beachape.com/blog/2013/07/23/introducing-schwatcher</id>
     <content type="html"><![CDATA[<p>The <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/file/WatchService.html">WatchService</a> was added as part of Java 7 and introduced the ability to monitor files through the JVM without the use of external libraries like <a href="http://jnotify.sourceforge.net/">JNotify</a> that require installing native libraries. Using this API for a project that requires monitoring files makes handling dependencies for both deployment and development much simpler.</p>
 

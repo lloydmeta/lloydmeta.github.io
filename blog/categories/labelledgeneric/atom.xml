@@ -4,7 +4,7 @@
   <title><![CDATA[Category: LabelledGeneric | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/labelledgeneric/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Structural Typing in Rust]]></title>
     <link href="https://beachape.com/blog/2021/05/25/structural-typing-in-rust/"/>
-    <updated>2021-05-25T21:42:00+09:00</updated>
+    <updated>2021-05-25T21:42:00+00:00</updated>
     <id>https://beachape.com/blog/2021/05/25/structural-typing-in-rust</id>
     <content type="html"><![CDATA[<p>Have you ever wanted to write a structurally typed function in Rust? Do you spend a lot of time and effort getting your Rust <code>struct</code>s <em>just so</em>, and want to DRY-out data access for common field paths without declaring a new <code>trait</code> and implementing it for each struct (let’s say, <code>Cat</code> and <code>Dog</code> both have a <code>name: String</code> field)? If so, read on.</p>
 
@@ -535,7 +535,7 @@ println!(“{}”, get_id(&amp;store));</p>
   <entry>
     <title type="html"><![CDATA[Boilerplate-free Struct Transforms in Rust.]]></title>
     <link href="https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/"/>
-    <updated>2017-04-12T12:45:00+09:00</updated>
+    <updated>2017-04-12T12:45:00+00:00</updated>
     <id>https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust</id>
     <content type="html"><![CDATA[<p>The last several posts have introduced a number of abstractions, namely HList, Generic, LabelledGeneric, as well as <code>pluck()</code> and <code>sculpt()</code>. Although each of those have impressive party tricks of their own, I’d like to share how you can use them to write a reuseable, generic function that handles converting between structs with mis-matched fields and thus have different <code>LabelledGeneric</code> representations.</p>
 
@@ -667,7 +667,7 @@ let i_user: InternalApiUser = transform_from(udb);
   <entry>
     <title type="html"><![CDATA[LabelledGeneric in Rust: What, Why, How?]]></title>
     <link href="https://beachape.com/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/"/>
-    <updated>2017-03-04T12:23:00+09:00</updated>
+    <updated>2017-03-04T12:23:00+00:00</updated>
     <id>https://beachape.com/blog/2017/03/04/labelledgeneric-in-rust-what-why-how</id>
     <content type="html"><![CDATA[<p>What is <code>LabelledGeneric</code>? How does one encode type-level Strings in Rust? What is a labelled HList?</p>
 

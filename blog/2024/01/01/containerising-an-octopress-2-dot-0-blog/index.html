@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Containerising an Octopress 2.0 Blog - BeachApe.</title>
+  <meta name="author" content="Lloyd">
+
+  <meta name="description" content="Extending the useful life of an Octopress 2.0-powered blog by containerising it.">
+  
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:widgets:csp" content="on">
+
+  
+  <link rel="canonical" href="https://beachape.com/blog/2024/01/01/containerising-an-octopress-2-dot-0-blog">
+  <link href="/favicon.png" type="image/png" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="BeachApe." type="application/atom+xml">
+
+  <link href="/assets/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<link href="/stylesheets/theme.min.css" rel="stylesheet" type="text/css">
+
+
+  
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+  
+   <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-24087840-1', 'auto');
+    ga('send', 'pageview');
+
+  </script>
+
+
+
+  <!-- Social media content metadata -->
+  
+  <meta property="fb:app_id" content="1078686448895325" />
+  <meta property="og:title" content="Containerising an Octopress 2.0 blog" />
+  <meta property="og:site_name" content="BeachApe." />
+  <meta property="og:url" content="https://beachape.com/blog/2024/01/01/containerising-an-octopress-2-dot-0-blog/" />
+
+  <meta property="og:description" content="Extending the useful life of an Octopress 2.0-powered blog by containerising it." />
+  
+  <meta property="og:author" content="https://www.facebook.com/BEACHAPE-221821961171501/" />
+  <meta property="og:image" content="https://beachape.com/images/octopress_with_container.png" />
+  
+  
+  
+
+  
+  <link rel="me" href="https://mastodon.social/@lloydmeta">
+  
+
+</head>
+
+  <body   >
+    <div id="wrap">
+      <header role="banner">
+        <nav class="navbar navbar-default" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">BeachApe.</a>
+        </div>
+
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="active">
+                    <a rel="index" href="/">Blog</a>
+                </li>
+                <li >
+                    <a href="/blog/archives">Archives</a>
+                </li>
+                <li >
+                    <a href="/about">About</a>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a class="subscribe-rss" href="/atom.xml" title="subscribe via RSS">
+                        <span class="visible-xs">RSS</span>
+                        <img class="hidden-xs" src="/images/rss.png" alt="RSS">
+                    </a>
+                </li>
+                
+            </ul>
+            
+                <form class="search navbar-form navbar-right" action="https://google.com/search" method="GET">
+                    <!--<input type="hidden" name="q" value="site:beachape.com">-->
+                    <input type="hidden" name="sitesearch" value="beachape.com" />
+                    <div class="form-group">
+                        <input class="form-control" type="text" name="q" placeholder="Search">
+                    </div>
+                </form>
+            
+        </div>
+    </div>
+</nav>
+
+
+      </header>
+      <div id="main" class="container">
+        <div id="content">
+          <div class="row">
+  <div class="page-content col-md-9" itemscope itemtype="http://schema.org/Blog">
+    <meta itemprop="name" content="BeachApe." />
+    <meta itemprop="description" content="A collection of findings, snippets and thoughts. My name is Lloyd, a software engineer. In another life, I was a biomedical engineer." />
+    <meta itemprop="url" content="https://beachape.com" />
+    <article class="hentry" role="article" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+      
+  <header class="page-header">
+    
+      <p class="meta text-muted text-uppercase">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2024-01-01T13:41:00+00:00"  data-updated="true" itemprop="datePublished dateCreated">Jan 1<span>st</span>, 2024</time>
+        
+      </p>
+    
+    
+    <h1 class="entry-title" itemprop="name headline">
+        Containerising an Octopress 2.0 Blog
+        
+    </h1>
+    
+  </header>
+
+
+<div class="entry-content clearfix" itemprop="articleBody"><p>This blog was started almost 11 years ago, on Octopress 2.0. It was a different world: Ruby 1.x was king of the hill, and Docker wasn’t even a thing yet. It was an amazing thing to use.</p>
+
+<p>Over the years, every time I switched machines, I noticed it was getting harder and harder for me to get the blog and in particular Octopress 2.0 working on it. It was plagued by incompatibility between system versions, tooling, and dependencies on various levels (OS, Gem, Ruby, etc), but I was also getting more and more out of touch with the Ruby world, having long jumped over to other languages.</p>
+
+<p>Still, I loved this <a href="https://daringfireball.net/projects/markdown/">Markdown</a>-based blog, and didn’t think it was time to move to a newer version (Octpress 3.0) or another tool (I’d heard good things about <a href="https://gohugo.io">Hugo</a>). I simply didn’t have the time to upgrade or port, nor did I feel the need to: it may be using old versions of things, but at the end of the day, it was generating and deploying simple static HTML files that get served. Finally, this year, I decided to take a stab at containerising it so that I could hopefully easily keep using it for years to come (and lose another excuse to not write..).</p>
+
+<p><img class="center" src="/images/octopress_with_container.png" title="Octopress logo + shipping container" /></p>
+
+<!-- more -->
+
+<h2 class="no_toc" id="overview">Overview</h2>
+
+<ul id="markdown-toc">
+  <li><a href="#references-vs-whats-new">References vs what’s new</a></li>
+  <li><a href="#target-audience">Target audience</a></li>
+  <li><a href="#dockerfile"><code>Dockerfile</code></a>    <ul>
+      <li><a href="#ubuntu-1804-bionic-beaver">Ubuntu 18.04 (Bionic Beaver)</a></li>
+      <li><a href="#installing-ruby-23">Installing Ruby 2.3</a></li>
+      <li><a href="#gemfilelock-file-for-project-dependencies">Gemfile.lock file for project dependencies</a></li>
+    </ul>
+  </li>
+  <li><a href="#rakefile">Rakefile</a></li>
+  <li><a href="#docker">Docker</a>    <ul>
+      <li><a href="#with-rancher-desktop">With Rancher Desktop</a></li>
+      <li><a href="#makefile-to-work-with-all-of-the-above">Makefile to work with all of the above</a></li>
+    </ul>
+  </li>
+  <li><a href="#conclusion">Conclusion</a></li>
+</ul>
+
+<h2 id="references-vs-whats-new">References vs what’s new</h2>
+
+<p>I didn’t come up with everything from scratch and followed in the footsteps of those who already did most of the heavy lifting.</p>
+
+<ul>
+  <li><a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a></li>
+  <li><a href="https://github.com/rbenv/ruby-build">ruby-build</a></li>
+</ul>
+
+<p>I just updated some things here and there:
+* Ubuntu LTS 18.04
+* Rancher Desktop</p>
+
+<h2 id="target-audience">Target audience</h2>
+
+<ul>
+  <li>People who have their own Octopress 2.0 blog already and want to continue to use it. You may have already containerised but it are looking to another take on it.</li>
+  <li>Geeks: Octopress says it’s for “hackers”</li>
+</ul>
+
+<h2 id="dockerfile"><code>Dockerfile</code></h2>
+
+<p>To start with the conclusion, here is the complete <code>Dockerfile</code> in the root dir of my Octopress 2.0 project</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">FROM ubuntu:18.04
+</span><span class="line">
+</span><span class="line"># System dependencies, including those required to install Ruby
+</span><span class="line">RUN apt-get update -y &amp;&amp; apt-get -y install \
+</span><span class="line">  sudo \
+</span><span class="line">  gcc make \
+</span><span class="line">  git \
+</span><span class="line">  vim less \
+</span><span class="line">  curl \
+</span><span class="line">  build-essential \
+</span><span class="line">  libreadline-dev \
+</span><span class="line">  # We need this for Ruby 2.3
+</span><span class="line">  libssl1.0-dev \ 
+</span><span class="line">  zlib1g-dev \
+</span><span class="line">  python2.7 python-pip python-dev
+</span><span class="line">
+</span><span class="line"># Install ruby-build and Ruby 2.3
+</span><span class="line">WORKDIR ~/
+</span><span class="line">RUN curl -L https://github.com/rbenv/ruby-build/archive/refs/tags/v20231225.tar.gz &gt; ruby-build.tar.gz
+</span><span class="line">RUN tar -xzf ruby-build.tar.gz 
+</span><span class="line">RUN PREFIX=/usr/local ./ruby-build-*/install.sh
+</span><span class="line">RUN ruby-build 2.3.3 /usr/local
+</span><span class="line">
+</span><span class="line"># Add blogger user so we don't use the root user and use it
+</span><span class="line">RUN adduser --disabled-password --gecos "" blogger &amp;&amp; \
+</span><span class="line">echo "blogger ALL=(root) NOPASSWD:ALL" &gt; /etc/sudoers
+</span><span class="line">USER blogger
+</span><span class="line">
+</span><span class="line"># Initialise ruby encording
+</span><span class="line">ENV RUBYOPT -EUTF-8
+</span><span class="line">
+</span><span class="line"># Directory for the blog files
+</span><span class="line">RUN sudo mkdir /octopress
+</span><span class="line">WORKDIR /octopress
+</span><span class="line">
+</span><span class="line"># Set permissions so blogger can install gems
+</span><span class="line">RUN sudo chown -Rv blogger:blogger /octopress
+</span><span class="line">RUN sudo chown -Rv blogger:blogger /usr/local/lib/ruby/gems
+</span><span class="line">RUN sudo chown -Rv blogger:blogger /usr/local/bin
+</span><span class="line">
+</span><span class="line"># # Expose port 4000 so we can preview the blog
+</span><span class="line">EXPOSE 4000
+</span><span class="line">
+</span><span class="line"># Add the Gemfile and install the gems
+</span><span class="line">ADD Gemfile /octopress/Gemfile
+</span><span class="line">ADD Gemfile.lock /octopress/Gemfile.lock
+</span><span class="line">RUN gem install bundler -v 2.3
+</span><span class="line">RUN bundle install
+</span><span class="line">
+</span><span class="line"># Git config file because Octopress pushes using Git but we might
+</span><span class="line"># not want it to use the exact same settings as our host (e.g. signing)
+</span><span class="line">ADD .gitconfig /home/blogger/.gitconfig</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>I’ll go through the things that are <em>different</em> from the awesome article at <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a>. Whatever I don’t call out below should be taken as unchanged from that article, so use it as a reference.</p>
+
+<h3 id="ubuntu-1804-bionic-beaver">Ubuntu 18.04 (Bionic Beaver)</h3>
+
+<p>The <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a> article uses Ubuntu but at version 16.04. I love Ubuntu and think it’s a great choice for an Octropess dev env, but since it’s Jan 2024, I wanted to use the latest Ubuntu LTS release, 18.04, instead (knowing full well that the next LTS is slated for release in a few months..). Hence</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">FROM ubuntu:18.04</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>That brought interesting challenges, mostly stemming from the fact that the default <code>apt-get install</code> for ruby would be too new for (my) Octopress installation’s dependencies.</p>
+
+<h3 id="installing-ruby-23">Installing Ruby 2.3</h3>
+
+<p>There are different ways to install Ruby on a system, but I opted for <a href="https://github.com/rbenv/ruby-build">ruby-build</a>, in particular the <a href="https://github.com/rbenv/ruby-build#install-manually-as-a-standalone-program">standalone install option</a> because it was simple.</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+</pre></td><td class="code"><pre><code class=""><span class="line"># System dependencies, including those required to install Ruby
+</span><span class="line">RUN apt-get update -y &amp;&amp; apt-get -y install \
+</span><span class="line">  sudo \
+</span><span class="line">  gcc make \
+</span><span class="line">  git \
+</span><span class="line">  vim less \
+</span><span class="line">  curl \
+</span><span class="line">  build-essential \
+</span><span class="line">  libreadline-dev \
+</span><span class="line">  # We need this for Ruby 2.3
+</span><span class="line">  libssl1.0-dev \ 
+</span><span class="line">  zlib1g-dev \
+</span><span class="line">  python2.7 python-pip python-dev
+</span><span class="line">
+</span><span class="line"># Install ruby-build and Ruby 2.3
+</span><span class="line">WORKDIR ~/
+</span><span class="line">RUN curl -L https://github.com/rbenv/ruby-build/archive/refs/tags/v20231225.tar.gz &gt; ruby-build.tar.gz
+</span><span class="line">RUN tar -xzf ruby-build.tar.gz 
+</span><span class="line">RUN PREFIX=/usr/local ./ruby-build-*/install.sh
+</span><span class="line">RUN ruby-build 2.3.3 /usr/local</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h3 id="gemfilelock-file-for-project-dependencies">Gemfile.lock file for project dependencies</h3>
+
+<p>Since my goal was to get this working with an old Octopress blog and I didn’t want to mess around with version conflicts, I <code>ADD</code>ed the <code>Gemfile.lock</code> file as well, before <code>RUN</code>ning <code>bundle install</code></p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line"># Add the Gemfile and install the gems
+</span><span class="line">ADD Gemfile /octopress/Gemfile
+</span><span class="line">ADD Gemfile.lock /octopress/Gemfile.lock
+</span><span class="line">RUN gem install bundler -v 2.3
+</span><span class="line">RUN bundle install</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h2 id="rakefile">Rakefile</h2>
+
+<p>This is mentioned in the <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a> article as well, but I’ll mention it here too: in order to preview the blog, you need to change the <code>Rakefile</code> from</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="n">rackupPid</span> <span class="o">=</span> <span class="no">Process</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="s2">&quot;rackup --port </span><span class="si">#{</span><span class="n">server_port</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>to </p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="n">rackupPid</span> <span class="o">=</span> <span class="no">Process</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="s2">&quot;rackup -o 0.0.0.0 --port </span><span class="si">#{</span><span class="n">server_port</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h2 id="docker">Docker</h2>
+
+<h3 id="with-rancher-desktop">With Rancher Desktop</h3>
+
+<p>Since it’s 2024, I also wanted to try using a Docker Desktop alternative, and chose <a href="https://rancherdesktop.io">Rancher Desktop</a>. Overall, the entire experience was really smooth and in my Octopress usage so far, I. haven’t noticed much difference between Rancher Desktop and Docker Desktop, but I’ve only been lightly using <code>docker</code> CLI.</p>
+
+<p>I did notice that the auto-regenerate-based-on-changes feature of <code>rake preview</code> worked better (faster, more reliably) with the <code>VZ</code> <a href="https://docs.rancherdesktop.io/ui/preferences/virtual-machine/emulation/">emulation</a> mode and <code>virtiofs</code> <a href="https://docs.rancherdesktop.io/ui/preferences/virtual-machine/volumes#virtiofs">volume mount type</a>.</p>
+
+<p><img class="center" src="/images/rancher-desktop-emulation.png" title="Rancher preferences showing VZ mode for emulation" /></p>
+
+<p><img class="center" src="/images/rancher-desktop-fs.png" title="Rancher preferences showing virtiofs mode for volume mount type" /></p>
+
+<h3 id="makefile-to-work-with-all-of-the-above">Makefile to work with all of the above</h3>
+
+<p>I added a <code>Makefile</code> to make it simpler for future me to deal with building the image and working with it</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line">build-image:
+</span><span class="line">	docker build . -t blog/octopress
+</span><span class="line">
+</span><span class="line">start-env:
+</span><span class="line">	docker run -p 4000:4000 --rm --volume <span class="nv">$$</span><span class="o">(</span><span class="nb">pwd</span><span class="o">)</span>:/octopress --volume <span class="k">${</span><span class="nv">HOME</span><span class="k">}</span>/.ssh:/home/blogger/.ssh -ti blog/octopress /bin/bash
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>This is entirely optional/subjective but I find <code>make start-env</code> more manageable for starting an Octopress env that has everything mounted properly.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>So that’s it: yet another containerised-Octopress-2.0 article, with this entry being the first beachape.com one that was written and published entirely using it.</p>
+</div>
+
+
+      <footer>
+        <p class="meta text-muted">
+          
+  
+
+<span class="glyphicon glyphicon-user"></span> <span class="byline author vcard" itemprop="author" itemscope itemtype="http://schema.org/Person">Posted by <span class="fn" itemprop="name">Lloyd</span></span>
+
+          
+
+
+
+
+
+
+
+
+
+
+
+
+<span class="glyphicon glyphicon-calendar"></span> <time datetime="2024-01-01T13:41:00+00:00"  data-updated="true" itemprop="datePublished dateCreated">Jan 1<span>st</span>, 2024</time>
+          
+
+<span class="glyphicon glyphicon-tags"></span>&nbsp;
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/bionic-beaver/'>Bionic Beaver</a>, <a class='category' href='/blog/categories/octopress/'>Octopress</a>, <a class='category' href='/blog/categories/blogging/'>blogging</a>, <a class='category' href='/blog/categories/containers/'>containers</a>, <a class='category' href='/blog/categories/docker/'>docker</a>, <a class='category' href='/blog/categories/rancher/'>rancher</a>, <a class='category' href='/blog/categories/ruby/'>ruby</a>, <a class='category' href='/blog/categories/ruby-2-3/'>ruby 2.3</a>, <a class='category' href='/blog/categories/ubuntu/'>ubuntu</a>, <a class='category' href='/blog/categories/ubuntu-18-04/'>ubuntu 18.04</a>
+  
+</span>
+
+
+        </p>
+        
+          <div class="sharing">
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like-blocked" style="display:inline-block; overflow:hidden; width:320px">
+      <div class="fb-like" data-send="true" data-width="320" data-show-faces="false"></div>
+    </div>
+  
+</div>
+
+        
+        
+          <ul class="meta text-muted pager">
+            
+            <li class="previous"><a href="/blog/2021/05/25/structural-typing-in-rust/" title="Previous Post: Structural typing in Rust">&laquo; Structural typing in Rust</a></li>
+            
+            
+          </ul>
+        
+      </footer>
+    </article>
+    
+      <section>
+        <h1>Comments</h1>
+        <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+      </section>
+    
+  </div>
+
+  
+  <aside class="sidebar col-md-3">
+    
+      <section class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Recent Posts</h3>
+  </div>
+  
+  <div id="recent_posts" class="list-group">
+    
+    <a class="list-group-item active" href="/blog/2024/01/01/containerising-an-octopress-2-dot-0-blog/">Containerising an Octopress 2.0 Blog</a>
+    
+    <a class="list-group-item " href="/blog/2021/05/25/structural-typing-in-rust/">Structural Typing in Rust</a>
+    
+    <a class="list-group-item " href="/blog/2017/05/24/rust-from-scala/">Rust: A Scala Engineer's Perspective</a>
+    
+    <a class="list-group-item " href="/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/">Boilerplate-free Struct Transforms in Rust.</a>
+    
+    <a class="list-group-item " href="/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">Gentle Intro to Type-level Recursion in Rust: From Zero to HList Sculpting.</a>
+    
+  </div>
+</section>
+
+<script src="/javascripts/libs/jquery/jquery-2.0.3.min.js"></script>
+<section class="panel panel-default clearfix">
+  <div class="panel-heading">
+      <h3 class="panel-title">GitHub Repos</h3>
+  </div>
+  <div class="list-group" id="gh_repos">
+    <p class="loading">Status updating...</p>
+  </div>
+  
+    <div class="gh-profile-link pull-right text-muted">
+      <a href="https://github.com/lloydmeta">@lloydmeta</a> on GitHub
+    </div>
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'lloydmeta',
+            count: 5,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+
+<section>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- sidebar -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-1443957470904968"
+     data-ad-slot="4002731536"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+</section>
+
+    
+  </aside>
+  
+</div>
+
+        </div>
+      </div>
+    </div>
+    <footer role="contentinfo"><div class="container">
+    <p class="text-muted credits">
+  Copyright &copy; 2024 - Lloyd<br>
+  <small>
+      <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>,
+      <span class="credit">customized with <a href="https://github.com/kAworu/octostrap3">octostrap3</a></span>.
+  </small>
+</p>
+
+</div>
+</footer>
+    
+
+<script type="text/javascript">
+      var disqus_shortname = 'beachape';
+      
+        
+        var disqus_developer = 1;
+        var disqus_identifier = 'https://beachape.com/blog/2024/01/01/containerising-an-octopress-2-dot-0-blog/';
+        var disqus_url = 'https://beachape.com/blog/2024/01/01/containerising-an-octopress-2-dot-0-blog/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+
+<script src="/assets/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="/javascripts/modernizr-2.0.js"></script>
+
+
+  </body>
+</html>

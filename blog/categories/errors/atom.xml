@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Errors | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/errors/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Resolving 'Java OOM: Unable to Create New Native Thread' Errors on Heroku]]></title>
     <link href="https://beachape.com/blog/2013/09/12/resolving-java-oom-unable-to-create-new-native-thread-errors-on-heroku/"/>
-    <updated>2013-09-12T13:25:00+09:00</updated>
+    <updated>2013-09-12T13:25:00+00:00</updated>
     <id>https://beachape.com/blog/2013/09/12/resolving-java-oom-unable-to-create-new-native-thread-errors-on-heroku</id>
     <content type="html"><![CDATA[<p>For the most part, I’m a very happy Heroku user. The platform allows me deploy my apps, be they Java, Scala or Ruby-based without having to think/worry about infrastructure, which is amazing. They also allow me to, for the most part, do this for free. For the most part, I love it, and so do many others. That said, sometimes you do run into problems that cause you to lose lots of time debugging … in the wrong direction.</p>
 

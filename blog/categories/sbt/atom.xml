@@ -4,7 +4,7 @@
   <title><![CDATA[Category: SBT | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/sbt/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Scala and OpenCV Ep 2: Akka Face Detector]]></title>
     <link href="https://beachape.com/blog/2016/03/14/scala-and-opencv-ep-2-akka-face-detector/"/>
-    <updated>2016-03-14T17:24:00+09:00</updated>
+    <updated>2016-03-14T17:24:00+00:00</updated>
     <id>https://beachape.com/blog/2016/03/14/scala-and-opencv-ep-2-akka-face-detector</id>
     <content type="html"><![CDATA[<p>In <a href="/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/">Episode 1</a> of this series on Scala and computer vision, we created a basic Akka-Streams-powered webcam feed app.  To bring it to the next level, we will dig a little deeper into the OpenCV toolset and bring in feature detection as well as video stream editing.</p>
 
@@ -548,7 +548,7 @@ final case class WithGrey private (orig: Mat, grey: Mat)
   <entry>
     <title type="html"><![CDATA[Scala and OpenCV Ep 1: Akka Webcam]]></title>
     <link href="https://beachape.com/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/"/>
-    <updated>2016-03-08T16:16:00+09:00</updated>
+    <updated>2016-03-08T16:16:00+00:00</updated>
     <id>https://beachape.com/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam</id>
     <content type="html"><![CDATA[<p>In a <a href="/blog/2016/03/05/opencv-sbt-plugin/">previous post</a>, I talked about SBT-OpenCV, a plugin for SBT that makes it easy to get started with OpenCV in any SBT-defined JVM app using just one line in <code>project/plugins.sbt</code>.  Having handled the issue of getting the proper dependencies into a project, we can turn our attention to actually using the libraries to do something cool.</p>
 
@@ -1028,7 +1028,7 @@ In order to create an Akka <code>Source[Frame]</code>, we will make use of the A
   <entry>
     <title type="html"><![CDATA[OpenCV SBT Plugin]]></title>
     <link href="https://beachape.com/blog/2016/03/05/opencv-sbt-plugin/"/>
-    <updated>2016-03-05T00:30:00+09:00</updated>
+    <updated>2016-03-05T00:30:00+00:00</updated>
     <id>https://beachape.com/blog/2016/03/05/opencv-sbt-plugin</id>
     <content type="html"><![CDATA[<p>OpenCV is arguably the defacto free, open-source computer vision library, but setting it up for usage in a JVM project can be hard because OpenCV itself is written in C++, so there are a bunch of system-dependent things that you need to download/compile/install before you can use it.</p>
 

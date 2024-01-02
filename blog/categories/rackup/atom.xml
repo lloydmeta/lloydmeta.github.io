@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Rackup | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/rackup/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Padrino With Resque-web UI]]></title>
     <link href="https://beachape.com/blog/2013/02/19/padrino-with-resque-web-ui/"/>
-    <updated>2013-02-19T17:44:00+09:00</updated>
+    <updated>2013-02-19T17:44:00+00:00</updated>
     <id>https://beachape.com/blog/2013/02/19/padrino-with-resque-web-ui</id>
     <content type="html"><![CDATA[<p>Finally got a chance to play around with Padrino last week to build a <a href="https://github.com/lloydmeta/push_to_devices">Push to Devices notification server</a>, but ran into a bit of an issue trying to get Resque-web / Resque server UI to show up.</p>
 

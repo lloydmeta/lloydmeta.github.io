@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Metadata | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/metadata/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Metascraper v0.2.1 Released]]></title>
     <link href="https://beachape.com/blog/2013/09/12/metascraper-v0-dot-2-1-released/"/>
-    <updated>2013-09-12T10:04:00+09:00</updated>
+    <updated>2013-09-12T10:04:00+00:00</updated>
     <id>https://beachape.com/blog/2013/09/12/metascraper-v0-dot-2-1-released</id>
     <content type="html"><![CDATA[<p>Sorry for the quick version-up. Version 0.1.1 added non-blocking I/O, but was using Dispatch without configuring the threadpool used for HTTP connections. This caused issues on Heroku where there is a 256 combined thread + process limit for 1x dynos (512 for 2x dynos), whereby Java OOM “unable to create new native thread” errors would be thrown.</p>
 
@@ -41,7 +41,7 @@
   <entry>
     <title type="html"><![CDATA[Metascraper v0.1.1 Released]]></title>
     <link href="https://beachape.com/blog/2013/09/11/metascraper-v0-dot-1-1-released/"/>
-    <updated>2013-09-11T16:13:00+09:00</updated>
+    <updated>2013-09-11T16:13:00+00:00</updated>
     <id>https://beachape.com/blog/2013/09/11/metascraper-v0-dot-1-1-released</id>
     <content type="html"><![CDATA[<p>Metascraper v0.1.1 has been released. Major changes include:</p>
 
@@ -66,7 +66,7 @@
   <entry>
     <title type="html"><![CDATA[Introducing Metascraper - a Scala Library for Scraping Page Metadata]]></title>
     <link href="https://beachape.com/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata/"/>
-    <updated>2013-09-05T10:26:00+09:00</updated>
+    <updated>2013-09-05T10:26:00+00:00</updated>
     <id>https://beachape.com/blog/2013/09/05/introducing-metascraper-a-scala-library-for-scraping-page-metadata</id>
     <content type="html"><![CDATA[<p>Scraping metadata (e.g. <code>title</code>, <code>description</code>, <code>url</code>, etc.) from a URL is something that <a href="https://www.facebook.com/">Facebook</a> currently does for you when you paste a URL into the “Update Status” box. For a service that I’m currently building out, we wanted to do this as well for our users. Thus <a href="https://github.com/lloydmeta/metascraper">Metascraper</a> was born.</p>
 

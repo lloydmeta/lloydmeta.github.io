@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Quasiquotes | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/quasiquotes/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Scala Unless-when via Macros]]></title>
     <link href="https://beachape.com/blog/2014/08/11/scala-unless-when-via-macros/"/>
-    <updated>2014-08-11T18:41:00+09:00</updated>
+    <updated>2014-08-11T18:41:00+00:00</updated>
     <id>https://beachape.com/blog/2014/08/11/scala-unless-when-via-macros</id>
     <content type="html"><![CDATA[<p>Last week, I decided to take a stab at learning <a href="http://scalamacros.org/">Scala macros</a>. I had played around with macros when I wrote Scheme for a living (yes, believe it or not, these places exist…and existed long before Clojure made Lisp hip again), but the complexity of Scala’s macros always put me off (if you don’t believe me, check out the example given in the offical docs for a simple <a href="http://docs.scala-lang.org/overviews/macros/overview.html#a-complete-example">print macro</a>).</p>
 

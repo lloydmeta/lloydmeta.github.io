@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Error Handling | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/error-handling/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Accumulating Results in Rust With Validated]]></title>
     <link href="https://beachape.com/blog/2016/10/24/accumulating-results-in-rust-with-validated/"/>
-    <updated>2016-10-24T15:00:00+09:00</updated>
+    <updated>2016-10-24T15:00:00+00:00</updated>
     <id>https://beachape.com/blog/2016/10/24/accumulating-results-in-rust-with-validated</id>
     <content type="html"><![CDATA[<p>Rust comes out of the box with a <code>Result&lt;T, E&gt;</code> type in its standard library. For those not familiar with it, it is a union-like enum type where <code>T</code> is a type parameter denoting the kind object held in a <code>Result</code> in the success case (<code>Result::Ok&lt;T&gt;</code>), and <code>E</code> is a type paramter denoting the kind of error object held in the failure case (<code>Result::Err&lt;E&gt;</code>).  In Scala, this is represented in the standard library as <code>Either[+A, +B]</code>, where the the success and error type params are swapped (traditionally, the one on the left stands for error and the one on the right is…well, right).</p>
 

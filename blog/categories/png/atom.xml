@@ -4,7 +4,7 @@
   <title><![CDATA[Category: PNG | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/png/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Lossy Optimisation for PNG Files]]></title>
     <link href="https://beachape.com/blog/2013/04/06/lossy-optimisation-for-png-files/"/>
-    <updated>2013-04-06T16:04:00+09:00</updated>
+    <updated>2013-04-06T16:04:00+00:00</updated>
     <id>https://beachape.com/blog/2013/04/06/lossy-optimisation-for-png-files</id>
     <content type="html"><![CDATA[<p>These days, theres a lot of focus on reducing the load times on your website to make the experience smoother for your users. One way is to make creative use of CSS to style your websites instead of using images. That said, there are times when you have to use images and even the best front-end guys need to reach for images depending on what kind of design they were tasked with implementing.</p>
 

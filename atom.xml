@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -14,9 +14,294 @@
 
   
   <entry>
+    <title type="html"><![CDATA[Containerising an Octopress 2.0 Blog]]></title>
+    <link href="https://beachape.com/blog/2024/01/01/containerising-an-octopress-2-dot-0-blog/"/>
+    <updated>2024-01-01T13:41:00+00:00</updated>
+    <id>https://beachape.com/blog/2024/01/01/containerising-an-octopress-2-dot-0-blog</id>
+    <content type="html"><![CDATA[<p>This blog was started almost 11 years ago, on Octopress 2.0. It was a different world: Ruby 1.x was king of the hill, and Docker wasn’t even a thing yet. It was an amazing thing to use.</p>
+
+<p>Over the years, every time I switched machines, I noticed it was getting harder and harder for me to get the blog and in particular Octopress 2.0 working on it. It was plagued by incompatibility between system versions, tooling, and dependencies on various levels (OS, Gem, Ruby, etc), but I was also getting more and more out of touch with the Ruby world, having long jumped over to other languages.</p>
+
+<p>Still, I loved this <a href="https://daringfireball.net/projects/markdown/">Markdown</a>-based blog, and didn’t think it was time to move to a newer version (Octpress 3.0) or another tool (I’d heard good things about <a href="https://gohugo.io">Hugo</a>). I simply didn’t have the time to upgrade or port, nor did I feel the need to: it may be using old versions of things, but at the end of the day, it was generating and deploying simple static HTML files that get served. Finally, this year, I decided to take a stab at containerising it so that I could hopefully easily keep using it for years to come (and lose another excuse to not write..).</p>
+
+<p><img class="center" src="https://beachape.com/images/octopress_with_container.png" title="Octopress logo + shipping container" /></p>
+
+<!-- more -->
+
+<h2 class="no_toc" id="overview">Overview</h2>
+
+<ul id="markdown-toc">
+  <li><a href="#references-vs-whats-new">References vs what’s new</a></li>
+  <li><a href="#target-audience">Target audience</a></li>
+  <li><a href="#dockerfile"><code>Dockerfile</code></a>    <ul>
+      <li><a href="#ubuntu-1804-bionic-beaver">Ubuntu 18.04 (Bionic Beaver)</a></li>
+      <li><a href="#installing-ruby-23">Installing Ruby 2.3</a></li>
+      <li><a href="#gemfilelock-file-for-project-dependencies">Gemfile.lock file for project dependencies</a></li>
+    </ul>
+  </li>
+  <li><a href="#rakefile">Rakefile</a></li>
+  <li><a href="#docker">Docker</a>    <ul>
+      <li><a href="#with-rancher-desktop">With Rancher Desktop</a></li>
+      <li><a href="#makefile-to-work-with-all-of-the-above">Makefile to work with all of the above</a></li>
+    </ul>
+  </li>
+  <li><a href="#conclusion">Conclusion</a></li>
+</ul>
+
+<h2 id="references-vs-whats-new">References vs what’s new</h2>
+
+<p>I didn’t come up with everything from scratch and followed in the footsteps of those who already did most of the heavy lifting.</p>
+
+<ul>
+  <li><a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a></li>
+  <li><a href="https://github.com/rbenv/ruby-build">ruby-build</a></li>
+</ul>
+
+<p>I just updated some things here and there:
+* Ubuntu LTS 18.04
+* Rancher Desktop</p>
+
+<h2 id="target-audience">Target audience</h2>
+
+<ul>
+  <li>People who have their own Octopress 2.0 blog already and want to continue to use it. You may have already containerised but it are looking to another take on it.</li>
+  <li>Geeks: Octopress says it’s for “hackers”</li>
+</ul>
+
+<h2 id="dockerfile"><code>Dockerfile</code></h2>
+
+<p>To start with the conclusion, here is the complete <code>Dockerfile</code> in the root dir of my Octopress 2.0 project</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+<span class="line-number">32</span>
+<span class="line-number">33</span>
+<span class="line-number">34</span>
+<span class="line-number">35</span>
+<span class="line-number">36</span>
+<span class="line-number">37</span>
+<span class="line-number">38</span>
+<span class="line-number">39</span>
+<span class="line-number">40</span>
+<span class="line-number">41</span>
+<span class="line-number">42</span>
+<span class="line-number">43</span>
+<span class="line-number">44</span>
+<span class="line-number">45</span>
+<span class="line-number">46</span>
+<span class="line-number">47</span>
+<span class="line-number">48</span>
+<span class="line-number">49</span>
+<span class="line-number">50</span>
+<span class="line-number">51</span>
+<span class="line-number">52</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">FROM ubuntu:18.04
+</span><span class="line">
+</span><span class="line"># System dependencies, including those required to install Ruby
+</span><span class="line">RUN apt-get update -y &amp;&amp; apt-get -y install \
+</span><span class="line">  sudo \
+</span><span class="line">  gcc make \
+</span><span class="line">  git \
+</span><span class="line">  vim less \
+</span><span class="line">  curl \
+</span><span class="line">  build-essential \
+</span><span class="line">  libreadline-dev \
+</span><span class="line">  # We need this for Ruby 2.3
+</span><span class="line">  libssl1.0-dev \ 
+</span><span class="line">  zlib1g-dev \
+</span><span class="line">  python2.7 python-pip python-dev
+</span><span class="line">
+</span><span class="line"># Install ruby-build and Ruby 2.3
+</span><span class="line">WORKDIR ~/
+</span><span class="line">RUN curl -L https://github.com/rbenv/ruby-build/archive/refs/tags/v20231225.tar.gz &gt; ruby-build.tar.gz
+</span><span class="line">RUN tar -xzf ruby-build.tar.gz 
+</span><span class="line">RUN PREFIX=/usr/local ./ruby-build-*/install.sh
+</span><span class="line">RUN ruby-build 2.3.3 /usr/local
+</span><span class="line">
+</span><span class="line"># Add blogger user so we don't use the root user and use it
+</span><span class="line">RUN adduser --disabled-password --gecos "" blogger &amp;&amp; \
+</span><span class="line">echo "blogger ALL=(root) NOPASSWD:ALL" &gt; /etc/sudoers
+</span><span class="line">USER blogger
+</span><span class="line">
+</span><span class="line"># Initialise ruby encording
+</span><span class="line">ENV RUBYOPT -EUTF-8
+</span><span class="line">
+</span><span class="line"># Directory for the blog files
+</span><span class="line">RUN sudo mkdir /octopress
+</span><span class="line">WORKDIR /octopress
+</span><span class="line">
+</span><span class="line"># Set permissions so blogger can install gems
+</span><span class="line">RUN sudo chown -Rv blogger:blogger /octopress
+</span><span class="line">RUN sudo chown -Rv blogger:blogger /usr/local/lib/ruby/gems
+</span><span class="line">RUN sudo chown -Rv blogger:blogger /usr/local/bin
+</span><span class="line">
+</span><span class="line"># # Expose port 4000 so we can preview the blog
+</span><span class="line">EXPOSE 4000
+</span><span class="line">
+</span><span class="line"># Add the Gemfile and install the gems
+</span><span class="line">ADD Gemfile /octopress/Gemfile
+</span><span class="line">ADD Gemfile.lock /octopress/Gemfile.lock
+</span><span class="line">RUN gem install bundler -v 2.3
+</span><span class="line">RUN bundle install
+</span><span class="line">
+</span><span class="line"># Git config file because Octopress pushes using Git but we might
+</span><span class="line"># not want it to use the exact same settings as our host (e.g. signing)
+</span><span class="line">ADD .gitconfig /home/blogger/.gitconfig</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>I’ll go through the things that are <em>different</em> from the awesome article at <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a>. Whatever I don’t call out below should be taken as unchanged from that article, so use it as a reference.</p>
+
+<h3 id="ubuntu-1804-bionic-beaver">Ubuntu 18.04 (Bionic Beaver)</h3>
+
+<p>The <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a> article uses Ubuntu but at version 16.04. I love Ubuntu and think it’s a great choice for an Octropess dev env, but since it’s Jan 2024, I wanted to use the latest Ubuntu LTS release, 18.04, instead (knowing full well that the next LTS is slated for release in a few months..). Hence</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">FROM ubuntu:18.04</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>That brought interesting challenges, mostly stemming from the fact that the default <code>apt-get install</code> for ruby would be too new for (my) Octopress installation’s dependencies.</p>
+
+<h3 id="installing-ruby-23">Installing Ruby 2.3</h3>
+
+<p>There are different ways to install Ruby on a system, but I opted for <a href="https://github.com/rbenv/ruby-build">ruby-build</a>, in particular the <a href="https://github.com/rbenv/ruby-build#install-manually-as-a-standalone-program">standalone install option</a> because it was simple.</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+</pre></td><td class="code"><pre><code class=""><span class="line"># System dependencies, including those required to install Ruby
+</span><span class="line">RUN apt-get update -y &amp;&amp; apt-get -y install \
+</span><span class="line">  sudo \
+</span><span class="line">  gcc make \
+</span><span class="line">  git \
+</span><span class="line">  vim less \
+</span><span class="line">  curl \
+</span><span class="line">  build-essential \
+</span><span class="line">  libreadline-dev \
+</span><span class="line">  # We need this for Ruby 2.3
+</span><span class="line">  libssl1.0-dev \ 
+</span><span class="line">  zlib1g-dev \
+</span><span class="line">  python2.7 python-pip python-dev
+</span><span class="line">
+</span><span class="line"># Install ruby-build and Ruby 2.3
+</span><span class="line">WORKDIR ~/
+</span><span class="line">RUN curl -L https://github.com/rbenv/ruby-build/archive/refs/tags/v20231225.tar.gz &gt; ruby-build.tar.gz
+</span><span class="line">RUN tar -xzf ruby-build.tar.gz 
+</span><span class="line">RUN PREFIX=/usr/local ./ruby-build-*/install.sh
+</span><span class="line">RUN ruby-build 2.3.3 /usr/local</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h3 id="gemfilelock-file-for-project-dependencies">Gemfile.lock file for project dependencies</h3>
+
+<p>Since my goal was to get this working with an old Octopress blog and I didn’t want to mess around with version conflicts, I <code>ADD</code>ed the <code>Gemfile.lock</code> file as well, before <code>RUN</code>ning <code>bundle install</code></p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class=""><span class="line"># Add the Gemfile and install the gems
+</span><span class="line">ADD Gemfile /octopress/Gemfile
+</span><span class="line">ADD Gemfile.lock /octopress/Gemfile.lock
+</span><span class="line">RUN gem install bundler -v 2.3
+</span><span class="line">RUN bundle install</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h2 id="rakefile">Rakefile</h2>
+
+<p>This is mentioned in the <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a> article as well, but I’ll mention it here too: in order to preview the blog, you need to change the <code>Rakefile</code> from</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="n">rackupPid</span> <span class="o">=</span> <span class="no">Process</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="s2">&quot;rackup --port </span><span class="si">#{</span><span class="n">server_port</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>to </p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="ruby"><span class="line"><span class="n">rackupPid</span> <span class="o">=</span> <span class="no">Process</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="s2">&quot;rackup -o 0.0.0.0 --port </span><span class="si">#{</span><span class="n">server_port</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<h2 id="docker">Docker</h2>
+
+<h3 id="with-rancher-desktop">With Rancher Desktop</h3>
+
+<p>Since it’s 2024, I also wanted to try using a Docker Desktop alternative, and chose <a href="https://rancherdesktop.io">Rancher Desktop</a>. Overall, the entire experience was really smooth and in my Octopress usage so far, I. haven’t noticed much difference between Rancher Desktop and Docker Desktop, but I’ve only been lightly using <code>docker</code> CLI.</p>
+
+<p>I did notice that the auto-regenerate-based-on-changes feature of <code>rake preview</code> worked better (faster, more reliably) with the <code>VZ</code> <a href="https://docs.rancherdesktop.io/ui/preferences/virtual-machine/emulation/">emulation</a> mode and <code>virtiofs</code> <a href="https://docs.rancherdesktop.io/ui/preferences/virtual-machine/volumes#virtiofs">volume mount type</a>.</p>
+
+<p><img class="center" src="https://beachape.com/images/rancher-desktop-emulation.png" title="Rancher preferences showing VZ mode for emulation" /></p>
+
+<p><img class="center" src="https://beachape.com/images/rancher-desktop-fs.png" title="Rancher preferences showing virtiofs mode for volume mount type" /></p>
+
+<h3 id="makefile-to-work-with-all-of-the-above">Makefile to work with all of the above</h3>
+
+<p>I added a <code>Makefile</code> to make it simpler for future me to deal with building the image and working with it</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+</pre></td><td class="code"><pre><code class="sh"><span class="line">build-image:
+</span><span class="line">	docker build . -t blog/octopress
+</span><span class="line">
+</span><span class="line">start-env:
+</span><span class="line">	docker run -p 4000:4000 --rm --volume <span class="nv">$$</span><span class="o">(</span><span class="nb">pwd</span><span class="o">)</span>:/octopress --volume <span class="k">${</span><span class="nv">HOME</span><span class="k">}</span>/.ssh:/home/blogger/.ssh -ti blog/octopress /bin/bash
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>This is entirely optional/subjective but I find <code>make start-env</code> more manageable for starting an Octopress env that has everything mounted properly.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>So that’s it: yet another containerised-Octopress-2.0 article, with this entry being the first beachape.com one that was written and published entirely using it.</p>
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Structural Typing in Rust]]></title>
     <link href="https://beachape.com/blog/2021/05/25/structural-typing-in-rust/"/>
-    <updated>2021-05-25T21:42:00+09:00</updated>
+    <updated>2021-05-25T21:42:00+00:00</updated>
     <id>https://beachape.com/blog/2021/05/25/structural-typing-in-rust</id>
     <content type="html"><![CDATA[<p>Have you ever wanted to write a structurally typed function in Rust? Do you spend a lot of time and effort getting your Rust <code>struct</code>s <em>just so</em>, and want to DRY-out data access for common field paths without declaring a new <code>trait</code> and implementing it for each struct (let’s say, <code>Cat</code> and <code>Dog</code> both have a <code>name: String</code> field)? If so, read on.</p>
 
@@ -820,7 +1105,7 @@
   <entry>
     <title type="html"><![CDATA[Rust: A Scala Engineer's Perspective]]></title>
     <link href="https://beachape.com/blog/2017/05/24/rust-from-scala/"/>
-    <updated>2017-05-24T13:45:00+09:00</updated>
+    <updated>2017-05-24T13:45:00+00:00</updated>
     <id>https://beachape.com/blog/2017/05/24/rust-from-scala</id>
     <content type="html"><![CDATA[<p>The 1st year anniversary of my first line of Rust code is coming up, and it’s getting for 5 years since I wrote my first line of Scala code. I thought it would be a good idea to summarise my Scala-tinted perspective of The Rust Experience <sup>TM</sup>, one year on.</p>
 
@@ -1257,7 +1542,7 @@
   <entry>
     <title type="html"><![CDATA[Boilerplate-free Struct Transforms in Rust.]]></title>
     <link href="https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/"/>
-    <updated>2017-04-12T12:45:00+09:00</updated>
+    <updated>2017-04-12T12:45:00+00:00</updated>
     <id>https://beachape.com/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust</id>
     <content type="html"><![CDATA[<p>The last several posts have introduced a number of abstractions, namely HList, Generic, LabelledGeneric, as well as <code>pluck()</code> and <code>sculpt()</code>. Although each of those have impressive party tricks of their own, I’d like to share how you can use them to write a reuseable, generic function that handles converting between structs with mis-matched fields and thus have different <code>LabelledGeneric</code> representations.</p>
 
@@ -1452,7 +1737,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[Gentle Intro to Type-level Recursion in Rust: From Zero to HList Sculpting.]]></title>
     <link href="https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/"/>
-    <updated>2017-03-12T12:03:00+09:00</updated>
+    <updated>2017-03-12T12:03:00+00:00</updated>
     <id>https://beachape.com/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting</id>
     <content type="html"><![CDATA[<blockquote>
   <p>Getting the type signature right was 99% of the work in implementing <code>pluck</code> and <code>sculpt</code> for <code>HList</code>s in Frunk.</p>
@@ -2543,7 +2828,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[LabelledGeneric in Rust: What, Why, How?]]></title>
     <link href="https://beachape.com/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/"/>
-    <updated>2017-03-04T12:23:00+09:00</updated>
+    <updated>2017-03-04T12:23:00+00:00</updated>
     <id>https://beachape.com/blog/2017/03/04/labelledgeneric-in-rust-what-why-how</id>
     <content type="html"><![CDATA[<p>What is <code>LabelledGeneric</code>? How does one encode type-level Strings in Rust? What is a labelled HList?</p>
 
@@ -3082,7 +3367,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[Rust Generic (Not Generics)]]></title>
     <link href="https://beachape.com/blog/2017/02/04/rust-generic-not-generics/"/>
-    <updated>2017-02-04T02:14:00+09:00</updated>
+    <updated>2017-02-04T02:14:00+00:00</updated>
     <id>https://beachape.com/blog/2017/02/04/rust-generic-not-generics</id>
     <content type="html"><![CDATA[<p>Have you ever wanted to convert <code>Hlist</code>s into Structs or to reuse logic across different types that are structurally identical or very similar (e.g. same data across different domains)? <code>Generic</code> can help you do that with minimal boilerplate.</p>
 
@@ -3342,7 +3627,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[Rust Performance Testing on Travis CI]]></title>
     <link href="https://beachape.com/blog/2016/11/02/rust-performance-testing-on-travis-ci/"/>
-    <updated>2016-11-02T15:39:00+09:00</updated>
+    <updated>2016-11-02T15:39:00+00:00</updated>
     <id>https://beachape.com/blog/2016/11/02/rust-performance-testing-on-travis-ci</id>
     <content type="html"><![CDATA[<p><a href="https://www.rust-lang.org/en-US/">Rust</a>  describes itself as:</p>
 
@@ -3477,7 +3762,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[Accumulating Results in Rust With Validated]]></title>
     <link href="https://beachape.com/blog/2016/10/24/accumulating-results-in-rust-with-validated/"/>
-    <updated>2016-10-24T15:00:00+09:00</updated>
+    <updated>2016-10-24T15:00:00+00:00</updated>
     <id>https://beachape.com/blog/2016/10/24/accumulating-results-in-rust-with-validated</id>
     <content type="html"><![CDATA[<p>Rust comes out of the box with a <code>Result&lt;T, E&gt;</code> type in its standard library. For those not familiar with it, it is a union-like enum type where <code>T</code> is a type parameter denoting the kind object held in a <code>Result</code> in the success case (<code>Result::Ok&lt;T&gt;</code>), and <code>E</code> is a type paramter denoting the kind of error object held in the failure case (<code>Result::Err&lt;E&gt;</code>).  In Scala, this is represented in the standard library as <code>Either[+A, +B]</code>, where the the success and error type params are swapped (traditionally, the one on the left stands for error and the one on the right is…well, right).</p>
 
@@ -3732,7 +4017,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[Rust HLists (Heterogenous List)]]></title>
     <link href="https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list/"/>
-    <updated>2016-10-23T13:05:00+09:00</updated>
+    <updated>2016-10-23T13:05:00+00:00</updated>
     <id>https://beachape.com/blog/2016/10/23/rust-hlists-heterogenously-typed-list</id>
     <content type="html"><![CDATA[<p>A heterogeneous list (henceforth “HList”) is a useful abstraction that is implemented in many statically-typed functional programming languages. Unlike normal list-like structures (e.g. <code>Vec</code>, <code>Slice</code>, <code>Array</code>), a heterogenous list is able to hold elements of different types (hence heterogenous) and expose those types in its own type signature.</p>
 
@@ -3884,7 +4169,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[Enumeratum 1.4: ValueEnums + Circe]]></title>
     <link href="https://beachape.com/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe/"/>
-    <updated>2016-04-16T16:25:00+09:00</updated>
+    <updated>2016-04-16T16:25:00+00:00</updated>
     <id>https://beachape.com/blog/2016/04/16/enumeratum-1-dot-4-valueenums-plus-circe</id>
     <content type="html"><![CDATA[<p>It’s been a while since the last major release of <a href="https://github.com/lloydmeta/enumeratum">Enumeratum</a>, and in 1.4.0, minor changes include Play 2.5 support, integration library version bumps, and small internal refactorings. More excitingly though, the latest version adds support for a new kind of enumeration, <code>ValueEnum</code>, as well as an integration with the <a href="https://github.com/travisbrown/circe">Circe JSON library</a>.</p>
 
@@ -4129,7 +4414,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[Scala and OpenCV Ep 2: Akka Face Detector]]></title>
     <link href="https://beachape.com/blog/2016/03/14/scala-and-opencv-ep-2-akka-face-detector/"/>
-    <updated>2016-03-14T17:24:00+09:00</updated>
+    <updated>2016-03-14T17:24:00+00:00</updated>
     <id>https://beachape.com/blog/2016/03/14/scala-and-opencv-ep-2-akka-face-detector</id>
     <content type="html"><![CDATA[<p>In <a href="https://beachape.com/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/">Episode 1</a> of this series on Scala and computer vision, we created a basic Akka-Streams-powered webcam feed app.  To bring it to the next level, we will dig a little deeper into the OpenCV toolset and bring in feature detection as well as video stream editing.</p>
 
@@ -4694,7 +4979,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[Scala and OpenCV Ep 1: Akka Webcam]]></title>
     <link href="https://beachape.com/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam/"/>
-    <updated>2016-03-08T16:16:00+09:00</updated>
+    <updated>2016-03-08T16:16:00+00:00</updated>
     <id>https://beachape.com/blog/2016/03/08/scala-and-opencv-ep-1-akka-webcam</id>
     <content type="html"><![CDATA[<p>In a <a href="https://beachape.com/blog/2016/03/05/opencv-sbt-plugin/">previous post</a>, I talked about SBT-OpenCV, a plugin for SBT that makes it easy to get started with OpenCV in any SBT-defined JVM app using just one line in <code>project/plugins.sbt</code>.  Having handled the issue of getting the proper dependencies into a project, we can turn our attention to actually using the libraries to do something cool.</p>
 
@@ -5183,7 +5468,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[OpenCV SBT Plugin]]></title>
     <link href="https://beachape.com/blog/2016/03/05/opencv-sbt-plugin/"/>
-    <updated>2016-03-05T00:30:00+09:00</updated>
+    <updated>2016-03-05T00:30:00+00:00</updated>
     <id>https://beachape.com/blog/2016/03/05/opencv-sbt-plugin</id>
     <content type="html"><![CDATA[<p>OpenCV is arguably the defacto free, open-source computer vision library, but setting it up for usage in a JVM project can be hard because OpenCV itself is written in C++, so there are a bunch of system-dependent things that you need to download/compile/install before you can use it.</p>
 
@@ -5226,7 +5511,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[Slim Play App]]></title>
     <link href="https://beachape.com/blog/2015/07/25/slim-play-app/"/>
-    <updated>2015-07-25T20:50:00+09:00</updated>
+    <updated>2015-07-25T20:50:00+00:00</updated>
     <id>https://beachape.com/blog/2015/07/25/slim-play-app</id>
     <content type="html"><![CDATA[<p><a href="https://www.playframework.com/">Play</a> is one of two officially-supported web frameworks from Typesafe, the company behind Scala (the other is <a href="http://spray.io/">Spray</a>). It runs on its own webserver, is non-blocking, and encourages the use of idiomatic Scala. It is often compared with Rails because of its emphasis on convention over configuration and because it’s a full-on framework that comes with most of the bells and whistles needed to build a full-featured webapp. Spray is considered by many to be the defacto API-centric alternative to Play, offering a Sinatra-esque DSL for routing and being slimmer to boot (from a files + LOC perspective).</p>
 
@@ -5353,7 +5638,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[Enumeratum: Sealed Trait Enums for Scala]]></title>
     <link href="https://beachape.com/blog/2015/02/11/enumeratum-sealed-trait-enums-for-scala/"/>
-    <updated>2015-02-11T16:47:00+09:00</updated>
+    <updated>2015-02-11T16:47:00+00:00</updated>
     <id>https://beachape.com/blog/2015/02/11/enumeratum-sealed-trait-enums-for-scala</id>
     <content type="html"><![CDATA[<p>If you’ve been working with Scala for a while, you might have come across a few “problems” with the built in <code>Enumeration</code> that’s provided out-of-the-box.  This is especially true if you have colleagues who come from a Java background and yearn for the Java-style <code>Enum</code> that gave them lots of power and flexibility.</p>
 
@@ -5503,7 +5788,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[Scala Unless-when via Macros]]></title>
     <link href="https://beachape.com/blog/2014/08/11/scala-unless-when-via-macros/"/>
-    <updated>2014-08-11T18:41:00+09:00</updated>
+    <updated>2014-08-11T18:41:00+00:00</updated>
     <id>https://beachape.com/blog/2014/08/11/scala-unless-when-via-macros</id>
     <content type="html"><![CDATA[<p>Last week, I decided to take a stab at learning <a href="http://scalamacros.org/">Scala macros</a>. I had played around with macros when I wrote Scheme for a living (yes, believe it or not, these places exist…and existed long before Clojure made Lisp hip again), but the complexity of Scala’s macros always put me off (if you don’t believe me, check out the example given in the offical docs for a simple <a href="http://docs.scala-lang.org/overviews/macros/overview.html#a-complete-example">print macro</a>).</p>
 
@@ -5704,7 +5989,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[RxScala and Schwatcher]]></title>
     <link href="https://beachape.com/blog/2014/05/03/rxscala-and-schwatcher/"/>
-    <updated>2014-05-03T17:44:00+09:00</updated>
+    <updated>2014-05-03T17:44:00+00:00</updated>
     <id>https://beachape.com/blog/2014/05/03/rxscala-and-schwatcher</id>
     <content type="html"><![CDATA[<p>A couple days ago, I released v0.1.3 of <a href="https://github.com/lloydmeta/schwatcher">Schwatcher</a>, which introduces the ability to monitor events on file paths using a composable <a href="https://rx.codeplex.com/">Rx Observable</a> interface. “What does that even mean and why should you care?” is what this blog post tries to answer.</p>
 
@@ -5846,7 +6131,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[Schwatcher v0.1.3 Released]]></title>
     <link href="https://beachape.com/blog/2014/05/02/schwatcher-v0-dot-1-3-released/"/>
-    <updated>2014-05-02T00:10:00+09:00</updated>
+    <updated>2014-05-02T00:10:00+00:00</updated>
     <id>https://beachape.com/blog/2014/05/02/schwatcher-v0-dot-1-3-released</id>
     <content type="html"><![CDATA[<p>Version 0.1.3 of Schwatcher has been released.</p>
 
@@ -5931,7 +6216,7 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
   <entry>
     <title type="html"><![CDATA[Schwatcher v0.1.0 Released]]></title>
     <link href="https://beachape.com/blog/2014/03/06/schwatcher-v0-dot-1-0-released/"/>
-    <updated>2014-03-06T21:45:00+09:00</updated>
+    <updated>2014-03-06T21:45:00+00:00</updated>
     <id>https://beachape.com/blog/2014/03/06/schwatcher-v0-dot-1-0-released</id>
     <content type="html"><![CDATA[<p>Version 0.1.0 of Schwatcher has been released.</p>
 
@@ -5947,120 +6232,6 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
 <ul>
   <li><a href="https://github.com/lloydmeta/schwatcher">Schwatcher Github repo</a></li>
 </ul>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Backporting Ruby From Trusty to Oneiric]]></title>
-    <link href="https://beachape.com/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric/"/>
-    <updated>2014-01-14T22:35:00+09:00</updated>
-    <id>https://beachape.com/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric</id>
-    <content type="html"><![CDATA[<h2 id="goal">Goal</h2>
-<p>Create a backported Ruby 1.9.3p484 Ubuntu package. For the purposes of this post, we will assume that you are OK with not creating a signed package (required if uploading to launchpad). If you wish to upload to launchpad (for example to share your backport with the world), it may be useful for you to <a href="http://opensourcehacker.com/2013/03/20/how-to-backport-packages-on-ubuntu-linux/">check out this site</a> after reading through this guide.</p>
-
-<h2 id="motivation">Motivation</h2>
-<p>At my day job, I had to upgrade Ruby on very old production boxes that were running Oneiric AMD64. Upgrading the OS was a chore that would be happening later but we needed to start using the latest Ruby as soon as possible.</p>
-
-<p>Unfortunately, there is no Ruby 1.9.3p484 Debian package readily available for Oneiric, not even as a backport.</p>
-
-<!-- more -->
-
-<h2 id="basic-requirements">Basic requirements</h2>
-<ul>
-  <li>A reasonable Ubuntu environment. Use Vagrant (and its dependencies, such as Virtualbox) if you are on OSX</li>
-  <li>Basic *Nix knowledge (command line editors and various tools)</li>
-</ul>
-
-<h2 id="overview">Overview</h2>
-<p>The idea is to use tools readily available on Ubuntu and Debian to create a backported package. These include <code>backportpackage</code> and <code>pbuilder</code> among others.</p>
-
-<p>Without going into too much detail, <code>backportpackage</code> helps us “prep” (e.g. generating .dsc files with conventional names for backported packages) our existing target package on to be backported. <code>pbuilder</code> is a tool that sets up a clean chroot environment (via <a href="https://wiki.debian.org/Debootstrap">debootstrap</a>) to build Debian packages. See the <a href="http://manpages.ubuntu.com/manpages/oneiric/man1/backportpackage.1.html">man page for backportpackage</a> and the <a href="https://wiki.ubuntu.com/PbuilderHowto">pbuilder howto page</a> for more information.</p>
-
-<p>Normally, <code>backportpackage</code> and <code>pbuilder</code> are very straightforward to use when backporting packages that do not have many dependencies. However, when porting the Ruby 1.9.3p484 package from Trusty to Oneiric, quite a bit of “massaging” needed to be done, mostly because of the significant time difference between the two Ubuntu releases.</p>
-
-<h2 id="procedure">Procedure</h2>
-<ol>
-  <li>Have a reasonable Ubuntu environment ready. It doesn’t matter which version you are currently on because we will be using the aforementioned tools to download, prep and build packages. It may be a good idea to run <code>$ sudo apt-get update</code></li>
-  <li><code>$ sudo apt-get install ubuntu-dev-tools</code> to install Ubuntu dev tools on your host machine. This will install</li>
-  <li>If you are using a version of Ubuntu newer than Precise, you may be able to skip this step. <code>$ wget http://ubuntu.wikimedia.org/ubuntu//pool/universe/u/ubuntu-dev-tools/ubuntu-dev-tools_0.143_all.deb &amp;&amp; sudo dpkg -i ubuntu-dev-tools_0.143_all.deb </code> This installs a newer version of <code>backportpackages</code> that allows us to not sign our packages</li>
-  <li><code>$ mkdir -p ~/backport_workdir/ruby191 &amp;&amp; cd ~/backport_workdir/ruby191</code> to create and go to our working directory</li>
-  <li><code>$ backportpackage --dont-sign -s trusty -d oneiric -w . ruby1.9.1</code> to download the newest (at time or writing) <a href="http://packages.ubuntu.com/source/trusty/ruby1.9.1">Ruby 1.9.3p484 package</a> and create the prepped .dsc files for backporting.</li>
-  <li><strong>Important</strong> Open up <code>ruby1.9.1_1.9.3.484-1ubuntu2~ubuntu11.10.1.dsc</code> with your preferred editor and remove the versioning constraints on <code>debhelper</code> and <code>cdbs</code> in the <code>Build-Depends</code> line. Theoretically you could backport dependencies as well and put them in a local apt-get repo, but these particular packages are nasty in that they have many further dependencies and since in this case, the default versions that come with Oneiric are fine, we can safely remove these constraints.</li>
-  <li><code>$ sudo apt-get install pbuilder</code> to install <code>pbuilder</code>
-8.
-  Create a <code>~/.pbuilderrc</code> file with the following contents. This is a preference file for <code>pbuilder</code> and the following configuration will allow us to easily toggle between different distributions of Ubuntu and architectures when using it to build packages. Credit to <a href="http://www.tolaris.com/2009/03/31/backporting-debian-packages-with-pbuilder/">tolaris.com</a></li>
-</ol>
-
-<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span>pbuilderrc  (pbuilderrc)</span> <a href="https://beachape.com/downloads/code/pbuilder/pbuilderrc">download</a></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
-<span class="line-number">2</span>
-<span class="line-number">3</span>
-<span class="line-number">4</span>
-<span class="line-number">5</span>
-<span class="line-number">6</span>
-<span class="line-number">7</span>
-<span class="line-number">8</span>
-<span class="line-number">9</span>
-<span class="line-number">10</span>
-<span class="line-number">11</span>
-<span class="line-number">12</span>
-<span class="line-number">13</span>
-<span class="line-number">14</span>
-<span class="line-number">15</span>
-<span class="line-number">16</span>
-<span class="line-number">17</span>
-<span class="line-number">18</span>
-<span class="line-number">19</span>
-<span class="line-number">20</span>
-<span class="line-number">21</span>
-<span class="line-number">22</span>
-<span class="line-number">23</span>
-<span class="line-number">24</span>
-<span class="line-number">25</span>
-<span class="line-number">26</span>
-<span class="line-number">27</span>
-<span class="line-number">28</span>
-</pre></td><td class="code"><pre><code class="bash"><span class="line">: <span class="k">${</span><span class="nv">DIST</span><span class="p">:=</span><span class="k">$(</span>lsb_release --short --codename<span class="k">)}</span>
-</span><span class="line">: <span class="k">${</span><span class="nv">ARCH</span><span class="p">:=</span><span class="k">$(</span>dpkg --print-architecture<span class="k">)}</span>
-</span><span class="line"><span class="nv">NAME</span><span class="o">=</span><span class="s2">&quot;$DIST-$ARCH&quot;</span>
-</span><span class="line"><span class="nv">DISTRIBUTION</span><span class="o">=</span><span class="s2">&quot;$DIST&quot;</span>
-</span><span class="line"><span class="nv">DEBOOTSTRAPOPTS</span><span class="o">=(</span><span class="s2">&quot;--arch&quot;</span> <span class="s2">&quot;$ARCH&quot;</span> <span class="s2">&quot;${DEBOOTSTRAPOPTS[@]}&quot;</span><span class="o">)</span>
-</span><span class="line"><span class="nv">BASETGZ</span><span class="o">=</span><span class="s2">&quot;`dirname $BASETGZ`/$NAME-base.tgz&quot;</span>
-</span><span class="line"><span class="nv">BUILDRESULT</span><span class="o">=</span><span class="s2">&quot;/var/cache/pbuilder/$NAME/result/&quot;</span>
-</span><span class="line"><span class="nv">APTCACHE</span><span class="o">=</span><span class="s2">&quot;/var/cache/pbuilder/$NAME/aptcache/&quot;</span>
-</span><span class="line"><span class="c"># Don&#39;t rebuild source files (.diff.gz, .dsc), or list them in .changes</span>
-</span><span class="line"><span class="c"># See Ubuntu bug 118181</span>
-</span><span class="line"><span class="nv">DEBBUILDOPTS</span><span class="o">=</span><span class="s2">&quot;-b -d&quot;</span>
-</span><span class="line">
-</span><span class="line"><span class="k">case</span> <span class="s2">&quot;$DIST&quot;</span> in
-</span><span class="line">    oneiric|trusty|lucid|karmic|jaunty|intrepid|hardy|dapper<span class="o">)</span> <span class="c"># ubuntu specific</span>
-</span><span class="line">        <span class="nv">MIRRORSITE</span><span class="o">=</span><span class="s2">&quot;http://archive.ubuntu.com/ubuntu/&quot;</span>
-</span><span class="line">        <span class="nv">COMPONENTS</span><span class="o">=</span><span class="s2">&quot;main restricted universe multiverse&quot;</span>
-</span><span class="line">        ;;
-</span><span class="line">    sid|squeeze|lenny|etch<span class="o">)</span> <span class="c"># debian specific</span>
-</span><span class="line">        <span class="nv">MIRRORSITE</span><span class="o">=</span><span class="s2">&quot;http://mirrors.kernel.org/debian/&quot;</span>
-</span><span class="line">        <span class="nv">COMPONENTS</span><span class="o">=</span><span class="s2">&quot;main contrib non-free&quot;</span>
-</span><span class="line">        ;;
-</span><span class="line">    *<span class="o">)</span>
-</span><span class="line">        <span class="nb">echo</span> <span class="s2">&quot;Unknown distribution: $DIST&quot;</span>
-</span><span class="line">        <span class="nb">exit </span>1
-</span><span class="line">        ;;
-</span><span class="line"><span class="k">esac</span>
-</span><span class="line">
-</span><span class="line"><span class="nv">HOOKDIR</span><span class="o">=</span><span class="nv">$HOME</span>/.pbuilder-hooks
-</span></code></pre></td></tr></table></div></figure></notextile></div>
-
-<p>The only additions I’ve made are to add the <code>-d</code> flag, which is required for us to ignore dependency discrepancies (in this case, our <code>debhelper</code> and <code>cdbs</code> dependencies are not at the version specified by the official package) and to update the list of Ubuntu distro names.
-9. <code>$ sudo DIST=oneiric ARCH=amd64 pbuilder create</code> to create an Oneiric AMD64 chroot environment to build our backport on.
-10. <code>$ sudo DIST=oneiric ARCH=amd64 pbuilder login --save-after-login</code> to login to our chroot environment. The <code>--save-after-login</code> flag tells pbuilder to save the environment after we exit.
-11. <strong>In chroot environment</strong> <code>$ apt-get update &amp;&amp; apt-get install tcl8.5-dev tk8.5-dev</code> to install tcl/tk dev packages. Next, symlink the .so files to where the Ruby 1.9.3p484 package for Trusty expects them to be by doing: <code>$ ln -s /usr/lib/libtk8.5.so /usr/lib/x86_64-linux-gnu/libtk8.5.so &amp;&amp; ln -s /usr/lib/libtcl8.5.so /usr/lib/x86_64-linux-gnu/libtcl8.5.so</code>. Next, exit the chroot environment by hitting Control-D or <code>$ exit</code>. Normally, <code>pbuilder</code> will take care of downloading build-dependencies for you, but in this case, the problem is that the Ruby 1.9.3p484 package for Trusty assumes taht <code>libtcl</code> and <code>libtk</code> <code>.so</code> files are located in places where they are not installed by default on our target distro.
-12. <code>$ sudo DIST=oneiric ARCH=amd64 pbuilder build ruby1.9.1_1.9.3.484-1ubuntu2~ubuntu11.10.1.dsc</code> to instruct <code>pbuilder</code> to build your package. Go grab a coffee, walk your dog, etc. because this may take a while. If you are running in a VM (e.g. in Vagrant), be sure you’ve allocated enough memory (I recommend at least 2GB) so that the build tests for Ruby will pass.
-13. When <code>pbuilder</code> is done, look in <code>/var/cache/pbuilder/oneiric-amd64/result/</code> for your packages</p>
-
-<h2 id="conclusion">Conclusion</h2>
-<p>There are a few places where I needed to get my hands dirty and look at package source code to understand where and why things were failing. Hopefully this guide helps you to backport not only Ruby, but any Ubuntu/Debian package between different releases !</p>
-
-<p>If you have problems and questions, please leave a comment :)</p>
 ]]></content>
   </entry>
   

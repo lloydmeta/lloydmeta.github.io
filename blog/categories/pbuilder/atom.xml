@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Pbuilder | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/pbuilder/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Backporting Ruby From Trusty to Oneiric]]></title>
     <link href="https://beachape.com/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric/"/>
-    <updated>2014-01-14T22:35:00+09:00</updated>
+    <updated>2014-01-14T22:35:00+00:00</updated>
     <id>https://beachape.com/blog/2014/01/14/backporting-ruby-from-trusty-to-oneiric</id>
     <content type="html"><![CDATA[<h2 id="goal">Goal</h2>
 <p>Create a backported Ruby 1.9.3p484 Ubuntu package. For the purposes of this post, we will assume that you are OK with not creating a signed package (required if uploading to launchpad). If you wish to upload to launchpad (for example to share your backport with the world), it may be useful for you to <a href="http://opensourcehacker.com/2013/03/20/how-to-backport-packages-on-ubuntu-linux/">check out this site</a> after reading through this guide.</p>

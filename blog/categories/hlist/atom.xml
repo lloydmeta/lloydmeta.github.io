@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Hlist | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/hlist/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2022-12-25T18:32:11+09:00</updated>
+  <updated>2024-01-02T05:15:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[LabelledGeneric in Rust: What, Why, How?]]></title>
     <link href="https://beachape.com/blog/2017/03/04/labelledgeneric-in-rust-what-why-how/"/>
-    <updated>2017-03-04T12:23:00+09:00</updated>
+    <updated>2017-03-04T12:23:00+00:00</updated>
     <id>https://beachape.com/blog/2017/03/04/labelledgeneric-in-rust-what-why-how</id>
     <content type="html"><![CDATA[<p>What is <code>LabelledGeneric</code>? How does one encode type-level Strings in Rust? What is a labelled HList?</p>
 
@@ -408,7 +408,7 @@ type Repr = HList![ Field&lt;<em>ucu2764ufe0fuc</em>, usize&gt; ]
   <entry>
     <title type="html"><![CDATA[Rust Generic (Not Generics)]]></title>
     <link href="https://beachape.com/blog/2017/02/04/rust-generic-not-generics/"/>
-    <updated>2017-02-04T02:14:00+09:00</updated>
+    <updated>2017-02-04T02:14:00+00:00</updated>
     <id>https://beachape.com/blog/2017/02/04/rust-generic-not-generics</id>
     <content type="html"><![CDATA[<p>Have you ever wanted to convert <code>Hlist</code>s into Structs or to reuse logic across different types that are structurally identical or very similar (e.g. same data across different domains)? <code>Generic</code> can help you do that with minimal boilerplate.</p>
 
