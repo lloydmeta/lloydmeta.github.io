@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2024-01-02T12:43:51+00:00</updated>
+  <updated>2024-01-02T14:39:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -134,6 +134,7 @@
 <span class="line-number">57</span>
 <span class="line-number">58</span>
 <span class="line-number">59</span>
+<span class="line-number">60</span>
 </pre></td><td class="code"><pre><code class=""><span class="line">FROM ubuntu:22.04
 </span><span class="line">
 </span><span class="line"># System dependencies, including those required to install Ruby
@@ -178,7 +179,7 @@
 </span><span class="line">
 </span><span class="line"># Set permissions so blogger can install gems
 </span><span class="line">RUN sudo chown -Rv blogger:blogger /octopress
-</span><span class="line">RUN sudo chown -Rv blogger:blogger /usr/local/lib/ruby/gems
+</span><span class="line">RUN sudo chown -Rv blogger:blogger /usr/local/lib/ruby
 </span><span class="line">RUN sudo chown -Rv blogger:blogger /usr/local/bin
 </span><span class="line">
 </span><span class="line"># # Expose port 4000 so we can preview the blog
@@ -187,6 +188,7 @@
 </span><span class="line"># Add the Gemfile and install the gems
 </span><span class="line">ADD Gemfile /octopress/Gemfile
 </span><span class="line">ADD Gemfile.lock /octopress/Gemfile.lock
+</span><span class="line">RUN gem update --system 3.2.3
 </span><span class="line">RUN gem install bundler -v 2.3
 </span><span class="line">RUN bundle install
 </span><span class="line">
@@ -275,11 +277,15 @@
 <span class="line-number">3</span>
 <span class="line-number">4</span>
 <span class="line-number">5</span>
+<span class="line-number">6</span>
 </pre></td><td class="code"><pre><code class=""><span class="line"># Add the Gemfile and install the gems
 </span><span class="line">ADD Gemfile /octopress/Gemfile
 </span><span class="line">ADD Gemfile.lock /octopress/Gemfile.lock
+</span><span class="line">RUN gem update --system 3.2.3
 </span><span class="line">RUN gem install bundler -v 2.3
 </span><span class="line">RUN bundle install</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Compared with the reference article, we update Rubygems and lock down the bundler version. </p>
 
 <h2 id="rakefile">Rakefile</h2>
 

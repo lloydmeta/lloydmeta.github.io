@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Octopress | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/octopress/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2024-01-02T12:43:51+00:00</updated>
+  <updated>2024-01-02T14:39:08+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -134,7 +134,7 @@ WORKDIR /octopress</p>
 
 <h1 id="set-permissions-so-blogger-can-install-gems">Set permissions so blogger can install gems</h1>
 <p>RUN sudo chown -Rv blogger:blogger /octopress
-RUN sudo chown -Rv blogger:blogger /usr/local/lib/ruby/gems
+RUN sudo chown -Rv blogger:blogger /usr/local/lib/ruby
 RUN sudo chown -Rv blogger:blogger /usr/local/bin</p>
 
 <h1 id="expose-port-4000-so-we-can-preview-the-blog"># Expose port 4000 so we can preview the blog</h1>
@@ -143,6 +143,7 @@ RUN sudo chown -Rv blogger:blogger /usr/local/bin</p>
 <h1 id="add-the-gemfile-and-install-the-gems">Add the Gemfile and install the gems</h1>
 <p>ADD Gemfile /octopress/Gemfile
 ADD Gemfile.lock /octopress/Gemfile.lock
+RUN gem update –system 3.2.3
 RUN gem install bundler -v 2.3
 RUN bundle install</p>
 
@@ -207,9 +208,12 @@ RUN CC=/usr/bin/gcc-7 ruby-build 2.3.3 /usr/local
 # Add the Gemfile and install the gems
 ADD Gemfile /octopress/Gemfile
 ADD Gemfile.lock /octopress/Gemfile.lock
+RUN gem update --system 3.2.3
 RUN gem install bundler -v 2.3
 RUN bundle install
 </code></p>
+
+<p>Compared with the reference article, we update Rubygems and lock down the bundler version. </p>
 
 <h2 id="rakefile">Rakefile</h2>
 
