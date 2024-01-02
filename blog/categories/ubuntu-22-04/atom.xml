@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ubuntu 22.04 | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/ubuntu-22-04/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2024-01-02T12:39:25+00:00</updated>
+  <updated>2024-01-02T12:43:51+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -71,9 +71,12 @@
   <li><a href="https://github.com/rbenv/ruby-build">ruby-build</a></li>
 </ul>
 
-<p>I just updated some things here and there:
-* Ubuntu LTS 22.04
-* Rancher Desktop</p>
+<p>I just updated some things here and there:</p>
+
+<ul>
+  <li>Ubuntu LTS 22.04</li>
+  <li>Rancher Desktop</li>
+</ul>
 
 <h2 id="target-audience">Target audience</h2>
 
