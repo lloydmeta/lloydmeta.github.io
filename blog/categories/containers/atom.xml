@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Containers | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/containers/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2024-01-02T06:06:23+00:00</updated>
+  <updated>2024-01-02T12:14:20+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -43,7 +43,7 @@
   <li><a href="#expose-port-4000-so-we-can-preview-the-blog"># Expose port 4000 so we can preview the blog</a></li>
   <li><a href="#add-the-gemfile-and-install-the-gems">Add the Gemfile and install the gems</a></li>
   <li><a href="#git-config-file-because-octopress-pushes-using-git-but-we-might">Git config file because Octopress pushes using Git but we might</a>    <ul>
-      <li><a href="#ubuntu-1804-bionic-beaver">Ubuntu 18.04 (Bionic Beaver)</a></li>
+      <li><a href="#ubuntu-2004">Ubuntu 20.04</a></li>
       <li><a href="#installing-ruby-23">Installing Ruby 2.3</a></li>
     </ul>
   </li>
@@ -70,7 +70,7 @@
 </ul>
 
 <p>I just updated some things here and there:
-* Ubuntu LTS 18.04
+* Ubuntu LTS 20.04
 * Rancher Desktop</p>
 
 <h2 id="target-audience">Target audience</h2>
@@ -85,21 +85,22 @@
 <p>To start with the conclusion, here is the complete <code>Dockerfile</code> in the root dir of my Octopress 2.0 project</p>
 
 <p>```
-FROM ubuntu:18.04</p>
+FROM ubuntu:20.04</p>
 
 <h1 id="system-dependencies-including-those-required-to-install-ruby">System dependencies, including those required to install Ruby</h1>
-<p>RUN apt-get update -y &amp;&amp; apt-get -y install \
+<p>RUN apt-get update -y &amp;&amp; apt-get -y install software-properties-common
+RUN add-apt-repository -y ppa:rael-gc/rvm &amp;&amp; apt-get update -y &amp;&amp; apt-get -y install \
   sudo \
-  gcc make \
+  gcc-7 make \
   git \
   vim less \
   curl \
   build-essential \
   libreadline-dev \
   # We need this for Ruby 2.3
-  libssl1.0-dev \ 
+  libssl1.0-dev \
   zlib1g-dev \
-  python2.7 python-pip python-dev</p>
+  python2.7</p>
 
 <h1 id="install-ruby-build-and-ruby-23">Install ruby-build and Ruby 2.3</h1>
 <p>WORKDIR ~/
@@ -141,12 +142,12 @@ ADD .gitconfig /home/blogger/.gitconfig
 
 <p>I’ll go through the things that are <em>different</em> from the awesome article at <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a>. Whatever I don’t call out below should be taken as unchanged from that article, so use it as a reference.</p>
 
-<h3 id="ubuntu-1804-bionic-beaver">Ubuntu 18.04 (Bionic Beaver)</h3>
+<h3 id="ubuntu-2004">Ubuntu 20.04</h3>
 
-<p>The <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a> article uses Ubuntu but at version 16.04. I love Ubuntu and think it’s a great choice for an Octropess dev env, but since it’s Jan 2024, I wanted to use the latest Ubuntu LTS release, 18.04, instead (knowing full well that the next LTS is slated for release in a few months..). Hence</p>
+<p>The <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a> article uses Ubuntu but at version 16.04. I love Ubuntu and think it’s a great choice for an Octropess dev env, but since it’s Jan 2024, I wanted to use the latest Ubuntu LTS release with an easy GCC-7 (required for Ruby 2.3) install, 20.04, instead (knowing full well that the next LTS is slated for release in a few months..). Hence</p>
 
 <p><code>
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 </code></p>
 
 <p>That brought interesting challenges, mostly stemming from the fact that the default <code>apt-get install</code> for ruby would be too new for (my) Octopress installation’s dependencies.</p>
@@ -157,18 +158,19 @@ FROM ubuntu:18.04
 
 <p>```
 # System dependencies, including those required to install Ruby
-RUN apt-get update -y &amp;&amp; apt-get -y install \
+RUN apt-get update -y &amp;&amp; apt-get -y install software-properties-common
+RUN add-apt-repository -y ppa:rael-gc/rvm &amp;&amp; apt-get update -y &amp;&amp; apt-get -y install \
   sudo \
-  gcc make \
+  gcc-7 make \
   git \
   vim less \
   curl \
   build-essential \
   libreadline-dev \
   # We need this for Ruby 2.3
-  libssl1.0-dev \ 
+  libssl1.0-dev \
   zlib1g-dev \
-  python2.7 python-pip python-dev</p>
+  python2.7</p>
 
 <h1 id="install-ruby-build-and-ruby-23-1">Install ruby-build and Ruby 2.3</h1>
 <p>WORKDIR ~/

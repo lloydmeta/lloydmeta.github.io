@@ -176,7 +176,7 @@
   <li><a href="#references-vs-whats-new">References vs what’s new</a></li>
   <li><a href="#target-audience">Target audience</a></li>
   <li><a href="#dockerfile"><code>Dockerfile</code></a>    <ul>
-      <li><a href="#ubuntu-1804-bionic-beaver">Ubuntu 18.04 (Bionic Beaver)</a></li>
+      <li><a href="#ubuntu-2004">Ubuntu 20.04</a></li>
       <li><a href="#installing-ruby-23">Installing Ruby 2.3</a></li>
       <li><a href="#gemfilelock-file-for-project-dependencies">Gemfile.lock file for project dependencies</a></li>
     </ul>
@@ -200,7 +200,7 @@
 </ul>
 
 <p>I just updated some things here and there:
-* Ubuntu LTS 18.04
+* Ubuntu LTS 20.04
 * Rancher Desktop</p>
 
 <h2 id="target-audience">Target audience</h2>
@@ -266,21 +266,23 @@
 <span class="line-number">50</span>
 <span class="line-number">51</span>
 <span class="line-number">52</span>
-</pre></td><td class="code"><pre><code class=""><span class="line">FROM ubuntu:18.04
+<span class="line-number">53</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">FROM ubuntu:20.04
 </span><span class="line">
 </span><span class="line"># System dependencies, including those required to install Ruby
-</span><span class="line">RUN apt-get update -y &amp;&amp; apt-get -y install \
+</span><span class="line">RUN apt-get update -y &amp;&amp; apt-get -y install software-properties-common
+</span><span class="line">RUN add-apt-repository -y ppa:rael-gc/rvm &amp;&amp; apt-get update -y &amp;&amp; apt-get -y install \
 </span><span class="line">  sudo \
-</span><span class="line">  gcc make \
+</span><span class="line">  gcc-7 make \
 </span><span class="line">  git \
 </span><span class="line">  vim less \
 </span><span class="line">  curl \
 </span><span class="line">  build-essential \
 </span><span class="line">  libreadline-dev \
 </span><span class="line">  # We need this for Ruby 2.3
-</span><span class="line">  libssl1.0-dev \ 
+</span><span class="line">  libssl1.0-dev \
 </span><span class="line">  zlib1g-dev \
-</span><span class="line">  python2.7 python-pip python-dev
+</span><span class="line">  python2.7
 </span><span class="line">
 </span><span class="line"># Install ruby-build and Ruby 2.3
 </span><span class="line">WORKDIR ~/
@@ -321,12 +323,12 @@
 
 <p>I’ll go through the things that are <em>different</em> from the awesome article at <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a>. Whatever I don’t call out below should be taken as unchanged from that article, so use it as a reference.</p>
 
-<h3 id="ubuntu-1804-bionic-beaver">Ubuntu 18.04 (Bionic Beaver)</h3>
+<h3 id="ubuntu-2004">Ubuntu 20.04</h3>
 
-<p>The <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a> article uses Ubuntu but at version 16.04. I love Ubuntu and think it’s a great choice for an Octropess dev env, but since it’s Jan 2024, I wanted to use the latest Ubuntu LTS release, 18.04, instead (knowing full well that the next LTS is slated for release in a few months..). Hence</p>
+<p>The <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a> article uses Ubuntu but at version 16.04. I love Ubuntu and think it’s a great choice for an Octropess dev env, but since it’s Jan 2024, I wanted to use the latest Ubuntu LTS release with an easy GCC-7 (required for Ruby 2.3) install, 20.04, instead (knowing full well that the next LTS is slated for release in a few months..). Hence</p>
 
 <div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
-</pre></td><td class="code"><pre><code class=""><span class="line">FROM ubuntu:18.04</span></code></pre></td></tr></table></div></figure></notextile></div>
+</pre></td><td class="code"><pre><code class=""><span class="line">FROM ubuntu:20.04</span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>That brought interesting challenges, mostly stemming from the fact that the default <code>apt-get install</code> for ruby would be too new for (my) Octopress installation’s dependencies.</p>
 
@@ -354,19 +356,21 @@
 <span class="line-number">18</span>
 <span class="line-number">19</span>
 <span class="line-number">20</span>
+<span class="line-number">21</span>
 </pre></td><td class="code"><pre><code class=""><span class="line"># System dependencies, including those required to install Ruby
-</span><span class="line">RUN apt-get update -y &amp;&amp; apt-get -y install \
+</span><span class="line">RUN apt-get update -y &amp;&amp; apt-get -y install software-properties-common
+</span><span class="line">RUN add-apt-repository -y ppa:rael-gc/rvm &amp;&amp; apt-get update -y &amp;&amp; apt-get -y install \
 </span><span class="line">  sudo \
-</span><span class="line">  gcc make \
+</span><span class="line">  gcc-7 make \
 </span><span class="line">  git \
 </span><span class="line">  vim less \
 </span><span class="line">  curl \
 </span><span class="line">  build-essential \
 </span><span class="line">  libreadline-dev \
 </span><span class="line">  # We need this for Ruby 2.3
-</span><span class="line">  libssl1.0-dev \ 
+</span><span class="line">  libssl1.0-dev \
 </span><span class="line">  zlib1g-dev \
-</span><span class="line">  python2.7 python-pip python-dev
+</span><span class="line">  python2.7
 </span><span class="line">
 </span><span class="line"># Install ruby-build and Ruby 2.3
 </span><span class="line">WORKDIR ~/
@@ -466,7 +470,7 @@
 <span class="glyphicon glyphicon-tags"></span>&nbsp;
 <span class="categories">
   
-    <a class='category' href='/blog/categories/bionic-beaver/'>Bionic Beaver</a>, <a class='category' href='/blog/categories/octopress/'>Octopress</a>, <a class='category' href='/blog/categories/blogging/'>blogging</a>, <a class='category' href='/blog/categories/containers/'>containers</a>, <a class='category' href='/blog/categories/docker/'>docker</a>, <a class='category' href='/blog/categories/rancher/'>rancher</a>, <a class='category' href='/blog/categories/ruby/'>ruby</a>, <a class='category' href='/blog/categories/ruby-2-3/'>ruby 2.3</a>, <a class='category' href='/blog/categories/ubuntu/'>ubuntu</a>, <a class='category' href='/blog/categories/ubuntu-18-04/'>ubuntu 18.04</a>
+    <a class='category' href='/blog/categories/focal-fossa/'>Focal Fossa</a>, <a class='category' href='/blog/categories/octopress/'>Octopress</a>, <a class='category' href='/blog/categories/blogging/'>blogging</a>, <a class='category' href='/blog/categories/containers/'>containers</a>, <a class='category' href='/blog/categories/docker/'>docker</a>, <a class='category' href='/blog/categories/rancher/'>rancher</a>, <a class='category' href='/blog/categories/ruby/'>ruby</a>, <a class='category' href='/blog/categories/ruby-2-3/'>ruby 2.3</a>, <a class='category' href='/blog/categories/ubuntu/'>ubuntu</a>, <a class='category' href='/blog/categories/ubuntu-20-04/'>ubuntu 20.04</a>
   
 </span>
 
