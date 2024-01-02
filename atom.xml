@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2024-01-02T12:14:20+00:00</updated>
+  <updated>2024-01-02T12:39:25+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -34,7 +34,7 @@
   <li><a href="#references-vs-whats-new">References vs what’s new</a></li>
   <li><a href="#target-audience">Target audience</a></li>
   <li><a href="#dockerfile"><code>Dockerfile</code></a>    <ul>
-      <li><a href="#ubuntu-2004">Ubuntu 20.04</a></li>
+      <li><a href="#ubuntu-2204">Ubuntu 22.04</a></li>
       <li><a href="#installing-ruby-23">Installing Ruby 2.3</a></li>
       <li><a href="#gemfilelock-file-for-project-dependencies">Gemfile.lock file for project dependencies</a></li>
     </ul>
@@ -58,7 +58,7 @@
 </ul>
 
 <p>I just updated some things here and there:
-* Ubuntu LTS 20.04
+* Ubuntu LTS 22.04
 * Rancher Desktop</p>
 
 <h2 id="target-audience">Target audience</h2>
@@ -125,29 +125,41 @@
 <span class="line-number">51</span>
 <span class="line-number">52</span>
 <span class="line-number">53</span>
-</pre></td><td class="code"><pre><code class=""><span class="line">FROM ubuntu:20.04
+<span class="line-number">54</span>
+<span class="line-number">55</span>
+<span class="line-number">56</span>
+<span class="line-number">57</span>
+<span class="line-number">58</span>
+<span class="line-number">59</span>
+</pre></td><td class="code"><pre><code class=""><span class="line">FROM ubuntu:22.04
 </span><span class="line">
 </span><span class="line"># System dependencies, including those required to install Ruby
 </span><span class="line">RUN apt-get update -y &amp;&amp; apt-get -y install software-properties-common
 </span><span class="line">RUN add-apt-repository -y ppa:rael-gc/rvm &amp;&amp; apt-get update -y &amp;&amp; apt-get -y install \
 </span><span class="line">  sudo \
-</span><span class="line">  gcc-7 make \
+</span><span class="line">  make \
 </span><span class="line">  git \
 </span><span class="line">  vim less \
 </span><span class="line">  curl \
 </span><span class="line">  build-essential \
 </span><span class="line">  libreadline-dev \
-</span><span class="line">  # We need this for Ruby 2.3
 </span><span class="line">  libssl1.0-dev \
 </span><span class="line">  zlib1g-dev \
 </span><span class="line">  python2.7
 </span><span class="line">
-</span><span class="line"># Install ruby-build and Ruby 2.3
+</span><span class="line"># Install gcc-7 for Ruby 2.3 by adding and removing focal source
+</span><span class="line">RUN cp /etc/apt/sources.list /etc/apt/sources.list.bak
+</span><span class="line">RUN echo "deb [arch=amd64] http://archive.ubuntu.com/ubuntu focal main universe" &gt;&gt; /etc/apt/sources.list
+</span><span class="line">RUN apt-get update -y &amp;&amp; apt-get -y install g++-7
+</span><span class="line">RUN mv -f /etc/apt/sources.list.bak /etc/apt/sources.list
+</span><span class="line">RUN apt-get update -y
+</span><span class="line">
+</span><span class="line"># Install ruby-build &amp; ruby
 </span><span class="line">WORKDIR ~/
 </span><span class="line">RUN curl -L https://github.com/rbenv/ruby-build/archive/refs/tags/v20231225.tar.gz &gt; ruby-build.tar.gz
 </span><span class="line">RUN tar -xzf ruby-build.tar.gz 
 </span><span class="line">RUN PREFIX=/usr/local ./ruby-build-*/install.sh
-</span><span class="line">RUN ruby-build 2.3.3 /usr/local
+</span><span class="line">RUN CC=/usr/bin/gcc-7 ruby-build 2.3.3 /usr/local
 </span><span class="line">
 </span><span class="line"># Add blogger user so we don't use the root user and use it
 </span><span class="line">RUN adduser --disabled-password --gecos "" blogger &amp;&amp; \
@@ -181,12 +193,12 @@
 
 <p>I’ll go through the things that are <em>different</em> from the awesome article at <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a>. Whatever I don’t call out below should be taken as unchanged from that article, so use it as a reference.</p>
 
-<h3 id="ubuntu-2004">Ubuntu 20.04</h3>
+<h3 id="ubuntu-2204">Ubuntu 22.04</h3>
 
-<p>The <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a> article uses Ubuntu but at version 16.04. I love Ubuntu and think it’s a great choice for an Octropess dev env, but since it’s Jan 2024, I wanted to use the latest Ubuntu LTS release with an easy GCC-7 (required for Ruby 2.3) install, 20.04, instead (knowing full well that the next LTS is slated for release in a few months..). Hence</p>
+<p>The <a href="http://pappanyn.me/blog/2017/04/12/octopress-in-a-docker-container/">Octopress in a Docker Container</a> article uses Ubuntu but at version 16.04. I love Ubuntu and think it’s a great choice for an Octropess dev env, but since it’s Jan 2024, I wanted to use the latest Ubuntu LTS release (required for Ruby 2.3) install, 22.04, instead (knowing full well that the next LTS is slated for release in a few months..). Hence</p>
 
 <div class="bogus-wrapper"><notextile><figure class="code"><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
-</pre></td><td class="code"><pre><code class=""><span class="line">FROM ubuntu:20.04</span></code></pre></td></tr></table></div></figure></notextile></div>
+</pre></td><td class="code"><pre><code class=""><span class="line">FROM ubuntu:22.04</span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>That brought interesting challenges, mostly stemming from the fact that the default <code>apt-get install</code> for ruby would be too new for (my) Octopress installation’s dependencies.</p>
 
@@ -215,27 +227,41 @@
 <span class="line-number">19</span>
 <span class="line-number">20</span>
 <span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
 </pre></td><td class="code"><pre><code class=""><span class="line"># System dependencies, including those required to install Ruby
 </span><span class="line">RUN apt-get update -y &amp;&amp; apt-get -y install software-properties-common
 </span><span class="line">RUN add-apt-repository -y ppa:rael-gc/rvm &amp;&amp; apt-get update -y &amp;&amp; apt-get -y install \
 </span><span class="line">  sudo \
-</span><span class="line">  gcc-7 make \
+</span><span class="line">  make \
 </span><span class="line">  git \
 </span><span class="line">  vim less \
 </span><span class="line">  curl \
 </span><span class="line">  build-essential \
 </span><span class="line">  libreadline-dev \
-</span><span class="line">  # We need this for Ruby 2.3
 </span><span class="line">  libssl1.0-dev \
 </span><span class="line">  zlib1g-dev \
 </span><span class="line">  python2.7
 </span><span class="line">
-</span><span class="line"># Install ruby-build and Ruby 2.3
+</span><span class="line"># Install gcc-7 for Ruby 2.3 by adding and removing focal source
+</span><span class="line">RUN cp /etc/apt/sources.list /etc/apt/sources.list.bak
+</span><span class="line">RUN echo "deb [arch=amd64] http://archive.ubuntu.com/ubuntu focal main universe" &gt;&gt; /etc/apt/sources.list
+</span><span class="line">RUN apt-get update -y &amp;&amp; apt-get -y install g++-7
+</span><span class="line">RUN mv -f /etc/apt/sources.list.bak /etc/apt/sources.list
+</span><span class="line">RUN apt-get update -y
+</span><span class="line">
+</span><span class="line"># Install ruby-build &amp; ruby
 </span><span class="line">WORKDIR ~/
 </span><span class="line">RUN curl -L https://github.com/rbenv/ruby-build/archive/refs/tags/v20231225.tar.gz &gt; ruby-build.tar.gz
 </span><span class="line">RUN tar -xzf ruby-build.tar.gz 
 </span><span class="line">RUN PREFIX=/usr/local ./ruby-build-*/install.sh
-</span><span class="line">RUN ruby-build 2.3.3 /usr/local</span></code></pre></td></tr></table></div></figure></notextile></div>
+</span><span class="line">RUN CC=/usr/bin/gcc-7 ruby-build 2.3.3 /usr/local</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>The main thing here was installing libssl1.0-dev (I used the RVM PPA), and installing GCC-7 (otherwise I got segfaults using Ruby).</p>
 
 <h3 id="gemfilelock-file-for-project-dependencies">Gemfile.lock file for project dependencies</h3>
 
