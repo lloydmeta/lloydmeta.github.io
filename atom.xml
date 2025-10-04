@@ -4,7 +4,7 @@
   <title><![CDATA[BeachApe.]]></title>
   <link href="https://beachape.com/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2024-01-02T14:39:08+00:00</updated>
+  <updated>2025-10-04T14:23:26+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -12,6 +12,409 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Porting InstaBeach to Rust: A 10-Year-Old Play App Goes Serverless]]></title>
+    <link href="https://beachape.com/blog/2025/10/04/porting-instabeach-to-rust-a-10-year-old-play-app-goes-serverless/"/>
+    <updated>2025-10-04T06:12:00+00:00</updated>
+    <id>https://beachape.com/blog/2025/10/04/porting-instabeach-to-rust-a-10-year-old-play-app-goes-serverless</id>
+    <content type="html"><![CDATA[<p>The Japanese yen’s exchange rate took a nosedive this year, and my monthly cloud costs for running a tiny beach recommendation site ballooned from “I can ignore this” to “this is getting silly”.  <a href="https://instabeach.io">instabeach.io</a><sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>, a site I built a decade ago to help my wife and me find beach destinations based on weather and travel dates, was running on a Kubernetes cluster that started to cost more and more per month.  Time for a change.</p>
+
+<p><img class="center" src="https://beachape.com/images/instabeach-io-rs.png" title="'Instabeach share card'" /></p>
+
+<!-- more -->
+
+<h2 class="no_toc" id="overview">Overview</h2>
+<ul id="markdown-toc">
+  <li><a href="#the-origin-story">The origin story</a></li>
+  <li><a href="#the-deployment-journey">The deployment journey</a>    <ul>
+      <li><a href="#then-the--crashed">Then the ¥ crashed</a></li>
+    </ul>
+  </li>
+  <li><a href="#why-rust-and-lambda">Why Rust and Lambda?</a></li>
+  <li><a href="#engineering-decisions-and-tradeoffs">Engineering decisions and tradeoffs</a>    <ul>
+      <li><a href="#cargo-lambda-one-web-app-not-many-functions">Cargo Lambda: one web app, not many functions</a></li>
+      <li><a href="#no-database-csv-driven-codegen">No database: CSV-driven codegen</a></li>
+      <li><a href="#rust-embed-no-s3-no-problems">rust-embed: no S3, no problems</a></li>
+      <li><a href="#heavy-caching-and-rate-limiting-at-the-cdn">Heavy caching and rate limiting at the CDN</a></li>
+      <li><a href="#terraform-and-terraform-local-for-deployment">Terraform and terraform-local for deployment</a></li>
+      <li><a href="#the-compilation-time-tradeoff">The compilation time tradeoff</a></li>
+    </ul>
+  </li>
+  <li><a href="#results-and-reflections">Results and reflections</a></li>
+</ul>
+
+<h2 id="the-origin-story">The origin story</h2>
+
+<p>Before having kids and the pandemic, my wife and I loved going on beach holidays every year.  The problem was finding the perfect beach for us given a specific timeframe, our preferred temperature range, and some rough understanding of wet and dry seasons.  Searching through travel blogs and weather sites was tedious, so I did what any reasonable software engineer would do: I spent far more time building a solution than I would have spent doing the manual research.</p>
+
+<p>I wrote InstaBeach in Scala using the Play Framework because I genuinely love the language.  Play made it easy to build a clean MVC application with reasonable performance.  The site worked well, and I was happy with it.</p>
+
+<h2 id="the-deployment-journey">The deployment journey</h2>
+
+<p>The app’s deployment history mirrors the evolution of cloud platforms and my own curiosity:</p>
+
+<ol>
+  <li><strong>Heroku (2015-2018)</strong>: Initially deployed to Heroku because it was free and dead simple.  Git push, and you’re done.  This was perfect for a side project that maybe five people used (mostly me).</li>
+  <li><strong>Docker Swarm on AWS (2018-2020)</strong>: Around when Heroku killed their free tier, I moved to a 3-node Docker Swarm cluster on AWS.  This didn’t save me any money, but I got more compute and control for the same-ish cost, though it required more maintenance.  Still, it was cheap enough that I didn’t think about it much, especially since I already was running several side projects at this time on it.</li>
+  <li><strong>GCP Kubernetes (2020-2025)</strong>: I wanted to learn k8s properly, so I migrated to GKE, which was cheap-ish at the time. Plus it allowed me to avoid thinking about how to maintain my Docker Swarm cluster (<a href="https://github.com/moby/swarmkit/issues/1429">which had issues I found out about over time…</a>)</li>
+</ol>
+
+<h3 id="then-the--crashed">Then the ¥ crashed</h3>
+
+<p>Then 2024 happened.  The Japanese yen went from around ¥110 to the dollar to ¥150+<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>. For a side project that generates zero revenue and gets minimal traffic, this got absurd.</p>
+
+<p>I wasn’t maintaining the k8s cluster well anyway.  Security patches were piling up, I had outdated Scala dependencies, and the whole thing felt like technical debt that was actively costing me money.  Plus, this year I finally allowed myself to upgrade from my iPhone X since it was no longer getting OS nor proper app updates, so I decided to rethink the architecture and try to save some $$.</p>
+
+<h2 id="why-rust-and-lambda">Why Rust and Lambda?</h2>
+
+<p>I wanted to move to AWS Lambda for one simple reason: the generous free tier<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>.  Lambda gives you 1 million free requests per month and 400,000 GB-seconds of compute time.  For a low-traffic site like InstaBeach, this meant potentially zero ongoing costs.</p>
+
+<p>But Lambda has a problem: cold starts.  When a function hasn’t been invoked recently, AWS has to spin up a new environment, load your code, and initialise the runtime.  This can add hundreds of milliseconds or even seconds to your response time<sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup>.</p>
+
+<p>Rust solves this.  Compiled Rust binaries have the fastest cold start times of any Lambda runtime<sup id="fnref:5"><a href="#fn:5" rel="footnote">5</a></sup>, typically 20-50ms.  Combined with excellent runtime performance, Rust lets you maximise the free tier while keeping response times snappy. Plus, it doesn’t hurt that I’ve been a fan for years, and <a href="https://www.arewewebyet.org">Rust is web</a>.</p>
+
+<h2 id="engineering-decisions-and-tradeoffs">Engineering decisions and tradeoffs</h2>
+
+<p>Porting InstaBeach to Rust wasn’t just a matter of translation.  I made several architectural decisions to optimise for Lambda’s constraints and the free tier.</p>
+
+<h3 id="cargo-lambda-one-web-app-not-many-functions">Cargo Lambda: one web app, not many functions</h3>
+
+<p>Instead of splitting the application into multiple Lambda functions (one per endpoint), I used <a href="https://www.cargo-lambda.info">cargo lambda</a><sup id="fnref:6"><a href="#fn:6" rel="footnote">6</a></sup> to deploy a single <a href="https://github.com/tokio-rs/axum">Axum</a> web application.  This lets me write normal web application code with routing, middleware, and all the conveniences of a web framework, while still deploying to Lambda.</p>
+
+<p>Here’s how the main entry point looks:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">use</span> <span class="n">instabeach</span><span class="o">::</span><span class="n">create_app</span><span class="p">;</span>
+</span><span class="line"><span class="k">use</span> <span class="n">lambda_http</span><span class="o">::</span><span class="p">{</span><span class="n">run</span><span class="p">,</span> <span class="n">Error</span><span class="p">};</span>
+</span><span class="line"><span class="k">use</span> <span class="n">std</span><span class="o">::</span><span class="n">env</span><span class="p">;</span>
+</span><span class="line"><span class="k">use</span> <span class="n">tracing</span><span class="o">::</span><span class="n">info</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="cp">#[tokio::main]</span>
+</span><span class="line"><span class="n">async</span> <span class="k">fn</span> <span class="n">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="o">&lt;</span><span class="p">(),</span> <span class="n">Error</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class="line">    <span class="c1">// If you use API Gateway stages or Lambda Function URLs, the Rust Runtime will include stage info</span>
+</span><span class="line">    <span class="c1">// as part of the path that your application receives.</span>
+</span><span class="line">    <span class="c1">// Setting the following environment variable removes the stage from the path.</span>
+</span><span class="line">    <span class="c1">// i.e with: `GET /test-stage/assets/css/main.css` without: `GET /assets/css/main.css`</span>
+</span><span class="line">    <span class="n">env</span><span class="o">::</span><span class="n">set_var</span><span class="p">(</span><span class="s">&quot;AWS_LAMBDA_HTTP_IGNORE_STAGE_IN_PATH&quot;</span><span class="p">,</span> <span class="s">&quot;true&quot;</span><span class="p">);</span>
+</span><span class="line">
+</span><span class="line">    <span class="n">tracing_subscriber</span><span class="o">::</span><span class="n">fmt</span><span class="p">()</span>
+</span><span class="line">        <span class="p">.</span><span class="n">with_target</span><span class="p">(</span><span class="k">false</span><span class="p">)</span>
+</span><span class="line">        <span class="p">.</span><span class="n">without_time</span><span class="p">()</span>
+</span><span class="line">        <span class="p">.</span><span class="n">init</span><span class="p">();</span>
+</span><span class="line">
+</span><span class="line">    <span class="k">let</span> <span class="n">app</span> <span class="o">=</span> <span class="n">create_app</span><span class="p">().</span><span class="n">await</span><span class="o">?</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line">    <span class="n">info</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;Starting InstaBeach Lambda function&quot;</span><span class="p">);</span>
+</span><span class="line">    <span class="n">run</span><span class="p">(</span><span class="n">app</span><span class="p">).</span><span class="n">await</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>The <code>create_app()</code> function returns an Axum router with all the endpoints configured.  Cargo Lambda handles the integration with the Lambda runtime, and I can test the whole thing locally with <code>cargo lambda watch</code> on port 9000.</p>
+
+<h3 id="no-database-csv-driven-codegen">No database: CSV-driven codegen</h3>
+
+<p>Databases add complexity and cost.  Even serverless options like DynamoDB have charges for read/write capacity.  For InstaBeach, the data is essentially static: beach destinations, their locations, temperature ranges, and wet/dry seasons.</p>
+
+<p>Instead of a database, I use a CSV file as the source of truth.  At build time, a code generation script reads the CSV and generates Rust structs with all the destination data embedded directly into the binary.  This gives me an in-memory “database” with zero runtime I/O and zero ongoing costs.</p>
+
+<p>From a CSV like this</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="n">id</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">country</span><span class="p">,</span><span class="n">airport_code</span><span class="p">,</span><span class="n">image_path</span><span class="p">,</span><span class="n">jan_season</span><span class="p">,</span><span class="n">feb_season</span><span class="p">,</span><span class="n">mar_season</span><span class="p">,</span><span class="n">apr_season</span><span class="p">,</span><span class="n">may_season</span><span class="p">,</span><span class="n">jun_season</span><span class="p">,</span><span class="n">jul_season</span><span class="p">,</span><span class="n">aug_season</span><span class="p">,</span><span class="n">sep_season</span><span class="p">,</span><span class="n">oct_season</span><span class="p">,</span><span class="n">nov_season</span><span class="p">,</span><span class="n">dec_season</span><span class="p">,</span><span class="n">jan_min_temp</span><span class="p">,</span><span class="n">jan_max_temp</span><span class="p">,</span><span class="n">feb_min_temp</span><span class="p">,</span><span class="n">feb_max_temp</span><span class="p">,</span><span class="n">mar_min_temp</span><span class="p">,</span><span class="n">mar_max_temp</span><span class="p">,</span><span class="n">apr_min_temp</span><span class="p">,</span><span class="n">apr_max_temp</span><span class="p">,</span><span class="n">may_min_temp</span><span class="p">,</span><span class="n">may_max_temp</span><span class="p">,</span><span class="n">jun_min_temp</span><span class="p">,</span><span class="n">jun_max_temp</span><span class="p">,</span><span class="n">jul_min_temp</span><span class="p">,</span><span class="n">jul_max_temp</span><span class="p">,</span><span class="n">aug_min_temp</span><span class="p">,</span><span class="n">aug_max_temp</span><span class="p">,</span><span class="n">sep_min_temp</span><span class="p">,</span><span class="n">sep_max_temp</span><span class="p">,</span><span class="n">oct_min_temp</span><span class="p">,</span><span class="n">oct_max_temp</span><span class="p">,</span><span class="n">nov_min_temp</span><span class="p">,</span><span class="n">nov_max_temp</span><span class="p">,</span><span class="n">dec_min_temp</span><span class="p">,</span><span class="n">dec_max_temp</span><span class="p">,</span><span class="n">info_link</span><span class="p">,</span><span class="n">image_author</span><span class="p">,</span><span class="n">image_url</span>
+</span><span class="line"><span class="n">bali</span><span class="p">,</span><span class="n">Bali</span><span class="p">,</span><span class="n">Indonesia</span><span class="p">,</span><span class="n">DPS</span><span class="p">,</span><span class="n">destinations</span><span class="o">/</span><span class="n">bali</span><span class="p">.</span><span class="n">jpg</span><span class="p">,</span><span class="n">Wet</span><span class="p">,</span><span class="n">Wet</span><span class="p">,</span><span class="n">Wet</span><span class="p">,</span><span class="n">Dry</span><span class="p">,...,</span><span class="n">Lloyd</span><span class="p">,</span><span class="n">https</span><span class="o">:</span><span class="c1">//beachape.com</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Here’s a snippet from the generated destination data:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="n">Destination</span> <span class="p">{</span>
+</span><span class="line">    <span class="n">id</span><span class="o">:</span> <span class="s">&quot;bali&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+</span><span class="line">    <span class="n">name</span><span class="o">:</span> <span class="s">&quot;Bali&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+</span><span class="line">    <span class="n">country</span><span class="o">:</span> <span class="n">Country</span><span class="o">::</span><span class="n">ID</span><span class="p">,</span>
+</span><span class="line">    <span class="n">airport_code</span><span class="o">:</span> <span class="n">AirportCode</span><span class="o">::</span><span class="n">DPS</span><span class="p">,</span>
+</span><span class="line">    <span class="n">season_ranges</span><span class="o">:</span> <span class="n">SeasonRanges</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">jan</span><span class="o">:</span> <span class="n">Season</span><span class="o">::</span><span class="n">Wet</span><span class="p">,</span>
+</span><span class="line">        <span class="n">feb</span><span class="o">:</span> <span class="n">Season</span><span class="o">::</span><span class="n">Wet</span><span class="p">,</span>
+</span><span class="line">        <span class="n">mar</span><span class="o">:</span> <span class="n">Season</span><span class="o">::</span><span class="n">Wet</span><span class="p">,</span>
+</span><span class="line">        <span class="n">apr</span><span class="o">:</span> <span class="n">Season</span><span class="o">::</span><span class="n">Dry</span><span class="p">,</span>
+</span><span class="line">        <span class="c1">// ... more months</span>
+</span><span class="line">    <span class="p">},</span>
+</span><span class="line">    <span class="n">monthly_temp_averages</span><span class="o">:</span> <span class="n">MonthlyTemperatureAverages</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">jan</span><span class="o">:</span> <span class="n">TemperatureRange</span><span class="o">::</span><span class="n">new</span><span class="p">(</span><span class="m">25.0</span><span class="p">,</span> <span class="m">30.0</span><span class="p">),</span>
+</span><span class="line">        <span class="n">feb</span><span class="o">:</span> <span class="n">TemperatureRange</span><span class="o">::</span><span class="n">new</span><span class="p">(</span><span class="m">25.0</span><span class="p">,</span> <span class="m">30.0</span><span class="p">),</span>
+</span><span class="line">        <span class="c1">// ... more months</span>
+</span><span class="line">    <span class="p">},</span>
+</span><span class="line">    <span class="n">image</span><span class="o">:</span> <span class="n">Image</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">path</span><span class="o">:</span> <span class="s">&quot;destinations/bali.jpg&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+</span><span class="line">        <span class="n">is_packaged</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span>
+</span><span class="line">        <span class="n">credit</span><span class="o">:</span> <span class="n">Some</span><span class="p">(</span><span class="n">Credit</span> <span class="p">{</span>
+</span><span class="line">            <span class="n">name</span><span class="o">:</span> <span class="s">&quot;Bali&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+</span><span class="line">            <span class="n">author</span><span class="o">:</span> <span class="s">&quot;Lloyd&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span>
+</span><span class="line">            <span class="n">kind</span><span class="o">:</span> <span class="n">AttributionType</span><span class="o">::</span><span class="n">Image</span><span class="p">,</span>
+</span><span class="line">            <span class="n">url</span><span class="o">:</span> <span class="n">Some</span><span class="p">(</span><span class="s">&quot;https://beachape.com&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">()),</span>
+</span><span class="line">        <span class="p">}),</span>
+</span><span class="line">    <span class="p">},</span>
+</span><span class="line">    <span class="n">info_link</span><span class="o">:</span> <span class="n">None</span><span class="p">,</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>The entire dataset compiles into the binary, and lookups are just array iterations or hash map lookups in memory.  Fast, simple, and free.</p>
+
+<h3 id="rust-embed-no-s3-no-problems">rust-embed: no S3, no problems</h3>
+
+<p>Most serverless applications store static assets (CSS, JavaScript, images) in S3 and serve them through some CDN.  This makes sense for large applications, but adds complexity and cost.</p>
+
+<p>Instead, I use <a href="https://docs.rs/rust-embed">rust-embed</a> to embed all static assets directly into the binary at compile time.  Here’s how the asset handler looks:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+</pre></td><td class="code"><pre><code class="rust"><span class="line"><span class="k">use</span> <span class="n">rust_embed</span><span class="o">::</span><span class="n">RustEmbed</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">/// Embedded assets using rust-embed</span>
+</span><span class="line"><span class="c1">/// All assets are embedded at compile time automatically</span>
+</span><span class="line"><span class="cp">#[derive(RustEmbed)]</span>
+</span><span class="line"><span class="cp">#[folder = </span><span class="s">&quot;src/assets/&quot;</span><span class="cp">]</span>
+</span><span class="line"><span class="n">struct</span> <span class="n">Assets</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line"><span class="c1">/// Handler for serving static assets</span>
+</span><span class="line"><span class="n">pub</span> <span class="n">async</span> <span class="k">fn</span> <span class="n">serve_asset</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">asset_path</span><span class="p">)</span><span class="o">:</span> <span class="n">Path</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="o">&lt;</span><span class="n">Response</span><span class="p">,</span> <span class="n">AppError</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class="line">    <span class="k">if</span> <span class="k">let</span> <span class="n">Some</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">=</span> <span class="n">Assets</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="o">&amp;</span><span class="n">asset_path</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="line">        <span class="k">let</span> <span class="n">mime_type</span> <span class="o">=</span> <span class="n">get_mime_type</span><span class="p">(</span><span class="o">&amp;</span><span class="n">asset_path</span><span class="p">);</span>
+</span><span class="line">        <span class="k">let</span> <span class="n">body</span> <span class="o">=</span> <span class="n">content</span><span class="p">.</span><span class="n">data</span><span class="p">;</span>
+</span><span class="line">
+</span><span class="line">        <span class="n">Ok</span><span class="p">(</span><span class="n">Response</span><span class="o">::</span><span class="n">builder</span><span class="p">()</span>
+</span><span class="line">            <span class="p">.</span><span class="n">status</span><span class="p">(</span><span class="n">StatusCode</span><span class="o">::</span><span class="n">OK</span><span class="p">)</span>
+</span><span class="line">            <span class="p">.</span><span class="n">header</span><span class="p">(</span><span class="n">header</span><span class="o">::</span><span class="n">CONTENT_TYPE</span><span class="p">,</span> <span class="n">mime_type</span><span class="p">)</span>
+</span><span class="line">            <span class="p">.</span><span class="n">header</span><span class="p">(</span><span class="n">header</span><span class="o">::</span><span class="n">CACHE_CONTROL</span><span class="p">,</span> <span class="s">&quot;public, max-age=31536000, immutable&quot;</span><span class="p">)</span>
+</span><span class="line">            <span class="p">.</span><span class="n">header</span><span class="p">(</span><span class="n">header</span><span class="o">::</span><span class="n">CONTENT_LENGTH</span><span class="p">,</span> <span class="n">body</span><span class="p">.</span><span class="n">len</span><span class="p">())</span>
+</span><span class="line">            <span class="p">.</span><span class="n">body</span><span class="p">(</span><span class="n">body</span><span class="p">.</span><span class="n">into</span><span class="p">())</span>
+</span><span class="line">            <span class="p">.</span><span class="n">unwrap</span><span class="p">())</span>
+</span><span class="line">    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class="line">        <span class="n">Err</span><span class="p">(</span><span class="n">AppError</span><span class="o">::</span><span class="n">not_found</span><span class="p">(</span><span class="n">format</span><span class="o">!</span><span class="p">(</span>
+</span><span class="line">            <span class="s">&quot;Asset {} not found&quot;</span><span class="p">,</span>
+</span><span class="line">            <span class="n">asset_path</span>
+</span><span class="line">        <span class="p">)))</span>
+</span><span class="line">    <span class="p">}</span>
+</span><span class="line"><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>In release builds, <code>Assets::get()</code> returns the file contents from the embedded binary.  In development, it reads from the filesystem.  This saves S3 costs and reduces the number of moving parts in production.</p>
+
+<p>The tradeoff is a larger binary size.  The InstaBeach binary is about 93MB, which exceeds Lambda’s 50MB direct upload limit.  But that’s fine—we can upload via S3 during deployment, and the binary still fits well within Lambda’s 250MB limit.</p>
+
+<h3 id="heavy-caching-and-rate-limiting-at-the-cdn">Heavy caching and rate limiting at the CDN</h3>
+
+<p>To minimise Lambda invocations and prevent abuse, I rely heavily on Cloudflare caching and rate limiting (also <a href="https://developers.cloudflare.com/cache/plans/">free</a>).  Static assets are cached for a year (they’re immutable anyway), and API responses are cached for 5 minutes.</p>
+
+<p>This means most requests never hit Lambda at all.  They’re served directly from Cloudflare’s edge locations, which is both faster for users and cheaper for me.</p>
+
+<h3 id="terraform-and-terraform-local-for-deployment">Terraform and terraform-local for deployment</h3>
+
+<p>Infrastructure is managed with <a href="https://www.terraform.io/">Terraform</a>.  The Terraform configuration defines the Lambda function, IAM roles, Cloudflare configuration, and DNS records.</p>
+
+<p>For local testing, I use <a href="https://github.com/localstack/terraform-local">tflocal</a> with <a href="https://www.localstack.cloud/">LocalStack</a>.  This lets me deploy and test the entire infrastructure locally without touching AWS.  It’s brilliant for fast iteration:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line"><span class="c"># Start LocalStack and provision it</span>
+</span><span class="line">make start_dev_env provision_dev_env
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>The Terraform module for the Lambda function handles building the Rust binary, uploading to S3, and creating the function using <a href="https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function">aws_lambda_function</a>:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+<span class="line-number">2</span>
+<span class="line-number">3</span>
+<span class="line-number">4</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span>
+<span class="line-number">7</span>
+<span class="line-number">8</span>
+<span class="line-number">9</span>
+<span class="line-number">10</span>
+<span class="line-number">11</span>
+<span class="line-number">12</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span>
+<span class="line-number">15</span>
+<span class="line-number">16</span>
+<span class="line-number">17</span>
+<span class="line-number">18</span>
+<span class="line-number">19</span>
+<span class="line-number">20</span>
+<span class="line-number">21</span>
+<span class="line-number">22</span>
+<span class="line-number">23</span>
+<span class="line-number">24</span>
+<span class="line-number">25</span>
+<span class="line-number">26</span>
+<span class="line-number">27</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span>
+<span class="line-number">30</span>
+<span class="line-number">31</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line">resource <span class="s2">&quot;aws_s3_object&quot;</span> <span class="s2">&quot;lambda_zip&quot;</span> <span class="o">{</span>
+</span><span class="line">  <span class="nv">bucket</span> <span class="o">=</span> var.deployment_bucket
+</span><span class="line">  <span class="nv">key</span>    <span class="o">=</span> <span class="s2">&quot;${var.function_name}/bootstrap-${local.code_hash}.zip&quot;</span>
+</span><span class="line">  <span class="c"># Use different paths for different architectures and build modes</span>
+</span><span class="line">  <span class="nb">source</span> <span class="o">=</span> local.lambda_zip_path
+</span><span class="line">
+</span><span class="line">  <span class="nv">depends_on</span> <span class="o">=</span> <span class="o">[</span>null_resource.rust_build<span class="o">]</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">
+</span><span class="line">resource <span class="s2">&quot;null_resource&quot;</span> <span class="s2">&quot;rust_build&quot;</span> <span class="o">{</span>
+</span><span class="line">  <span class="nv">triggers</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class="line">    <span class="nv">code_diff</span> <span class="o">=</span> local.code_hash
+</span><span class="line">  <span class="o">}</span>
+</span><span class="line">
+</span><span class="line">  provisioner <span class="s2">&quot;local-exec&quot;</span> <span class="o">{</span>
+</span><span class="line">    <span class="nv">working_dir</span> <span class="o">=</span> var.rust_src_path
+</span><span class="line">    <span class="nb">command</span> <span class="o">=</span> join<span class="o">(</span><span class="s2">&quot; &quot;</span>, <span class="o">[</span>
+</span><span class="line">      <span class="s2">&quot;cargo lambda build&quot;</span>,
+</span><span class="line">      var.build_mode <span class="o">==</span> <span class="s2">&quot;release&quot;</span> ? <span class="s2">&quot;--release&quot;</span> : <span class="s2">&quot;&quot;</span>,
+</span><span class="line">      var.architecture <span class="o">==</span> <span class="s2">&quot;x86_64&quot;</span> ? <span class="s2">&quot;--x86-64&quot;</span> : <span class="s2">&quot;--arm64&quot;</span>,
+</span><span class="line">      <span class="s2">&quot;--output-format zip&quot;</span>
+</span><span class="line">    <span class="o">])</span>
+</span><span class="line">  <span class="o">}</span>
+</span><span class="line"><span class="o">}</span>
+</span><span class="line">
+</span><span class="line">// Somewhere <span class="k">else</span>
+</span><span class="line">
+</span><span class="line">output <span class="s2">&quot;lambda_function_url&quot;</span> <span class="o">{</span>
+</span><span class="line">  <span class="nv">value</span> <span class="o">=</span> aws_lambda_function_url.this.function_url
+</span><span class="line"><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>Nothing crazy, and most of the code is visible at <a href="https://github.com/lloydmeta/miniaturs/tree/main/terraform/modules/lambda_rust">miniatu-rs</a>.</p>
+
+<h3 id="the-compilation-time-tradeoff">The compilation time tradeoff</h3>
+
+<p>The big disadvantage of this approach is compilation time.  A release build of the Rust binary takes over 30 minutes on my machine.  This is painful during development, but the tradeoff is worth it:</p>
+
+<ul>
+  <li>Zero ongoing costs (within the free tier)</li>
+  <li>Fast cold starts (&lt;2 seconds)</li>
+  <li>No database or S3 to manage</li>
+  <li>Simple deployment and rollback</li>
+</ul>
+
+<p>During development, I use <code>cargo lambda watch</code> for fast iteration with debug builds, which compile in under a minute.  Release builds are only for testing in LocalStack and actual production deployments.</p>
+
+<h2 id="results-and-reflections">Results and reflections</h2>
+
+<p>The migration was successful.  InstaBeach now runs entirely within AWS Lambda’s free tier, costing me nothing per month.  Cold starts are fast enough that I highly doubt anyone can notice, and it feels snappier to me™.</p>
+
+<p>The Rust ecosystem for web development has matured significantly.  Axum is a joy to work with, cargo lambda makes Lambda deployment trivial, and crates like rust-embed and Askama (for compile-time templates) provide excellent ergonomics.</p>
+
+<p>Would I recommend this approach for every application?  Probably not.  If you have a database, frequent deployments, or need sub-second cold starts, you might need a different architecture.  But for small, static-ish applications with low traffic, the combination of Rust and Lambda’s free tier is hard to beat.</p>
+
+<p>And my monthly cloud bill?  Zero yen, zero pounds, zero dollars.  Just the way I like it.</p>
+
+<h4 class="no_toc" id="footnotes">Footnotes</h4>
+
+<div class="footnotes">
+  <ol>
+    <li id="fn:1">
+      <p>It’s really just a very simple calculator for finding beach locations.<a href="#fnref:1" rel="reference">&#8617;</a></p>
+    </li>
+    <li id="fn:2">
+      <p>And yes, I know that other countries have had it worse. But just look at this <a href="https://www.xe.com/currencycharts/?from=USD&amp;to=JPY">USD to JPY Exchange Rate History</a><a href="#fnref:2" rel="reference">&#8617;</a></p>
+    </li>
+    <li id="fn:3">
+      <p>AWS says Lambda will always have a free tier (“This always free service is on the Free and Paid plan.”) <a href="https://aws.amazon.com/pm/lambda/">AWS Lambda</a><a href="#fnref:3" rel="reference">&#8617;</a></p>
+    </li>
+    <li id="fn:4">
+      <p>Quite a lot goes into AWS Lambda cold starts, but a high level understanding of the lifecycle can be found at <a href="https://aws.amazon.com/blogs/compute/understanding-and-remediating-cold-starts-an-aws-lambda-perspective/">Understanding AWS Lambda Cold Starts</a><a href="#fnref:4" rel="reference">&#8617;</a></p>
+    </li>
+    <li id="fn:5">
+      <p>Rust is number 1 according to  <a href="https://filia-aleks.medium.com/aws-lambda-battle-2021-performance-comparison-for-all-languages-c1b441005fd1">AWS Lambda Cold Start Performance Comparison</a><a href="#fnref:5" rel="reference">&#8617;</a></p>
+    </li>
+    <li id="fn:6">
+      <p>I already used it and loved it from a previous project, <a href="https://github.com/lloydmeta/miniaturs">miniatu-rs</a><a href="#fnref:6" rel="reference">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Containerising an Octopress 2.0 Blog]]></title>
@@ -135,6 +538,12 @@
 <span class="line-number">58</span>
 <span class="line-number">59</span>
 <span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
 </pre></td><td class="code"><pre><code class=""><span class="line">FROM ubuntu:22.04
 </span><span class="line">
 </span><span class="line"># System dependencies, including those required to install Ruby
@@ -164,6 +573,12 @@
 </span><span class="line">RUN tar -xzf ruby-build.tar.gz 
 </span><span class="line">RUN PREFIX=/usr/local ./ruby-build-*/install.sh
 </span><span class="line">RUN CC=/usr/bin/gcc-7 ruby-build 2.3.3 /usr/local
+</span><span class="line">
+</span><span class="line"># I'm using an ancient version of Octopress, which requires
+</span><span class="line"># an ancient version of Pygments, which requires an ancient
+</span><span class="line"># version of Python.
+</span><span class="line">ENV PATH="/usr/bin:$PATH"
+</span><span class="line">RUN ln -sf /usr/bin/python2.7 /usr/bin/python
 </span><span class="line">
 </span><span class="line"># Add blogger user so we don't use the root user and use it
 </span><span class="line">RUN adduser --disabled-password --gecos "" blogger &amp;&amp; \
@@ -6249,28 +6664,6 @@ exactly the same. This means we can’t just use the normal <code>LabelledGeneri
 <p>Relevant links:
 - <a href="https://github.com/lloydmeta/schwatcher">Github page with how to install and example usage</a>
 - <a href="https://github.com/lloydmeta/schwatcher/releases/tag/v0.1.3">Release page</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Schwatcher v0.1.0 Released]]></title>
-    <link href="https://beachape.com/blog/2014/03/06/schwatcher-v0-dot-1-0-released/"/>
-    <updated>2014-03-06T21:45:00+00:00</updated>
-    <id>https://beachape.com/blog/2014/03/06/schwatcher-v0-dot-1-0-released</id>
-    <content type="html"><![CDATA[<p>Version 0.1.0 of Schwatcher has been released.</p>
-
-<p>Changes:</p>
-
-<ul>
-  <li>Thanks to <a href="https://github.com/lloydmeta/schwatcher/pull/31">this pull request</a> from <a href="https://github.com/georgeOsdDev">georgeOsdDev</a>, modifiers can be used when registering callbacks</li>
-  <li>Upgrade to 2.3.0 of Akka</li>
-</ul>
-
-<p>Relevent info:</p>
-
-<ul>
-  <li><a href="https://github.com/lloydmeta/schwatcher">Schwatcher Github repo</a></li>
-</ul>
 ]]></content>
   </entry>
   

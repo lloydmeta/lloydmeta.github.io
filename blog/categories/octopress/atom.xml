@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Octopress | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/octopress/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2024-01-02T14:39:08+00:00</updated>
+  <updated>2025-10-04T14:23:26+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -37,6 +37,7 @@
   <li><a href="#system-dependencies-including-those-required-to-install-ruby">System dependencies, including those required to install Ruby</a></li>
   <li><a href="#install-gcc-7-for-ruby-23-by-adding-and-removing-focal-source">Install gcc-7 for Ruby 2.3 by adding and removing focal source</a></li>
   <li><a href="#install-ruby-build--ruby">Install ruby-build &amp; ruby</a></li>
+  <li><a href="#im-using-an-ancient-version-of-octopress-which-requires">I’m using an ancient version of Octopress, which requires</a></li>
   <li><a href="#add-blogger-user-so-we-dont-use-the-root-user-and-use-it">Add blogger user so we don’t use the root user and use it</a></li>
   <li><a href="#initialise-ruby-encording">Initialise ruby encording</a></li>
   <li><a href="#directory-for-the-blog-files">Directory for the blog files</a></li>
@@ -119,6 +120,12 @@ RUN curl -L https://github.com/rbenv/ruby-build/archive/refs/tags/v20231225.tar.
 RUN tar -xzf ruby-build.tar.gz 
 RUN PREFIX=/usr/local ./ruby-build-*/install.sh
 RUN CC=/usr/bin/gcc-7 ruby-build 2.3.3 /usr/local</p>
+
+<h1 id="im-using-an-ancient-version-of-octopress-which-requires">I’m using an ancient version of Octopress, which requires</h1>
+<p># an ancient version of Pygments, which requires an ancient
+# version of Python.
+ENV PATH=”/usr/bin:$PATH”
+RUN ln -sf /usr/bin/python2.7 /usr/bin/python</p>
 
 <h1 id="add-blogger-user-so-we-dont-use-the-root-user-and-use-it">Add blogger user so we don’t use the root user and use it</h1>
 <p>RUN adduser –disabled-password –gecos “” blogger &amp;&amp; \

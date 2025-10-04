@@ -277,6 +277,12 @@
 <span class="line-number">58</span>
 <span class="line-number">59</span>
 <span class="line-number">60</span>
+<span class="line-number">61</span>
+<span class="line-number">62</span>
+<span class="line-number">63</span>
+<span class="line-number">64</span>
+<span class="line-number">65</span>
+<span class="line-number">66</span>
 </pre></td><td class="code"><pre><code class=""><span class="line">FROM ubuntu:22.04
 </span><span class="line">
 </span><span class="line"># System dependencies, including those required to install Ruby
@@ -306,6 +312,12 @@
 </span><span class="line">RUN tar -xzf ruby-build.tar.gz 
 </span><span class="line">RUN PREFIX=/usr/local ./ruby-build-*/install.sh
 </span><span class="line">RUN CC=/usr/bin/gcc-7 ruby-build 2.3.3 /usr/local
+</span><span class="line">
+</span><span class="line"># I'm using an ancient version of Octopress, which requires
+</span><span class="line"># an ancient version of Pygments, which requires an ancient
+</span><span class="line"># version of Python.
+</span><span class="line">ENV PATH="/usr/bin:$PATH"
+</span><span class="line">RUN ln -sf /usr/bin/python2.7 /usr/bin/python
 </span><span class="line">
 </span><span class="line"># Add blogger user so we don't use the root user and use it
 </span><span class="line">RUN adduser --disabled-password --gecos "" blogger &amp;&amp; \
@@ -533,6 +545,8 @@
             <li class="previous"><a href="/blog/2021/05/25/structural-typing-in-rust/" title="Previous Post: Structural typing in Rust">&laquo; Structural typing in Rust</a></li>
             
             
+            <li class="next"><a href="/blog/2025/10/04/porting-instabeach-to-rust-a-10-year-old-play-app-goes-serverless/" title="Next Post: Porting InstaBeach to Rust: A 10-Year-Old Play App Goes Serverless">Porting InstaBeach to Rust: A 10-Year-Old Play App Goes Serverless &raquo;</a></li>
+            
           </ul>
         
       </footer>
@@ -556,6 +570,8 @@
   
   <div id="recent_posts" class="list-group">
     
+    <a class="list-group-item " href="/blog/2025/10/04/porting-instabeach-to-rust-a-10-year-old-play-app-goes-serverless/">Porting InstaBeach to Rust: A 10-Year-Old Play App Goes Serverless</a>
+    
     <a class="list-group-item active" href="/blog/2024/01/01/containerising-an-octopress-2-dot-0-blog/">Containerising an Octopress 2.0 Blog</a>
     
     <a class="list-group-item " href="/blog/2021/05/25/structural-typing-in-rust/">Structural Typing in Rust</a>
@@ -563,8 +579,6 @@
     <a class="list-group-item " href="/blog/2017/05/24/rust-from-scala/">Rust: A Scala Engineer's Perspective</a>
     
     <a class="list-group-item " href="/blog/2017/04/12/boilerplate-free-struct-transforms-in-rust/">Boilerplate-free Struct Transforms in Rust.</a>
-    
-    <a class="list-group-item " href="/blog/2017/03/12/gentle-intro-to-type-level-recursion-in-Rust-from-zero-to-frunk-hlist-sculpting/">Gentle Intro to Type-level Recursion in Rust: From Zero to HList Sculpting.</a>
     
   </div>
 </section>
@@ -630,7 +644,7 @@
     </div>
     <footer role="contentinfo"><div class="container">
     <p class="text-muted credits">
-  Copyright &copy; 2024 - Lloyd<br>
+  Copyright &copy; 2025 - Lloyd<br>
   <small>
       <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>,
       <span class="credit">customized with <a href="https://github.com/kAworu/octostrap3">octostrap3</a></span>.

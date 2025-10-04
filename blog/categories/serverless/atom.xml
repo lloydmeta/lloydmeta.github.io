@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Serverless | BeachApe.]]></title>
+  <link href="https://beachape.com/blog/categories/serverless/atom.xml" rel="self"/>
+  <link href="https://beachape.com/"/>
+  <updated>2025-10-04T14:23:26+00:00</updated>
+  <id>https://beachape.com/</id>
+  <author>
+    <name><![CDATA[Lloyd]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Porting InstaBeach to Rust: A 10-Year-Old Play App Goes Serverless]]></title>
+    <link href="https://beachape.com/blog/2025/10/04/porting-instabeach-to-rust-a-10-year-old-play-app-goes-serverless/"/>
+    <updated>2025-10-04T06:12:00+00:00</updated>
+    <id>https://beachape.com/blog/2025/10/04/porting-instabeach-to-rust-a-10-year-old-play-app-goes-serverless</id>
+    <content type="html"><![CDATA[<p>The Japanese yen’s exchange rate took a nosedive this year, and my monthly cloud costs for running a tiny beach recommendation site ballooned from “I can ignore this” to “this is getting silly”.  <a href="https://instabeach.io">instabeach.io</a><sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>, a site I built a decade ago to help my wife and me find beach destinations based on weather and travel dates, was running on a Kubernetes cluster that started to cost more and more per month.  Time for a change.</p>
+
+<p><img class="center" src="/images/instabeach-io-rs.png" title="‘Instabeach share card’" ></p>
+
+<!-- more -->
+
+<h2 class="no_toc" id="overview">Overview</h2>
+<ul id="markdown-toc">
+  <li><a href="#the-origin-story">The origin story</a></li>
+  <li><a href="#the-deployment-journey">The deployment journey</a>    <ul>
+      <li><a href="#then-the--crashed">Then the ¥ crashed</a></li>
+    </ul>
+  </li>
+  <li><a href="#why-rust-and-lambda">Why Rust and Lambda?</a></li>
+  <li><a href="#engineering-decisions-and-tradeoffs">Engineering decisions and tradeoffs</a>    <ul>
+      <li><a href="#cargo-lambda-one-web-app-not-many-functions">Cargo Lambda: one web app, not many functions</a></li>
+    </ul>
+  </li>
+  <li><a href="#tokiomain">[tokio::main]</a>    <ul>
+      <li><a href="#no-database-csv-driven-codegen">No database: CSV-driven codegen</a></li>
+      <li><a href="#rust-embed-no-s3-no-problems">rust-embed: no S3, no problems</a></li>
+      <li><a href="#heavy-caching-and-rate-limiting-at-the-cdn">Heavy caching and rate limiting at the CDN</a></li>
+      <li><a href="#terraform-and-terraform-local-for-deployment">Terraform and terraform-local for deployment</a></li>
+      <li><a href="#the-compilation-time-tradeoff">The compilation time tradeoff</a></li>
+      <li><a href="#results-and-reflections">Results and reflections</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="the-origin-story">The origin story</h2>
+
+<p>Before having kids and the pandemic, my wife and I loved going on beach holidays every year.  The problem was finding the perfect beach for us given a specific timeframe, our preferred temperature range, and some rough understanding of wet and dry seasons.  Searching through travel blogs and weather sites was tedious, so I did what any reasonable software engineer would do: I spent far more time building a solution than I would have spent doing the manual research.</p>
+
+<p>I wrote InstaBeach in Scala using the Play Framework because I genuinely love the language.  Play made it easy to build a clean MVC application with reasonable performance.  The site worked well, and I was happy with it.</p>
+
+<h2 id="the-deployment-journey">The deployment journey</h2>
+
+<p>The app’s deployment history mirrors the evolution of cloud platforms and my own curiosity:</p>
+
+<ol>
+  <li><strong>Heroku (2015-2018)</strong>: Initially deployed to Heroku because it was free and dead simple.  Git push, and you’re done.  This was perfect for a side project that maybe five people used (mostly me).</li>
+  <li><strong>Docker Swarm on AWS (2018-2020)</strong>: Around when Heroku killed their free tier, I moved to a 3-node Docker Swarm cluster on AWS.  This didn’t save me any money, but I got more compute and control for the same-ish cost, though it required more maintenance.  Still, it was cheap enough that I didn’t think about it much, especially since I already was running several side projects at this time on it.</li>
+  <li><strong>GCP Kubernetes (2020-2025)</strong>: I wanted to learn k8s properly, so I migrated to GKE, which was cheap-ish at the time. Plus it allowed me to avoid thinking about how to maintain my Docker Swarm cluster (<a href="https://github.com/moby/swarmkit/issues/1429">which had issues I found out about over time…</a>)</li>
+</ol>
+
+<h3 id="then-the--crashed">Then the ¥ crashed</h3>
+
+<p>Then 2024 happened.  The Japanese yen went from around ¥110 to the dollar to ¥150+<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>. For a side project that generates zero revenue and gets minimal traffic, this got absurd.</p>
+
+<p>I wasn’t maintaining the k8s cluster well anyway.  Security patches were piling up, I had outdated Scala dependencies, and the whole thing felt like technical debt that was actively costing me money.  Plus, this year I finally allowed myself to upgrade from my iPhone X since it was no longer getting OS nor proper app updates, so I decided to rethink the architecture and try to save some $$.</p>
+
+<h2 id="why-rust-and-lambda">Why Rust and Lambda?</h2>
+
+<p>I wanted to move to AWS Lambda for one simple reason: the generous free tier<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>.  Lambda gives you 1 million free requests per month and 400,000 GB-seconds of compute time.  For a low-traffic site like InstaBeach, this meant potentially zero ongoing costs.</p>
+
+<p>But Lambda has a problem: cold starts.  When a function hasn’t been invoked recently, AWS has to spin up a new environment, load your code, and initialise the runtime.  This can add hundreds of milliseconds or even seconds to your response time<sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup>.</p>
+
+<p>Rust solves this.  Compiled Rust binaries have the fastest cold start times of any Lambda runtime<sup id="fnref:5"><a href="#fn:5" rel="footnote">5</a></sup>, typically 20-50ms.  Combined with excellent runtime performance, Rust lets you maximise the free tier while keeping response times snappy. Plus, it doesn’t hurt that I’ve been a fan for years, and <a href="https://www.arewewebyet.org">Rust is web</a>.</p>
+
+<h2 id="engineering-decisions-and-tradeoffs">Engineering decisions and tradeoffs</h2>
+
+<p>Porting InstaBeach to Rust wasn’t just a matter of translation.  I made several architectural decisions to optimise for Lambda’s constraints and the free tier.</p>
+
+<h3 id="cargo-lambda-one-web-app-not-many-functions">Cargo Lambda: one web app, not many functions</h3>
+
+<p>Instead of splitting the application into multiple Lambda functions (one per endpoint), I used <a href="https://www.cargo-lambda.info">cargo lambda</a><sup id="fnref:6"><a href="#fn:6" rel="footnote">6</a></sup> to deploy a single <a href="https://github.com/tokio-rs/axum">Axum</a> web application.  This lets me write normal web application code with routing, middleware, and all the conveniences of a web framework, while still deploying to Lambda.</p>
+
+<p>Here’s how the main entry point looks:</p>
+
+<p>```rust
+use instabeach::create_app;
+use lambda_http::{run, Error};
+use std::env;
+use tracing::info;</p>
+
+<h1 id="tokiomain">[tokio::main]</h1>
+<p>async fn main() -&gt; Result&lt;(), Error&gt; {
+    // If you use API Gateway stages or Lambda Function URLs, the Rust Runtime will include stage info
+    // as part of the path that your application receives.
+    // Setting the following environment variable removes the stage from the path.
+    // i.e with: <code>GET /test-stage/assets/css/main.css</code> without: <code>GET /assets/css/main.css</code>
+    env::set_var(“AWS_LAMBDA_HTTP_IGNORE_STAGE_IN_PATH”, “true”);</p>
+
+<pre><code>tracing_subscriber::fmt()
+    .with_target(false)
+    .without_time()
+    .init();
+
+let app = create_app().await?;
+
+info!("Starting InstaBeach Lambda function");
+run(app).await } ```
+</code></pre>
+
+<p>The <code>create_app()</code> function returns an Axum router with all the endpoints configured.  Cargo Lambda handles the integration with the Lambda runtime, and I can test the whole thing locally with <code>cargo lambda watch</code> on port 9000.</p>
+
+<h3 id="no-database-csv-driven-codegen">No database: CSV-driven codegen</h3>
+
+<p>Databases add complexity and cost.  Even serverless options like DynamoDB have charges for read/write capacity.  For InstaBeach, the data is essentially static: beach destinations, their locations, temperature ranges, and wet/dry seasons.</p>
+
+<p>Instead of a database, I use a CSV file as the source of truth.  At build time, a code generation script reads the CSV and generates Rust structs with all the destination data embedded directly into the binary.  This gives me an in-memory “database” with zero runtime I/O and zero ongoing costs.</p>
+
+<p>From a CSV like this</p>
+
+<p><code>
+id,name,country,airport_code,image_path,jan_season,feb_season,mar_season,apr_season,may_season,jun_season,jul_season,aug_season,sep_season,oct_season,nov_season,dec_season,jan_min_temp,jan_max_temp,feb_min_temp,feb_max_temp,mar_min_temp,mar_max_temp,apr_min_temp,apr_max_temp,may_min_temp,may_max_temp,jun_min_temp,jun_max_temp,jul_min_temp,jul_max_temp,aug_min_temp,aug_max_temp,sep_min_temp,sep_max_temp,oct_min_temp,oct_max_temp,nov_min_temp,nov_max_temp,dec_min_temp,dec_max_temp,info_link,image_author,image_url
+bali,Bali,Indonesia,DPS,destinations/bali.jpg,Wet,Wet,Wet,Dry,...,Lloyd,https://beachape.com
+</code></p>
+
+<p>Here’s a snippet from the generated destination data:</p>
+
+<p><code>rust
+Destination {
+    id: "bali".to_string(),
+    name: "Bali".to_string(),
+    country: Country::ID,
+    airport_code: AirportCode::DPS,
+    season_ranges: SeasonRanges {
+        jan: Season::Wet,
+        feb: Season::Wet,
+        mar: Season::Wet,
+        apr: Season::Dry,
+        // ... more months
+    },
+    monthly_temp_averages: MonthlyTemperatureAverages {
+        jan: TemperatureRange::new(25.0, 30.0),
+        feb: TemperatureRange::new(25.0, 30.0),
+        // ... more months
+    },
+    image: Image {
+        path: "destinations/bali.jpg".to_string(),
+        is_packaged: true,
+        credit: Some(Credit {
+            name: "Bali".to_string(),
+            author: "Lloyd".to_string(),
+            kind: AttributionType::Image,
+            url: Some("https://beachape.com".to_string()),
+        }),
+    },
+    info_link: None,
+}
+</code></p>
+
+<p>The entire dataset compiles into the binary, and lookups are just array iterations or hash map lookups in memory.  Fast, simple, and free.</p>
+
+<h3 id="rust-embed-no-s3-no-problems">rust-embed: no S3, no problems</h3>
+
+<p>Most serverless applications store static assets (CSS, JavaScript, images) in S3 and serve them through some CDN.  This makes sense for large applications, but adds complexity and cost.</p>
+
+<p>Instead, I use <a href="https://docs.rs/rust-embed">rust-embed</a> to embed all static assets directly into the binary at compile time.  Here’s how the asset handler looks:</p>
+
+<p>```rust
+use rust_embed::RustEmbed;</p>
+
+<p>/// Embedded assets using rust-embed
+/// All assets are embedded at compile time automatically
+#[derive(RustEmbed)]
+#[folder = “src/assets/”]
+struct Assets;</p>
+
+<p>/// Handler for serving static assets
+pub async fn serve_asset(Path(asset_path): Path<string>) -&gt; Result&lt;Response, AppError&gt; {
+    if let Some(content) = Assets::get(&amp;asset_path) {
+        let mime_type = get_mime_type(&amp;asset_path);
+        let body = content.data;</string></p>
+
+<pre><code>    Ok(Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, mime_type)
+        .header(header::CACHE_CONTROL, "public, max-age=31536000, immutable")
+        .header(header::CONTENT_LENGTH, body.len())
+        .body(body.into())
+        .unwrap())
+} else {
+    Err(AppError::not_found(format!(
+        "Asset {} not found",
+        asset_path
+    )))
+} } ```
+</code></pre>
+
+<p>In release builds, <code>Assets::get()</code> returns the file contents from the embedded binary.  In development, it reads from the filesystem.  This saves S3 costs and reduces the number of moving parts in production.</p>
+
+<p>The tradeoff is a larger binary size.  The InstaBeach binary is about 93MB, which exceeds Lambda’s 50MB direct upload limit.  But that’s fine—we can upload via S3 during deployment, and the binary still fits well within Lambda’s 250MB limit.</p>
+
+<h3 id="heavy-caching-and-rate-limiting-at-the-cdn">Heavy caching and rate limiting at the CDN</h3>
+
+<p>To minimise Lambda invocations and prevent abuse, I rely heavily on Cloudflare caching and rate limiting (also <a href="https://developers.cloudflare.com/cache/plans/">free</a>).  Static assets are cached for a year (they’re immutable anyway), and API responses are cached for 5 minutes.</p>
+
+<p>This means most requests never hit Lambda at all.  They’re served directly from Cloudflare’s edge locations, which is both faster for users and cheaper for me.</p>
+
+<h3 id="terraform-and-terraform-local-for-deployment">Terraform and terraform-local for deployment</h3>
+
+<p>Infrastructure is managed with <a href="https://www.terraform.io/">Terraform</a>.  The Terraform configuration defines the Lambda function, IAM roles, Cloudflare configuration, and DNS records.</p>
+
+<p>For local testing, I use <a href="https://github.com/localstack/terraform-local">tflocal</a> with <a href="https://www.localstack.cloud/">LocalStack</a>.  This lets me deploy and test the entire infrastructure locally without touching AWS.  It’s brilliant for fast iteration:</p>
+
+<p><code>bash
+# Start LocalStack and provision it
+make start_dev_env provision_dev_env
+</code></p>
+
+<p>The Terraform module for the Lambda function handles building the Rust binary, uploading to S3, and creating the function using <a href="https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function">aws_lambda_function</a>:</p>
+
+<p>```
+resource “aws_s3_object” “lambda_zip” {
+  bucket = var.deployment_bucket
+  key    = “${var.function_name}/bootstrap-${local.code_hash}.zip”
+  # Use different paths for different architectures and build modes
+  source = local.lambda_zip_path</p>
+
+<p>depends_on = [null_resource.rust_build]
+}</p>
+
+<p>resource “null_resource” “rust_build” {
+  triggers = {
+    code_diff = local.code_hash
+  }</p>
+
+<p>provisioner “local-exec” {
+    working_dir = var.rust_src_path
+    command = join(“ “, [
+      “cargo lambda build”,
+      var.build_mode == “release” ? “–release” : “”,
+      var.architecture == “x86_64” ? “–x86-64” : “–arm64”,
+      “–output-format zip”
+    ])
+  }
+}</p>
+
+<p>// Somewhere else</p>
+
+<p>output “lambda_function_url” {
+  value = aws_lambda_function_url.this.function_url
+}
+```</p>
+
+<p>Nothing crazy, and most of the code is visible at <a href="https://github.com/lloydmeta/miniaturs/tree/main/terraform/modules/lambda_rust">miniatu-rs</a>.</p>
+
+<h3 id="the-compilation-time-tradeoff">The compilation time tradeoff</h3>
+
+<p>The big disadvantage of this approach is compilation time.  A release build of the Rust binary takes over 30 minutes on my machine.  This is painful during development, but the tradeoff is worth it:</p>
+
+<ul>
+  <li>Zero ongoing costs (within the free tier)</li>
+  <li>Fast cold starts (&lt;2 seconds)</li>
+  <li>No database or S3 to manage</li>
+  <li>Simple deployment and rollback</li>
+</ul>
+
+<p>During development, I use <code>cargo lambda watch</code> for fast iteration with debug builds, which compile in under a minute.  Release builds are only for testing in LocalStack and actual production deployments.</p>
+
+<h2 id="results-and-reflections">Results and reflections</h2>
+
+<p>The migration was successful.  InstaBeach now runs entirely within AWS Lambda’s free tier, costing me nothing per month.  Cold starts are fast enough that I highly doubt anyone can notice, and it feels snappier to me™.</p>
+
+<p>The Rust ecosystem for web development has matured significantly.  Axum is a joy to work with, cargo lambda makes Lambda deployment trivial, and crates like rust-embed and Askama (for compile-time templates) provide excellent ergonomics.</p>
+
+<p>Would I recommend this approach for every application?  Probably not.  If you have a database, frequent deployments, or need sub-second cold starts, you might need a different architecture.  But for small, static-ish applications with low traffic, the combination of Rust and Lambda’s free tier is hard to beat.</p>
+
+<p>And my monthly cloud bill?  Zero yen, zero pounds, zero dollars.  Just the way I like it.</p>
+
+<h4 class="no_toc" id="footnotes">Footnotes</h4>
+
+<div class="footnotes">
+  <ol>
+    <li id="fn:1">
+      <p>It’s really just a very simple calculator for finding beach locations.<a href="#fnref:1" rel="reference">&#8617;</a></p>
+    </li>
+    <li id="fn:2">
+      <p>And yes, I know that other countries have had it worse. But just look at this <a href="https://www.xe.com/currencycharts/?from=USD&amp;to=JPY">USD to JPY Exchange Rate History</a><a href="#fnref:2" rel="reference">&#8617;</a></p>
+    </li>
+    <li id="fn:3">
+      <p>AWS says Lambda will always have a free tier (“This always free service is on the Free and Paid plan.”) <a href="https://aws.amazon.com/pm/lambda/">AWS Lambda</a><a href="#fnref:3" rel="reference">&#8617;</a></p>
+    </li>
+    <li id="fn:4">
+      <p>Quite a lot goes into AWS Lambda cold starts, but a high level understanding of the lifecycle can be found at <a href="https://aws.amazon.com/blogs/compute/understanding-and-remediating-cold-starts-an-aws-lambda-perspective/">Understanding AWS Lambda Cold Starts</a><a href="#fnref:4" rel="reference">&#8617;</a></p>
+    </li>
+    <li id="fn:5">
+      <p>Rust is number 1 according to  <a href="https://filia-aleks.medium.com/aws-lambda-battle-2021-performance-comparison-for-all-languages-c1b441005fd1">AWS Lambda Cold Start Performance Comparison</a><a href="#fnref:5" rel="reference">&#8617;</a></p>
+    </li>
+    <li id="fn:6">
+      <p>I already used it and loved it from a previous project, <a href="https://github.com/lloydmeta/miniaturs">miniatu-rs</a><a href="#fnref:6" rel="reference">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+]]></content>
+  </entry>
+  
+</feed>
