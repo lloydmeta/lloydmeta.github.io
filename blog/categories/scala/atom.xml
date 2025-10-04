@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Scala | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/scala/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2025-10-04T14:28:16+00:00</updated>
+  <updated>2025-10-04T14:54:23+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -276,7 +276,7 @@ resource “aws_s3_object” “lambda_zip” {
 
 <p>The Rust ecosystem for web development has matured significantly.  Axum is a joy to work with, cargo lambda makes Lambda deployment trivial, and crates like rust-embed and Askama (for compile-time templates) provide excellent ergonomics.</p>
 
-<p>Would I recommend this approach for every application?  Probably not.  If you have a database, frequent deployments, or need sub-second cold starts, you might need a different architecture.  But for small, static-ish applications with low traffic, the combination of Rust and Lambda’s free tier is hard to beat.</p>
+<p>Would I recommend this approach for every application?  Probably not.  If you have a database, frequent deployments, or need sub-<code>X</code>ms cold starts, you might need a different architecture.  But for small, static-ish applications with low traffic, the combination of Rust and Lambda’s free tier is hard to beat.</p>
 
 <p>And my monthly cloud bill?  Zero yen, zero pounds, zero dollars.  Just the way I like it.</p>
 
