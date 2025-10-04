@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Rust | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/rust/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2025-10-04T14:23:26+00:00</updated>
+  <updated>2025-10-04T14:28:16+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -28,7 +28,7 @@
 <ul id="markdown-toc">
   <li><a href="#the-origin-story">The origin story</a></li>
   <li><a href="#the-deployment-journey">The deployment journey</a>    <ul>
-      <li><a href="#then-the--crashed">Then the ¥ crashed</a></li>
+      <li><a href="#then-the--">Then the ¥ 📉</a></li>
     </ul>
   </li>
   <li><a href="#why-rust-and-lambda">Why Rust and Lambda?</a></li>
@@ -63,11 +63,11 @@
   <li><strong>GCP Kubernetes (2020-2025)</strong>: I wanted to learn k8s properly, so I migrated to GKE, which was cheap-ish at the time. Plus it allowed me to avoid thinking about how to maintain my Docker Swarm cluster (<a href="https://github.com/moby/swarmkit/issues/1429">which had issues I found out about over time…</a>)</li>
 </ol>
 
-<h3 id="then-the--crashed">Then the ¥ crashed</h3>
+<h3 id="then-the--">Then the ¥ 📉</h3>
 
-<p>Then 2024 happened.  The Japanese yen went from around ¥110 to the dollar to ¥150+<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>. For a side project that generates zero revenue and gets minimal traffic, this got absurd.</p>
+<p>Then 2022 happened.  The Japanese yen went from around ¥110 to the dollar to ¥150+<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>. For a side project that generates zero revenue and gets minimal traffic, this got absurd. I waited for a while to see if it would go back, but today it still sits at around ¥147.</p>
 
-<p>I wasn’t maintaining the k8s cluster well anyway.  Security patches were piling up, I had outdated Scala dependencies, and the whole thing felt like technical debt that was actively costing me money.  Plus, this year I finally allowed myself to upgrade from my iPhone X since it was no longer getting OS nor proper app updates, so I decided to rethink the architecture and try to save some $$.</p>
+<p>Plus, I wasn’t maintaining the k8s cluster well anyway.  Security patches were piling up, I had outdated Scala dependencies, and the whole thing felt like technical debt that was actively costing me money.  Plus, this year I finally allowed myself to upgrade from my iPhone X since it was no longer getting OS nor proper app updates, so I decided to rethink the architecture and try to save some $$.</p>
 
 <h2 id="why-rust-and-lambda">Why Rust and Lambda?</h2>
 
@@ -288,7 +288,7 @@ resource “aws_s3_object” “lambda_zip” {
       <p>It’s really just a very simple calculator for finding beach locations.<a href="#fnref:1" rel="reference">&#8617;</a></p>
     </li>
     <li id="fn:2">
-      <p>And yes, I know that other countries have had it worse. But just look at this <a href="https://www.xe.com/currencycharts/?from=USD&amp;to=JPY">USD to JPY Exchange Rate History</a><a href="#fnref:2" rel="reference">&#8617;</a></p>
+      <p>And yes, I know that other countries have had it worse. But just look at this <a href="https://www.xe.com/currencycharts/?from=USD&amp;to=JPY&amp;view=10Y">USD to JPY Exchange Rate History</a><a href="#fnref:2" rel="reference">&#8617;</a></p>
     </li>
     <li id="fn:3">
       <p>AWS says Lambda will always have a free tier (“This always free service is on the Free and Paid plan.”) <a href="https://aws.amazon.com/pm/lambda/">AWS Lambda</a><a href="#fnref:3" rel="reference">&#8617;</a></p>
