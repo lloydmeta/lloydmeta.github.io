@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Cargo-lambda | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/cargo-lambda/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2025-10-04T16:46:04+00:00</updated>
+  <updated>2025-10-04T16:47:59+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -259,7 +259,7 @@ resource “aws_s3_object” “lambda_zip” {
 
 <h3 id="the-compilation-time-tradeoff">The compilation time tradeoff</h3>
 
-<p>The big disadvantage of this approach is compilation time.  A release build of the Rust binary takes over 30 minutes on my machine.  This is painful during development, but the tradeoff is worth it:</p>
+<p>The big disadvantage of this approach is compilation time.  A release build of the Rust binary takes over 30 minutes on my machine <sup id="fnref:7"><a href="#fn:7" rel="footnote">7</a></sup>.  This is painful during development, but the tradeoff is worth it:</p>
 
 <ul>
   <li>Zero ongoing costs (within the free tier)</li>
@@ -301,6 +301,9 @@ resource “aws_s3_object” “lambda_zip” {
     </li>
     <li id="fn:6">
       <p>I already used it and loved it from a previous project, <a href="https://github.com/lloydmeta/miniaturs">miniatu-rs</a><a href="#fnref:6" rel="reference">&#8617;</a></p>
+    </li>
+    <li id="fn:7">
+      <p>There might be multiple reasons why the compile is slow, including: me cross compiling for ARM on my old x86 Mac, using rust-embed, and <a href="https://www.cargo-lambda.info/guide/release-optimizations.html">cargo lambda’s default release build settings</a> like <code>codegen-units=1</code><a href="#fnref:7" rel="reference">&#8617;</a></p>
     </li>
   </ol>
 </div>
