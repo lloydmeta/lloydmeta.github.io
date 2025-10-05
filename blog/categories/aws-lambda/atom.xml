@@ -4,7 +4,7 @@
   <title><![CDATA[Category: AWS Lambda | BeachApe.]]></title>
   <link href="https://beachape.com/blog/categories/aws-lambda/atom.xml" rel="self"/>
   <link href="https://beachape.com/"/>
-  <updated>2025-10-04T16:49:52+00:00</updated>
+  <updated>2025-10-05T12:06:35+00:00</updated>
   <id>https://beachape.com/</id>
   <author>
     <name><![CDATA[Lloyd]]></name>
@@ -199,9 +199,9 @@ pub async fn serve_asset(Path(asset_path): Path<string>) -&gt; Result&lt;Respons
 } } ```
 </code></pre>
 
-<p>In release builds, <code>Assets::get()</code> returns the file contents from the embedded binary.  In development, it reads from the filesystem.  This saves S3 costs and reduces the number of moving parts in production.</p>
+<p>In release builds, <code>Assets::get()</code> returns the file contents from the embedded binary.  In development, it reads from the filesystem.  This saves S3 costs and reduces the number of moving parts in production, while also being super fast.</p>
 
-<p>The tradeoff is a larger binary size.  The InstaBeach binary is about 93MB, which exceeds Lambda’s 50MB direct upload limit.  But that’s fine—we can upload via S3 during deployment, and the binary still fits well within Lambda’s 250MB limit.</p>
+<p>The tradeoff is a larger binary size.  The InstaBeach binary is about 90MB, and 52MB zipped, which <em>just</em> exceeds Lambda’s 50MB direct upload limit.  But that’s fine—we can upload via S3 during deployment, and the binary still fits well within Lambda’s 250MB limit.</p>
 
 <h3 id="heavy-caching-and-rate-limiting-at-the-cdn">Heavy caching and rate limiting at the CDN</h3>
 
